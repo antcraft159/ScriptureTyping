@@ -1,0 +1,48 @@
+﻿<Window x:Class="ScriptureTyping.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ScriptureTyping.ViewModels"
+        Width="1280"
+        Height="800"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Brush.Bg}">
+
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="56"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="34"/>
+        </Grid.RowDefinitions>
+
+        <!-- TopBar -->
+        <Border Grid.Row="0" Background="{StaticResource Brush.Surface}" Padding="14,10">
+            <DockPanel>
+                <TextBlock Text="{Binding Title}"
+                           Foreground="{StaticResource Brush.Text}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding StatusMessage}"
+                           Foreground="{StaticResource Brush.Muted}"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- 화면 영역 -->
+        <ContentControl Grid.Row="1"
+                        Content="{Binding CurrentViewModel}"/>
+
+        <!-- StatusBar -->
+        <Border Grid.Row="2" Background="{StaticResource Brush.Surface}" Padding="14,6">
+            <TextBlock Text="{Binding FooterRight}"
+                       Foreground="{StaticResource Brush.Muted}"
+                       VerticalAlignment="Center"/>
+        </Border>
+    </Grid>
+</Window>

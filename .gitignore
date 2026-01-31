@@ -1,0 +1,124 @@
+## OS 공통
+# macOS / Windows
+.DS_Store
+Thumbs.db
+ehthumbs.db
+$RECYCLE.BIN/
+
+## Git
+*.orig
+*.rej
+
+## Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.sln.iml
+*.DotSettings.user
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+## 빌드 산출물
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+*.log
+*.tlog
+*.tmp
+*.temp
+*.cache
+*.pch
+ipch/
+*.obj
+*.pdb
+*.idb
+
+## .NET / NuGet
+project.lock.json
+project.fragment.lock.json
+artifacts/
+.nuget/packages/
+packages/
+*.nupkg
+*.snupkg
+*.nuspec
+# 자동 복원되는 assets
+**/packages/**/lib/
+**/packages/**/tools/
+**/packages/**/build/
+**/packages/**/buildTransitive/
+**/packages/**/ref/
+**/packages/**/runtimes/
+
+## MSBuild / Publish
+*.user
+*.rsuser
+*.suo
+*.sln.docstates
+*.userosscache
+*.aps
+*.vspscc
+*.vssscc
+*.psess
+*.vsp
+*.vspx
+*.pidb
+*.svclog
+_ServiceFabric/
+[Tt]est[Rr]esults/
+[Aa]ppPackages/
+[Bb]uild[Ll]og.*
+/**/PublishProfiles/
+**/publish/
+**/AppPackages/
+**/PackageTmp/
+
+## WPF/XAML 생성 파일
+*.g.cs
+*.g.i.cs
+*.baml
+*.xaml.csproj.FileListAbsolute.txt
+
+## Azure / Functions (사용 시)
+local.settings.json
+bin/Release/net*/publish/
+obj/Release/net*/pubtmp/
+
+## Benchmark / Coverage / Analyzers
+BenchmarkDotNet.Artifacts/
+.coverage
+coverage.*
+*.coverage
+*.coveragexml
+*.codecoverage
+*.sarif
+
+## Resharper / NCrunch / StyleCop / Sonar
+_ReSharper*/
+*.DotSettings.user
+ncrunch*
+*.ncrunchsolution
+stylecop.json.cache
+.sonar/
+.scannerwork/
+
+## 이미지/리소스 임시물(툴이 생성하는 캐시)
+*.asset.cache
+*.png.cache
+*.jpg.cache
+
+## SQLite/Local DB (로컬 테스트용이라면 무시)
+*.db
+*.db-shm
+*.db-wal
+*.mdf
+*.ldf
+
+## 기타
+~$*
+*.bak
+*.old
+*.orig
+*.tmp

@@ -5,29 +5,36 @@ namespace ScriptureTyping.ViewModels
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
-        private object? _currentViewModel;
+        private object? _currentContentViewModel;
 
         public string Title { get; } = "2026 상반기 사무엘학교";
 
-        public object? CurrentViewModel
+        // 항상 고정 메뉴 VM
+        public MainMenuViewModel MenuViewModel { get; }
+
+        // 오른쪽 화면만 바뀌는 VM
+        public object? CurrentContentViewModel
         {
-            get => _currentViewModel;
+            get => _currentContentViewModel;
             set
             {
-                if (Equals(_currentViewModel, value)) return;
-                _currentViewModel = value;
+                if (Equals(_currentContentViewModel, value)) return;
+                _currentContentViewModel = value;
                 OnPropertyChanged();
             }
         }
 
         public MainWindowViewModel()
         {
-            CurrentViewModel = new MainMenuViewModel(NavigateTo, ExitApp);
+            MenuViewModel = new MainMenuViewModel(NavigateToContent, ExitApp);
+
+            // 앱 처음 켰을 때 오른쪽은 비워두거나 기본 화면 지정
+            CurrentContentViewModel = null;
         }
 
-        private void NavigateTo(object vm)
+        private void NavigateToContent(object vm)
         {
-            CurrentViewModel = vm;
+            CurrentContentViewModel = vm;
         }
 
         private void ExitApp()

@@ -1,5 +1,4 @@
-﻿// MainMenuViewModel.cs
-using ScriptureTyping.Commands;
+﻿using ScriptureTyping.Commands;
 using System;
 using System.Windows.Input;
 

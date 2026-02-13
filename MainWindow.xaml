@@ -1,4 +1,5 @@
-﻿<Window x:Class="ScriptureTyping.MainWindow"
+﻿<!-- 파일명: MainWindow.xaml -->
+<Window x:Class="ScriptureTyping.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:ScriptureTyping.ViewModels"
@@ -20,7 +21,9 @@
         </Grid.RowDefinitions>
 
         <!-- TopBar -->
-        <Border Grid.Row="0" Background="{StaticResource Brush.Surface}" Padding="14,10">
+        <Border Grid.Row="0"
+                Background="{StaticResource Brush.Surface}"
+                Padding="14,10">
             <DockPanel>
                 <TextBlock Text="{Binding Title}"
                            Foreground="{StaticResource Brush.Text}"
@@ -35,24 +38,28 @@
             </DockPanel>
         </Border>
 
-        <!-- 메인 영역: 메뉴 고정 -->
-        <Grid Grid.Row="1" Background="{StaticResource Brush.Bg}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- Main: 콘텐츠는 오른쪽으로 "손잡이 폭만큼"만 밀고, 메뉴는 오버레이 -->
+        <Grid Grid.Row="1"
+              Background="{StaticResource Brush.Bg}"
+              ClipToBounds="False">
 
-            <!-- 메뉴 바 -->
-            <views:MainMenu Grid.Column="0"
-                            DataContext="{Binding MenuViewModel}"/>
+            <!-- ✅ 화면 전환 콘텐츠: MENU 손잡이(피크) 폭만큼만 안전 여백 확보 -->
+            <ContentControl Content="{Binding CurrentContentViewModel}"
+                            Margin="{StaticResource Layout.MenuPeekMargin}"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch"/>
 
-            <!-- 여기만 화면 전환 -->
-            <ContentControl Grid.Column="1"
-                            Content="{Binding CurrentContentViewModel}"/>
+            <!-- 메뉴: 항상 위로 덮어서 -->
+            <views:MainMenu DataContext="{Binding MenuViewModel}"
+                            Panel.ZIndex="300"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Stretch"/>
         </Grid>
 
         <!-- StatusBar -->
-        <Border Grid.Row="2" Background="{StaticResource Brush.Surface}" Padding="14,6">
+        <Border Grid.Row="2"
+                Background="{StaticResource Brush.Surface}"
+                Padding="14,6">
             <TextBlock Text="{Binding FooterRight}"
                        Foreground="{StaticResource Brush.Muted}"
                        VerticalAlignment="Center"/>

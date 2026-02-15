@@ -357,7 +357,7 @@ namespace ScriptureTyping.Data
         };
 
         /// <summary>
-        /// ✅ 포함(누적) 규칙:
+        /// 포함(누적) 규칙:
         /// 같은 day에서 1과정 ~ 선택 과정까지 누적
         /// 예) GetAccumulated(3,1) => (1,1)+(2,1)+(3,1)
         /// 예) GetAccumulated(3,2) => (1,2)+(2,2)+(3,2)

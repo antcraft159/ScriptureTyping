@@ -17,7 +17,6 @@
                 Margin="24">
 
             <Border.RenderTransform>
-                <!-- 215중 44만 보이게: -(215-44) = -171 -->
                 <TranslateTransform X="-200"/>
             </Border.RenderTransform>
 

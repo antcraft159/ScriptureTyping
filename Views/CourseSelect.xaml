@@ -1,4 +1,3 @@
-<!-- ScriptureTyping/Views/CourseSelect.xaml -->
 <UserControl x:Class="ScriptureTyping.Views.CourseSelect"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -199,10 +198,8 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="12"/>
-
-                            <!-- 입력창 높이 줄임 (기존 220 -> 160) -->
                             <RowDefinition Height="160"/>
-
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="12"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="12"/>
@@ -229,7 +226,7 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- 입력 ( placeholder 고침: TextBox.Text 기준) -->
+                        <!-- 입력 -->
                         <Border Grid.Row="2"
                                 Background="{StaticResource Brush.Bg}"
                                 BorderBrush="{StaticResource Brush.Border}"
@@ -237,7 +234,6 @@
                                 CornerRadius="8"
                                 Padding="12">
                             <Grid>
-                                <!-- 실제 입력 -->
                                 <TextBox x:Name="TypingBox"
                                          Text="{Binding Typing.UserTypedText, UpdateSourceTrigger=PropertyChanged}"
                                          Foreground="{StaticResource Brush.Text}"
@@ -251,7 +247,6 @@
                                          Padding="3,4,6,4"
                                          IsReadOnly="{Binding Typing.IsTypingLocked}"/>
 
-                                <!-- placeholder -->
                                 <TextBlock Text="여기에 타이핑하세요…"
                                            Foreground="{StaticResource Brush.Text2}"
                                            FontSize="20"
@@ -275,8 +270,15 @@
                             </Grid>
                         </Border>
 
+                        <!-- 오타 표시 -->
+                        <TextBlock Grid.Row="3"
+                                   Text="{Binding Typing.CurrentMistakeCount, Mode=OneWay, StringFormat=오타 {0}개}"
+                                   Foreground="{StaticResource Brush.Text2}"
+                                   FontSize="13"
+                                   Margin="6,6,0,0"/>
+
                         <!-- 다음 구절 -->
-                        <StackPanel Grid.Row="4"
+                        <StackPanel Grid.Row="5"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Right">
                             <Button Content="다음 구절"
@@ -285,13 +287,13 @@
                         </StackPanel>
 
                         <!-- 통계 -->
-                        <Border Grid.Row="6"
+                        <Border Grid.Row="7"
                                 Background="{StaticResource Brush.Bg}"
                                 BorderBrush="{StaticResource Brush.Border}"
                                 BorderThickness="1"
-                                CornerRadius="8"
+                                CornerRadius="10"
                                 Padding="12"
-                                Visibility="{Binding Typing.IsStatsVisible, Converter={StaticResource BoolToVis}}">
+                                Visibility="{Binding Typing.IsStatsVisible, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                             <StackPanel>
                                 <TextBlock Text="결과"
                                            Foreground="{StaticResource Brush.Text}"
@@ -299,48 +301,161 @@
                                            FontWeight="SemiBold"
                                            Margin="0,0,0,6"/>
 
-                                <TextBlock Text="{Binding Typing.StatsSummary}"
+                                <TextBlock Text="{Binding Typing.StatsSummary, Mode=OneWay}"
                                            Foreground="{StaticResource Brush.Text2}"
                                            FontSize="13"
                                            Margin="0,0,0,10"/>
 
-                                <ItemsControl ItemsSource="{Binding Typing.Results}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Padding="8"
-                                                    Margin="0,0,0,6"
-                                                    CornerRadius="6"
-                                                    Background="#0FFFFFFF">
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding Ref}"
-                                                               Foreground="{StaticResource Brush.Text2}"
-                                                               FontSize="12"/>
+                                <!-- ✅ 정답/오답 2열 + 아래 점수/비율 표시 -->
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="12"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                                    <TextBlock Text="{Binding Expected}"
-                                                               Foreground="{StaticResource Brush.Text}"
-                                                               TextWrapping="Wrap"
-                                                               Margin="0,4,0,0"/>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                                                    <TextBlock Text="{Binding Typed}"
-                                                               Foreground="#EF4444"
-                                                               TextWrapping="Wrap"
-                                                               Margin="0,4,0,0">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsCorrect}" Value="False">
-                                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                    <!-- 정답 -->
+                                    <Border Grid.Row="0" Grid.Column="0"
+                                            Background="#0FFFFFFF"
+                                            CornerRadius="8"
+                                            Padding="10">
+                                        <StackPanel>
+                                            <TextBlock Text="정답"
+                                                       Foreground="{StaticResource Brush.Text}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="20"
+                                                       Margin="0,0,0,8"/>
+
+                                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                          HorizontalScrollBarVisibility="Disabled"
+                                                          MaxHeight="300">
+                                                <ItemsControl ItemsSource="{Binding Typing.CorrectResults, Mode=OneWay}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Padding="8"
+                                                                    Margin="0,0,0,6"
+                                                                    CornerRadius="6"
+                                                                    Background="#0FFFFFFF">
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Ref}"
+                                                                               Foreground="{StaticResource Brush.Text2}"
+                                                                               FontSize="12"/>
+                                                                    <TextBlock Text="{Binding Expected}"
+                                                                               Foreground="{StaticResource Brush.Text}"
+                                                                               TextWrapping="Wrap"
+                                                                               Margin="0,4,0,0"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- 오답 -->
+                                    <Border Grid.Row="0" Grid.Column="2"
+                                            Background="#0FFFFFFF"
+                                            CornerRadius="8"
+                                            Padding="10">
+                                        <StackPanel>
+                                            <TextBlock Text="오답"
+                                                       Foreground="{StaticResource Brush.Text}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="20"
+                                                       Margin="0,0,0,8"/>
+
+                                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                          HorizontalScrollBarVisibility="Disabled"
+                                                          MaxHeight="300">
+                                                <ItemsControl ItemsSource="{Binding Typing.WrongResults, Mode=OneWay}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Padding="8"
+                                                                    Margin="0,0,0,6"
+                                                                    CornerRadius="6"
+                                                                    Background="#0FFFFFFF">
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Ref}"
+                                                                               Foreground="{StaticResource Brush.Text2}"
+                                                                               FontSize="12"/>
+
+                                                                    <TextBlock Text="{Binding Expected}"
+                                                                               Foreground="{StaticResource Brush.Text}"
+                                                                               TextWrapping="Wrap"
+                                                                               Margin="0,4,0,0"/>
+
+                                                                    <TextBlock Text="{Binding Typed}"
+                                                                               Foreground="#EF4444"
+                                                                               TextWrapping="Wrap"
+                                                                               Margin="0,4,0,0"/>
+
+                                                                    <TextBlock Text="{Binding MistakeCount, StringFormat=오타 {0}개}"
+                                                                               Foreground="{StaticResource Brush.Text2}"
+                                                                               FontSize="12"
+                                                                               Margin="0,4,0,0"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!--  아래: 비율 + 점수(빈공간 채우기) -->
+                                    <Border Grid.Row="2" Grid.ColumnSpan="3"
+                                            Background="#0FFFFFFF"
+                                            CornerRadius="8"
+                                            Padding="12">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- 정답 비율 -->
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding Typing.CorrectRatePercent, Mode=OneWay, StringFormat=정답 비율 {0}%}"
+                                                           Foreground="{StaticResource Brush.Text2}"
+                                                           FontSize="20"
+                                                           Margin="0,0,0,6"/>
+                                                <ProgressBar Minimum="0"
+                                                             Maximum="100"
+                                                             Height="10"
+                                                             Value="{Binding Typing.CorrectRatePercent, Mode=OneWay}"/>
+                                            </StackPanel>
+
+                                            <!-- 오답 비율 -->
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="{Binding Typing.WrongRatePercent, Mode=OneWay, StringFormat=오답 비율 {0}%}"
+                                                           Foreground="{StaticResource Brush.Text2}"
+                                                           FontSize="20"
+                                                           Margin="0,0,0,6"/>
+                                                <ProgressBar Minimum="0"
+                                                             Maximum="100"
+                                                             Height="10"
+                                                             Value="{Binding Typing.WrongRatePercent, Mode=OneWay}"/>
+                                            </StackPanel>
+
+                                            <!-- 중앙 점수 -->
+                                            <TextBlock Grid.ColumnSpan="3"
+                                                       Text="{Binding Typing.ScoreOutOf100, Mode=OneWay, StringFormat=점수: {0}점 / 100점}"
+                                                       Foreground="{StaticResource Brush.Text}"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Top"
+                                                       Margin="0,18,0,0"/> 
+                                        </Grid>
+                                    </Border>
+                                </Grid>
                             </StackPanel>
                         </Border>
                     </Grid>

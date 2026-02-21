@@ -19,4 +19,13 @@
     <SolidColorBrush x:Key="Brush.Text2" Color="{StaticResource Color.Text2}"/>
     <SolidColorBrush x:Key="Brush.Muted" Color="{StaticResource Color.Muted}"/>
 
+    <Thickness x:Key="Layout.MenuSafeMargin">20,0,0,0</Thickness>
+    <Thickness x:Key="Layout.MenuPeekMargin">0,0,0,0</Thickness>
+
+    <Style x:Key="Style.MenuSafeBorder" TargetType="Border">
+        <Setter Property="Margin" Value="{StaticResource Layout.MenuSafeMargin}"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+    </Style>
+
 </ResourceDictionary>

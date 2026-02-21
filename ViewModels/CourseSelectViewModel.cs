@@ -1,5 +1,7 @@
-﻿using ScriptureTyping.Commands; // RelayCommand
-using ScriptureTyping.Data;     // VerseCatalog
+﻿// 파일명: ViewModels/CourseSelectViewModel.cs
+using ScriptureTyping.Commands;
+using ScriptureTyping.Data;
+using ScriptureTyping.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,20 +13,17 @@ using System.Windows.Input;
 
 namespace ScriptureTyping.ViewModels
 {
-    /// <summary>
-    /// 목적: 한 구절에 대한 타이핑 결과(정답/오답, 입력값)를 표시하기 위한 항목 모델.
-    /// </summary>
     public sealed class CourseTypingResultItem
     {
         public string Ref { get; init; } = string.Empty;
         public string Expected { get; init; } = string.Empty;
         public string Typed { get; init; } = string.Empty;
         public bool IsCorrect { get; init; }
+
+        // ✅ 추가: 오타 개수
+        public int MistakeCount { get; init; }
     }
 
-    /// <summary>
-    /// 목적: 과정/일차 선택 + 구절 학습(타이핑) 진행 + 결과 통계를 관리하는 ViewModel.
-    /// </summary>
     public sealed class CourseSelectViewModel : INotifyPropertyChanged
     {
         private const string ALL_DAY_TEXT = "전일차";
@@ -65,6 +64,14 @@ namespace ScriptureTyping.ViewModels
         private bool _isStatsVisible;
         private string _statsSummary = string.Empty;
 
+        // ✅ 추가: 현재 오타 개수(입력 중 실시간 표시)
+        private int _currentMistakeCount;
+
+        // ✅ 추가: 비율/점수 표시
+        private double _correctRatePercent;
+        private double _wrongRatePercent;
+        private int _scoreOutOf100;
+
         public ObservableCollection<string> Courses { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> Days { get; } = new ObservableCollection<string>();
 
@@ -72,19 +79,20 @@ namespace ScriptureTyping.ViewModels
 
         public ObservableCollection<CourseTypingResultItem> Results { get; } = new ObservableCollection<CourseTypingResultItem>();
 
+        // ✅ 추가: 정답/오답만 따로 보여줄 컬렉션
+        public ObservableCollection<CourseTypingResultItem> CorrectResults { get; } = new ObservableCollection<CourseTypingResultItem>();
+        public ObservableCollection<CourseTypingResultItem> WrongResults { get; } = new ObservableCollection<CourseTypingResultItem>();
+
         public ICommand StartLearningCommand { get; }
         public ICommand NextVerseCommand { get; }
+        public CourseSelectViewModel Typing => this;
 
         public bool UseAccumulated
         {
             get => _useAccumulated;
             set
             {
-                if (_useAccumulated == value)
-                {
-                    return;
-                }
-
+                if (_useAccumulated == value) return;
                 _useAccumulated = value;
                 OnPropertyChanged();
             }
@@ -95,11 +103,7 @@ namespace ScriptureTyping.ViewModels
             get => _selectedCourse;
             set
             {
-                if (_selectedCourse == value)
-                {
-                    return;
-                }
-
+                if (_selectedCourse == value) return;
                 _selectedCourse = value;
                 OnPropertyChanged();
                 ValidateSelection(clearOnly: true);
@@ -111,11 +115,7 @@ namespace ScriptureTyping.ViewModels
             get => _selectedDay;
             set
             {
-                if (_selectedDay == value)
-                {
-                    return;
-                }
-
+                if (_selectedDay == value) return;
                 _selectedDay = value;
                 OnPropertyChanged();
                 ValidateSelection(clearOnly: true);
@@ -127,11 +127,7 @@ namespace ScriptureTyping.ViewModels
             get => _courseErrorMessage;
             set
             {
-                if (_courseErrorMessage == value)
-                {
-                    return;
-                }
-
+                if (_courseErrorMessage == value) return;
                 _courseErrorMessage = value;
                 OnPropertyChanged();
             }
@@ -142,11 +138,7 @@ namespace ScriptureTyping.ViewModels
             get => _currentVerseRef;
             private set
             {
-                if (_currentVerseRef == value)
-                {
-                    return;
-                }
-
+                if (_currentVerseRef == value) return;
                 _currentVerseRef = value;
                 OnPropertyChanged();
             }
@@ -157,13 +149,12 @@ namespace ScriptureTyping.ViewModels
             get => _currentVerseText;
             private set
             {
-                if (_currentVerseText == value)
-                {
-                    return;
-                }
-
+                if (_currentVerseText == value) return;
                 _currentVerseText = value;
                 OnPropertyChanged();
+
+                // ✅ 정답 구절이 바뀌면 오타 재계산
+                RecalcMistakes();
             }
         }
 
@@ -172,13 +163,12 @@ namespace ScriptureTyping.ViewModels
             get => _userTypedText;
             set
             {
-                if (_userTypedText == value)
-                {
-                    return;
-                }
-
+                if (_userTypedText == value) return;
                 _userTypedText = value;
                 OnPropertyChanged();
+
+                // ✅ 입력 바뀔 때마다 오타 재계산
+                RecalcMistakes();
             }
         }
 
@@ -187,11 +177,7 @@ namespace ScriptureTyping.ViewModels
             get => _isTypingLocked;
             private set
             {
-                if (_isTypingLocked == value)
-                {
-                    return;
-                }
-
+                if (_isTypingLocked == value) return;
                 _isTypingLocked = value;
                 OnPropertyChanged();
                 CommandManager.InvalidateRequerySuggested();
@@ -203,11 +189,7 @@ namespace ScriptureTyping.ViewModels
             get => _isSetCompleted;
             private set
             {
-                if (_isSetCompleted == value)
-                {
-                    return;
-                }
-
+                if (_isSetCompleted == value) return;
                 _isSetCompleted = value;
                 OnPropertyChanged();
                 CommandManager.InvalidateRequerySuggested();
@@ -219,11 +201,7 @@ namespace ScriptureTyping.ViewModels
             get => _isCompletionPopupVisible;
             private set
             {
-                if (_isCompletionPopupVisible == value)
-                {
-                    return;
-                }
-
+                if (_isCompletionPopupVisible == value) return;
                 _isCompletionPopupVisible = value;
                 OnPropertyChanged();
             }
@@ -234,11 +212,7 @@ namespace ScriptureTyping.ViewModels
             get => _completionPopupText;
             private set
             {
-                if (_completionPopupText == value)
-                {
-                    return;
-                }
-
+                if (_completionPopupText == value) return;
                 _completionPopupText = value;
                 OnPropertyChanged();
             }
@@ -249,11 +223,7 @@ namespace ScriptureTyping.ViewModels
             get => _correctCount;
             private set
             {
-                if (_correctCount == value)
-                {
-                    return;
-                }
-
+                if (_correctCount == value) return;
                 _correctCount = value;
                 OnPropertyChanged();
             }
@@ -264,11 +234,7 @@ namespace ScriptureTyping.ViewModels
             get => _wrongCount;
             private set
             {
-                if (_wrongCount == value)
-                {
-                    return;
-                }
-
+                if (_wrongCount == value) return;
                 _wrongCount = value;
                 OnPropertyChanged();
             }
@@ -279,11 +245,7 @@ namespace ScriptureTyping.ViewModels
             get => _totalCount;
             private set
             {
-                if (_totalCount == value)
-                {
-                    return;
-                }
-
+                if (_totalCount == value) return;
                 _totalCount = value;
                 OnPropertyChanged();
             }
@@ -294,11 +256,7 @@ namespace ScriptureTyping.ViewModels
             get => _isStatsVisible;
             private set
             {
-                if (_isStatsVisible == value)
-                {
-                    return;
-                }
-
+                if (_isStatsVisible == value) return;
                 _isStatsVisible = value;
                 OnPropertyChanged();
             }
@@ -309,34 +267,69 @@ namespace ScriptureTyping.ViewModels
             get => _statsSummary;
             private set
             {
-                if (_statsSummary == value)
-                {
-                    return;
-                }
-
+                if (_statsSummary == value) return;
                 _statsSummary = value;
                 OnPropertyChanged();
             }
         }
 
-        /// <summary>
-        /// 생성자: 과정/일차 선택 목록 초기화 및 커맨드 바인딩을 구성한다.
-        /// </summary>
-        /// <param name="navigate">페이지 전환 콜백</param>
+        // ✅ 화면에 표시할 현재 오타 개수
+        public int CurrentMistakeCount
+        {
+            get => _currentMistakeCount;
+            private set
+            {
+                if (_currentMistakeCount == value) return;
+                _currentMistakeCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // ✅ 정답/오답 비율(%)
+        public double CorrectRatePercent
+        {
+            get => _correctRatePercent;
+            private set
+            {
+                if (Math.Abs(_correctRatePercent - value) < 0.0001) return;
+                _correctRatePercent = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double WrongRatePercent
+        {
+            get => _wrongRatePercent;
+            private set
+            {
+                if (Math.Abs(_wrongRatePercent - value) < 0.0001) return;
+                _wrongRatePercent = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // ✅ 100점 만점 점수
+        public int ScoreOutOf100
+        {
+            get => _scoreOutOf100;
+            private set
+            {
+                if (_scoreOutOf100 == value) return;
+                _scoreOutOf100 = value;
+                OnPropertyChanged();
+            }
+        }
+
         public CourseSelectViewModel(Action<object> navigate)
         {
             _navigate = navigate;
 
             for (int i = 1; i <= VerseCatalog.MAX_COURSE; i++)
-            {
                 Courses.Add($"{i}과정");
-            }
 
             Days.Add(ALL_DAY_TEXT);
             for (int d = 1; d <= VerseCatalog.MAX_DAY; d++)
-            {
                 Days.Add($"{d}일차");
-            }
 
             SelectedCourse = null;
             SelectedDay = null;
@@ -347,10 +340,7 @@ namespace ScriptureTyping.ViewModels
 
         private void StartLearning(object? _)
         {
-            if (!ValidateSelection(clearOnly: false))
-            {
-                return;
-            }
+            if (!ValidateSelection(clearOnly: false)) return;
 
             int course = ParseCourseNo(SelectedCourse!);
             _verses = BuildVerseList(course, SelectedDay!);
@@ -362,9 +352,19 @@ namespace ScriptureTyping.ViewModels
             StatsSummary = string.Empty;
 
             Results.Clear();
+            CorrectResults.Clear();
+            WrongResults.Clear();
+
             CorrectCount = 0;
             WrongCount = 0;
             TotalCount = _verses.Count;
+
+            CurrentMistakeCount = 0;
+
+            // ✅ 시작 시 점수/비율 초기화
+            CorrectRatePercent = 0;
+            WrongRatePercent = 0;
+            ScoreOutOf100 = 0;
 
             if (_verses.Count == 0)
             {
@@ -386,10 +386,7 @@ namespace ScriptureTyping.ViewModels
 
         private void NextVerse()
         {
-            if (!CanNextVerse())
-            {
-                return;
-            }
+            if (!CanNextVerse()) return;
 
             EvaluateCurrentVerse();
 
@@ -402,17 +399,11 @@ namespace ScriptureTyping.ViewModels
             CompleteSet();
         }
 
-        private bool CanNextVerse()
-        {
-            return !IsTypingLocked && !IsSetCompleted && _currentVerse != null;
-        }
+        private bool CanNextVerse() => !IsTypingLocked && !IsSetCompleted && _currentVerse != null;
 
         private void ShowNextVerseInternal()
         {
-            if (_queue.Count == 0)
-            {
-                return;
-            }
+            if (_queue.Count == 0) return;
 
             Verse verse = _queue.Dequeue();
             _currentVerse = verse;
@@ -422,37 +413,42 @@ namespace ScriptureTyping.ViewModels
 
             UserTypedText = string.Empty;
 
+            // ✅ 새 구절 시작하면 오타 0으로
+            CurrentMistakeCount = 0;
+
             CommandManager.InvalidateRequerySuggested();
         }
 
         private void EvaluateCurrentVerse()
         {
-            if (_currentVerse == null)
-            {
-                return;
-            }
+            if (_currentVerse == null) return;
 
-            string expected = Normalize(_currentVerse.Text);
-            string typed = Normalize(UserTypedText);
+            string expectedNorm = TypingEvaluator.Normalize(_currentVerse.Text);
+            string typedNorm = TypingEvaluator.Normalize(UserTypedText);
 
-            bool isCorrect = string.Equals(expected, typed, StringComparison.Ordinal);
+            bool isCorrect = string.Equals(expectedNorm, typedNorm, StringComparison.Ordinal);
 
-            Results.Add(new CourseTypingResultItem
+            int mistakes = TypingEvaluator.CountMistakes(_currentVerse.Text, UserTypedText);
+
+            CourseTypingResultItem item = new CourseTypingResultItem
             {
                 Ref = _currentVerse.Ref,
                 Expected = _currentVerse.Text,
                 Typed = UserTypedText,
-                IsCorrect = isCorrect
-            });
+                IsCorrect = isCorrect,
+                MistakeCount = mistakes
+            };
 
-            if (isCorrect)
-            {
-                CorrectCount++;
-            }
-            else
-            {
-                WrongCount++;
-            }
+            Results.Add(item);
+
+            if (isCorrect) CorrectResults.Add(item);
+            else WrongResults.Add(item);
+
+            if (isCorrect) CorrectCount++;
+            else WrongCount++;
+
+            // ✅ 채점할 때마다 비율/점수 갱신(완료 전에도 표시 가능)
+            UpdateRatesAndScore();
         }
 
         private void CompleteSet()
@@ -461,10 +457,36 @@ namespace ScriptureTyping.ViewModels
             IsTypingLocked = true;
 
             IsStatsVisible = true;
-            StatsSummary = $"총 {TotalCount}개 중 정답 {CorrectCount}개 / 오답 {WrongCount}개";
+
+            int totalMistakes = Results.Sum(x => x.MistakeCount);
+            StatsSummary = $"총 {TotalCount}개 중 정답 {CorrectCount}개 / 오답 {WrongCount}개 / 오타합계 {totalMistakes}";
+
+            // ✅ 마지막으로 한 번 더 확정 갱신
+            UpdateRatesAndScore();
 
             CommandManager.InvalidateRequerySuggested();
             _ = ShowCompletionPopupAsync();
+        }
+
+        private void UpdateRatesAndScore()
+        {
+            int total = TotalCount <= 0 ? Results.Count : TotalCount;
+            if (total <= 0)
+            {
+                CorrectRatePercent = 0;
+                WrongRatePercent = 0;
+                ScoreOutOf100 = 0;
+                return;
+            }
+
+            double correctRate = (double)CorrectCount / total * 100.0;
+            double wrongRate = (double)WrongCount / total * 100.0;
+
+            CorrectRatePercent = Math.Round(correctRate, 1);
+            WrongRatePercent = Math.Round(wrongRate, 1);
+
+            // 점수 = 정답률을 100점 환산(반올림)
+            ScoreOutOf100 = (int)Math.Round(correctRate, MidpointRounding.AwayFromZero);
         }
 
         private async Task ShowCompletionPopupAsync()
@@ -495,7 +517,6 @@ namespace ScriptureTyping.ViewModels
             if (selectedDay == ALL_DAY_TEXT)
             {
                 List<Verse> all = new List<Verse>();
-
                 for (int day = 1; day <= VerseCatalog.MAX_DAY; day++)
                 {
                     IReadOnlyList<Verse> list = UseAccumulated
@@ -505,10 +526,7 @@ namespace ScriptureTyping.ViewModels
                     all.AddRange(list);
                 }
 
-                return all
-                    .GroupBy(v => v.Ref)
-                    .Select(g => g.First())
-                    .ToList();
+                return all.GroupBy(v => v.Ref).Select(g => g.First()).ToList();
             }
 
             int oneDay = ParseDayNo(selectedDay);
@@ -532,16 +550,15 @@ namespace ScriptureTyping.ViewModels
             return int.TryParse(digits, out int n) ? n : 1;
         }
 
-        private static string Normalize(string? s)
+        private void RecalcMistakes()
         {
-            if (string.IsNullOrEmpty(s))
+            if (_currentVerse == null)
             {
-                return string.Empty;
+                CurrentMistakeCount = 0;
+                return;
             }
 
-            return s.Replace("\r\n", "\n")
-                .Replace("\r", "\n")
-                .Trim();
+            CurrentMistakeCount = TypingEvaluator.CountMistakes(_currentVerse.Text, UserTypedText);
         }
 
         private bool ValidateSelection(bool clearOnly)
@@ -554,23 +571,14 @@ namespace ScriptureTyping.ViewModels
                 return true;
             }
 
-            if (clearOnly)
-            {
-                return false;
-            }
+            if (clearOnly) return false;
 
             if (string.IsNullOrWhiteSpace(SelectedCourse) && string.IsNullOrWhiteSpace(SelectedDay))
-            {
                 CourseErrorMessage = EMPTY_SELECTION_TEXT;
-            }
             else if (string.IsNullOrWhiteSpace(SelectedCourse))
-            {
                 CourseErrorMessage = EMPTY_COURSE_TEXT;
-            }
             else
-            {
                 CourseErrorMessage = EMPTY_DAY_TEXT;
-            }
 
             return false;
         }
@@ -578,8 +586,6 @@ namespace ScriptureTyping.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

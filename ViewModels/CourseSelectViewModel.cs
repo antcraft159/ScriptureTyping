@@ -1,6 +1,7 @@
 ﻿// 파일명: ViewModels/CourseSelectViewModel.cs
 using ScriptureTyping.Commands;
 using ScriptureTyping.Data;
+using ScriptureTyping.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,6 +19,9 @@ namespace ScriptureTyping.ViewModels
         public string Expected { get; init; } = string.Empty;
         public string Typed { get; init; } = string.Empty;
         public bool IsCorrect { get; init; }
+
+        // ✅ 추가: 오타 개수
+        public int MistakeCount { get; init; }
     }
 
     public sealed class CourseSelectViewModel : INotifyPropertyChanged
@@ -60,6 +64,14 @@ namespace ScriptureTyping.ViewModels
         private bool _isStatsVisible;
         private string _statsSummary = string.Empty;
 
+        // ✅ 추가: 현재 오타 개수(입력 중 실시간 표시)
+        private int _currentMistakeCount;
+
+        // ✅ 추가: 비율/점수 표시
+        private double _correctRatePercent;
+        private double _wrongRatePercent;
+        private int _scoreOutOf100;
+
         public ObservableCollection<string> Courses { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> Days { get; } = new ObservableCollection<string>();
 
@@ -67,10 +79,12 @@ namespace ScriptureTyping.ViewModels
 
         public ObservableCollection<CourseTypingResultItem> Results { get; } = new ObservableCollection<CourseTypingResultItem>();
 
+        // ✅ 추가: 정답/오답만 따로 보여줄 컬렉션
+        public ObservableCollection<CourseTypingResultItem> CorrectResults { get; } = new ObservableCollection<CourseTypingResultItem>();
+        public ObservableCollection<CourseTypingResultItem> WrongResults { get; } = new ObservableCollection<CourseTypingResultItem>();
+
         public ICommand StartLearningCommand { get; }
         public ICommand NextVerseCommand { get; }
-
-        // ✅ 추가: XAML의 Typing.* 바인딩을 살리기 위한 브릿지
         public CourseSelectViewModel Typing => this;
 
         public bool UseAccumulated
@@ -138,6 +152,9 @@ namespace ScriptureTyping.ViewModels
                 if (_currentVerseText == value) return;
                 _currentVerseText = value;
                 OnPropertyChanged();
+
+                // ✅ 정답 구절이 바뀌면 오타 재계산
+                RecalcMistakes();
             }
         }
 
@@ -149,6 +166,9 @@ namespace ScriptureTyping.ViewModels
                 if (_userTypedText == value) return;
                 _userTypedText = value;
                 OnPropertyChanged();
+
+                // ✅ 입력 바뀔 때마다 오타 재계산
+                RecalcMistakes();
             }
         }
 
@@ -253,6 +273,53 @@ namespace ScriptureTyping.ViewModels
             }
         }
 
+        // ✅ 화면에 표시할 현재 오타 개수
+        public int CurrentMistakeCount
+        {
+            get => _currentMistakeCount;
+            private set
+            {
+                if (_currentMistakeCount == value) return;
+                _currentMistakeCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // ✅ 정답/오답 비율(%)
+        public double CorrectRatePercent
+        {
+            get => _correctRatePercent;
+            private set
+            {
+                if (Math.Abs(_correctRatePercent - value) < 0.0001) return;
+                _correctRatePercent = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double WrongRatePercent
+        {
+            get => _wrongRatePercent;
+            private set
+            {
+                if (Math.Abs(_wrongRatePercent - value) < 0.0001) return;
+                _wrongRatePercent = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // ✅ 100점 만점 점수
+        public int ScoreOutOf100
+        {
+            get => _scoreOutOf100;
+            private set
+            {
+                if (_scoreOutOf100 == value) return;
+                _scoreOutOf100 = value;
+                OnPropertyChanged();
+            }
+        }
+
         public CourseSelectViewModel(Action<object> navigate)
         {
             _navigate = navigate;
@@ -285,9 +352,19 @@ namespace ScriptureTyping.ViewModels
             StatsSummary = string.Empty;
 
             Results.Clear();
+            CorrectResults.Clear();
+            WrongResults.Clear();
+
             CorrectCount = 0;
             WrongCount = 0;
             TotalCount = _verses.Count;
+
+            CurrentMistakeCount = 0;
+
+            // ✅ 시작 시 점수/비율 초기화
+            CorrectRatePercent = 0;
+            WrongRatePercent = 0;
+            ScoreOutOf100 = 0;
 
             if (_verses.Count == 0)
             {
@@ -335,6 +412,10 @@ namespace ScriptureTyping.ViewModels
             CurrentVerseText = verse.Text;
 
             UserTypedText = string.Empty;
+
+            // ✅ 새 구절 시작하면 오타 0으로
+            CurrentMistakeCount = 0;
+
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -342,21 +423,32 @@ namespace ScriptureTyping.ViewModels
         {
             if (_currentVerse == null) return;
 
-            string expected = Normalize(_currentVerse.Text);
-            string typed = Normalize(UserTypedText);
+            string expectedNorm = TypingEvaluator.Normalize(_currentVerse.Text);
+            string typedNorm = TypingEvaluator.Normalize(UserTypedText);
 
-            bool isCorrect = string.Equals(expected, typed, StringComparison.Ordinal);
+            bool isCorrect = string.Equals(expectedNorm, typedNorm, StringComparison.Ordinal);
 
-            Results.Add(new CourseTypingResultItem
+            int mistakes = TypingEvaluator.CountMistakes(_currentVerse.Text, UserTypedText);
+
+            CourseTypingResultItem item = new CourseTypingResultItem
             {
                 Ref = _currentVerse.Ref,
                 Expected = _currentVerse.Text,
                 Typed = UserTypedText,
-                IsCorrect = isCorrect
-            });
+                IsCorrect = isCorrect,
+                MistakeCount = mistakes
+            };
+
+            Results.Add(item);
+
+            if (isCorrect) CorrectResults.Add(item);
+            else WrongResults.Add(item);
 
             if (isCorrect) CorrectCount++;
             else WrongCount++;
+
+            // ✅ 채점할 때마다 비율/점수 갱신(완료 전에도 표시 가능)
+            UpdateRatesAndScore();
         }
 
         private void CompleteSet()
@@ -365,10 +457,36 @@ namespace ScriptureTyping.ViewModels
             IsTypingLocked = true;
 
             IsStatsVisible = true;
-            StatsSummary = $"총 {TotalCount}개 중 정답 {CorrectCount}개 / 오답 {WrongCount}개";
+
+            int totalMistakes = Results.Sum(x => x.MistakeCount);
+            StatsSummary = $"총 {TotalCount}개 중 정답 {CorrectCount}개 / 오답 {WrongCount}개 / 오타합계 {totalMistakes}";
+
+            // ✅ 마지막으로 한 번 더 확정 갱신
+            UpdateRatesAndScore();
 
             CommandManager.InvalidateRequerySuggested();
             _ = ShowCompletionPopupAsync();
+        }
+
+        private void UpdateRatesAndScore()
+        {
+            int total = TotalCount <= 0 ? Results.Count : TotalCount;
+            if (total <= 0)
+            {
+                CorrectRatePercent = 0;
+                WrongRatePercent = 0;
+                ScoreOutOf100 = 0;
+                return;
+            }
+
+            double correctRate = (double)CorrectCount / total * 100.0;
+            double wrongRate = (double)WrongCount / total * 100.0;
+
+            CorrectRatePercent = Math.Round(correctRate, 1);
+            WrongRatePercent = Math.Round(wrongRate, 1);
+
+            // 점수 = 정답률을 100점 환산(반올림)
+            ScoreOutOf100 = (int)Math.Round(correctRate, MidpointRounding.AwayFromZero);
         }
 
         private async Task ShowCompletionPopupAsync()
@@ -432,13 +550,15 @@ namespace ScriptureTyping.ViewModels
             return int.TryParse(digits, out int n) ? n : 1;
         }
 
-        private static string Normalize(string? s)
+        private void RecalcMistakes()
         {
-            if (string.IsNullOrEmpty(s)) return string.Empty;
+            if (_currentVerse == null)
+            {
+                CurrentMistakeCount = 0;
+                return;
+            }
 
-            return s.Replace("\r\n", "\n")
-                .Replace("\r", "\n")
-                .Trim();
+            CurrentMistakeCount = TypingEvaluator.CountMistakes(_currentVerse.Text, UserTypedText);
         }
 
         private bool ValidateSelection(bool clearOnly)

@@ -1,5 +1,4 @@
-﻿// 파일명: ViewModels/CourseSelectViewModel.cs
-using ScriptureTyping.Commands;
+﻿using ScriptureTyping.Commands;
 using ScriptureTyping.Data;
 using ScriptureTyping.Services;
 using System;
@@ -19,8 +18,6 @@ namespace ScriptureTyping.ViewModels
         public string Expected { get; init; } = string.Empty;
         public string Typed { get; init; } = string.Empty;
         public bool IsCorrect { get; init; }
-
-        // ✅ 추가: 오타 개수
         public int MistakeCount { get; init; }
     }
 
@@ -64,13 +61,14 @@ namespace ScriptureTyping.ViewModels
         private bool _isStatsVisible;
         private string _statsSummary = string.Empty;
 
-        // ✅ 추가: 현재 오타 개수(입력 중 실시간 표시)
         private int _currentMistakeCount;
 
-        // ✅ 추가: 비율/점수 표시
         private double _correctRatePercent;
         private double _wrongRatePercent;
         private int _scoreOutOf100;
+
+        //  추가: 구절 가리기
+        private bool _isVerseHidden;
 
         public ObservableCollection<string> Courses { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> Days { get; } = new ObservableCollection<string>();
@@ -78,13 +76,15 @@ namespace ScriptureTyping.ViewModels
         public string AllDay => ALL_DAY_TEXT;
 
         public ObservableCollection<CourseTypingResultItem> Results { get; } = new ObservableCollection<CourseTypingResultItem>();
-
-        // ✅ 추가: 정답/오답만 따로 보여줄 컬렉션
         public ObservableCollection<CourseTypingResultItem> CorrectResults { get; } = new ObservableCollection<CourseTypingResultItem>();
         public ObservableCollection<CourseTypingResultItem> WrongResults { get; } = new ObservableCollection<CourseTypingResultItem>();
 
         public ICommand StartLearningCommand { get; }
         public ICommand NextVerseCommand { get; }
+
+        // ✅ 추가: 토글 커맨드
+        public ICommand ToggleVerseHiddenCommand { get; }
+
         public CourseSelectViewModel Typing => this;
 
         public bool UseAccumulated
@@ -141,6 +141,9 @@ namespace ScriptureTyping.ViewModels
                 if (_currentVerseRef == value) return;
                 _currentVerseRef = value;
                 OnPropertyChanged();
+
+                // ✅ 가림 상태에서 Ref만 바뀌어도 화면 갱신 필요
+                OnPropertyChanged(nameof(CurrentVerseDisplayText));
             }
         }
 
@@ -152,9 +155,40 @@ namespace ScriptureTyping.ViewModels
                 if (_currentVerseText == value) return;
                 _currentVerseText = value;
                 OnPropertyChanged();
-
-                // ✅ 정답 구절이 바뀌면 오타 재계산
+                OnPropertyChanged(nameof(CurrentVerseDisplayText)); // ✅ 표시 텍스트 갱신
                 RecalcMistakes();
+            }
+        }
+
+        // ✅ 추가: 화면에 보여줄 텍스트 (가리면 “몇장몇절(Ref)”만 보이게)
+        public string CurrentVerseDisplayText
+        {
+            get
+            {
+                if (IsVerseHidden)
+                {
+                    // “몇장 몇절만” 보이게: 텍스트 숨김, Ref만 보여주기
+                    // UI에서 Ref는 위에 따로 보이지만, 아래 영역은 비우거나 안내문을 넣고 싶으면 여기서 바꾸면 됨.
+                    return "가림";
+                }
+
+                return CurrentVerseText;
+            }
+        }
+
+        // ✅ 추가: 버튼 표시 문구
+        public string VerseToggleButtonText => IsVerseHidden ? "구절 보기" : "구절 가리기";
+
+        public bool IsVerseHidden
+        {
+            get => _isVerseHidden;
+            private set
+            {
+                if (_isVerseHidden == value) return;
+                _isVerseHidden = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CurrentVerseDisplayText));
+                OnPropertyChanged(nameof(VerseToggleButtonText));
             }
         }
 
@@ -166,8 +200,6 @@ namespace ScriptureTyping.ViewModels
                 if (_userTypedText == value) return;
                 _userTypedText = value;
                 OnPropertyChanged();
-
-                // ✅ 입력 바뀔 때마다 오타 재계산
                 RecalcMistakes();
             }
         }
@@ -273,7 +305,6 @@ namespace ScriptureTyping.ViewModels
             }
         }
 
-        // ✅ 화면에 표시할 현재 오타 개수
         public int CurrentMistakeCount
         {
             get => _currentMistakeCount;
@@ -285,7 +316,6 @@ namespace ScriptureTyping.ViewModels
             }
         }
 
-        // ✅ 정답/오답 비율(%)
         public double CorrectRatePercent
         {
             get => _correctRatePercent;
@@ -308,7 +338,6 @@ namespace ScriptureTyping.ViewModels
             }
         }
 
-        // ✅ 100점 만점 점수
         public int ScoreOutOf100
         {
             get => _scoreOutOf100;
@@ -336,6 +365,12 @@ namespace ScriptureTyping.ViewModels
 
             StartLearningCommand = new RelayCommand(StartLearning, _ => true);
             NextVerseCommand = new RelayCommand(_ => NextVerse(), _ => CanNextVerse());
+
+            // ✅ 토글 커맨드
+            ToggleVerseHiddenCommand = new RelayCommand(_ =>
+            {
+                IsVerseHidden = !IsVerseHidden;
+            }, _ => true);
         }
 
         private void StartLearning(object? _)
@@ -360,11 +395,12 @@ namespace ScriptureTyping.ViewModels
             TotalCount = _verses.Count;
 
             CurrentMistakeCount = 0;
-
-            // ✅ 시작 시 점수/비율 초기화
             CorrectRatePercent = 0;
             WrongRatePercent = 0;
             ScoreOutOf100 = 0;
+
+            // ✅ 학습 시작 시 기본은 “보이기”
+            IsVerseHidden = false;
 
             if (_verses.Count == 0)
             {
@@ -412,8 +448,6 @@ namespace ScriptureTyping.ViewModels
             CurrentVerseText = verse.Text;
 
             UserTypedText = string.Empty;
-
-            // ✅ 새 구절 시작하면 오타 0으로
             CurrentMistakeCount = 0;
 
             CommandManager.InvalidateRequerySuggested();
@@ -427,7 +461,6 @@ namespace ScriptureTyping.ViewModels
             string typedNorm = TypingEvaluator.Normalize(UserTypedText);
 
             bool isCorrect = string.Equals(expectedNorm, typedNorm, StringComparison.Ordinal);
-
             int mistakes = TypingEvaluator.CountMistakes(_currentVerse.Text, UserTypedText);
 
             CourseTypingResultItem item = new CourseTypingResultItem
@@ -447,7 +480,6 @@ namespace ScriptureTyping.ViewModels
             if (isCorrect) CorrectCount++;
             else WrongCount++;
 
-            // ✅ 채점할 때마다 비율/점수 갱신(완료 전에도 표시 가능)
             UpdateRatesAndScore();
         }
 
@@ -455,13 +487,10 @@ namespace ScriptureTyping.ViewModels
         {
             IsSetCompleted = true;
             IsTypingLocked = true;
-
             IsStatsVisible = true;
 
-            int totalMistakes = Results.Sum(x => x.MistakeCount);
-            StatsSummary = $"총 {TotalCount}개 중 정답 {CorrectCount}개 / 오답 {WrongCount}개 / 오타합계 {totalMistakes}";
+            StatsSummary = $"총 {TotalCount}개 중 정답 {CorrectCount}개 / 오답 {WrongCount}개";
 
-            // ✅ 마지막으로 한 번 더 확정 갱신
             UpdateRatesAndScore();
 
             CommandManager.InvalidateRequerySuggested();
@@ -485,7 +514,6 @@ namespace ScriptureTyping.ViewModels
             CorrectRatePercent = Math.Round(correctRate, 1);
             WrongRatePercent = Math.Round(wrongRate, 1);
 
-            // 점수 = 정답률을 100점 환산(반올림)
             ScoreOutOf100 = (int)Math.Round(correctRate, MidpointRounding.AwayFromZero);
         }
 

@@ -46,11 +46,13 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled"
-                  Background="Transparent">
+                  Background="Transparent"
+                  VerticalContentAlignment="Stretch">
 
         <Border Padding="24"
                 Margin="{StaticResource Layout.MenuSafeMargin}"
-                Background="Transparent">
+                Background="Transparent"
+                MinHeight="{Binding RelativeSource={RelativeSource AncestorType=ScrollViewer}, Path=ViewportHeight}">
 
             <Grid HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch">
@@ -213,17 +215,35 @@
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 Padding="12">
-                            <StackPanel>
-                                <TextBlock Text="{Binding Typing.CurrentVerseRef}"
-                                           Foreground="{StaticResource Brush.Text2}"
-                                           FontSize="20"
-                                           Margin="0,0,0,6"/>
-                                <TextBlock Text="{Binding Typing.CurrentVerseText}"
-                                           Foreground="{StaticResource Brush.Text}"
-                                           FontSize="20"
-                                           TextWrapping="Wrap"
-                                           LineHeight="24"/>
-                            </StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 왼쪽: 참조 + 표시 텍스트 -->
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding Typing.CurrentVerseRef}"
+                                               Foreground="{StaticResource Brush.Text2}"
+                                               FontSize="20"
+                                               Margin="0,0,0,6"/>
+                                    <!-- ✅ 변경: CurrentVerseText -> CurrentVerseDisplayText -->
+                                    <TextBlock Text="{Binding Typing.CurrentVerseDisplayText}"
+                                               Foreground="{StaticResource Brush.Text}"
+                                               FontSize="20"
+                                               TextWrapping="Wrap"
+                                               LineHeight="24"/>
+                                </StackPanel>
+
+                                <!-- 오른쪽: 가리기/보기 버튼 -->
+                                <Button Grid.Column="1"
+                                        Margin="12,0,0,0"
+                                        MinWidth="92"
+                                        Height="32"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Content="{Binding Typing.VerseToggleButtonText}"
+                                        Command="{Binding Typing.ToggleVerseHiddenCommand}"/>
+                            </Grid>
                         </Border>
 
                         <!-- 입력 -->
@@ -306,7 +326,6 @@
                                            FontSize="13"
                                            Margin="0,0,0,10"/>
 
-                                <!-- ✅ 정답/오답 2열 + 아래 점수/비율 표시 -->
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -409,12 +428,18 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <!--  아래: 비율 + 점수(빈공간 채우기) -->
+                                    <!--  아래: 비율 + 점수 -->
                                     <Border Grid.Row="2" Grid.ColumnSpan="3"
                                             Background="#0FFFFFFF"
                                             CornerRadius="8"
                                             Padding="12">
                                         <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="10"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="12"/>
@@ -422,7 +447,7 @@
                                             </Grid.ColumnDefinitions>
 
                                             <!-- 정답 비율 -->
-                                            <StackPanel Grid.Column="0">
+                                            <StackPanel Grid.Row="0" Grid.Column="0">
                                                 <TextBlock Text="{Binding Typing.CorrectRatePercent, Mode=OneWay, StringFormat=정답 비율 {0}%}"
                                                            Foreground="{StaticResource Brush.Text2}"
                                                            FontSize="20"
@@ -434,7 +459,7 @@
                                             </StackPanel>
 
                                             <!-- 오답 비율 -->
-                                            <StackPanel Grid.Column="2">
+                                            <StackPanel Grid.Row="0" Grid.Column="2">
                                                 <TextBlock Text="{Binding Typing.WrongRatePercent, Mode=OneWay, StringFormat=오답 비율 {0}%}"
                                                            Foreground="{StaticResource Brush.Text2}"
                                                            FontSize="20"
@@ -445,14 +470,14 @@
                                                              Value="{Binding Typing.WrongRatePercent, Mode=OneWay}"/>
                                             </StackPanel>
 
-                                            <!-- 중앙 점수 -->
-                                            <TextBlock Grid.ColumnSpan="3"
+                                            <!--  중앙 점수 -->
+                                            <TextBlock Grid.Row="2"
+                                                       Grid.ColumnSpan="3"
                                                        Text="{Binding Typing.ScoreOutOf100, Mode=OneWay, StringFormat=점수: {0}점 / 100점}"
                                                        Foreground="{StaticResource Brush.Text}"
                                                        FontWeight="SemiBold"
                                                        HorizontalAlignment="Center"
-                                                       VerticalAlignment="Top"
-                                                       Margin="0,18,0,0"/> 
+                                                       Margin="0,10,0,0"/>
                                         </Grid>
                                     </Border>
                                 </Grid>

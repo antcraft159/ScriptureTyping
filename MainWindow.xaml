@@ -56,13 +56,6 @@
                             VerticalAlignment="Stretch"/>
         </Grid>
 
-        <!-- StatusBar -->
-        <Border Grid.Row="2"
-                Background="{StaticResource Brush.Surface}"
-                Padding="14,6">
-            <TextBlock Text="{Binding FooterRight}"
-                       Foreground="{StaticResource Brush.Muted}"
-                       VerticalAlignment="Center"/>
-        </Border>
+       
     </Grid>
 </Window>

@@ -1,6 +1,7 @@
 <UserControl x:Class="ScriptureTyping.Views.CourseSelect"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="clr-namespace:ScriptureTyping.Views.Behaviors"
              Background="{StaticResource Brush.Bg}"
              HorizontalAlignment="Stretch"
              VerticalAlignment="Stretch"
@@ -213,17 +214,32 @@
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 Padding="12">
-                            <StackPanel>
-                                <TextBlock Text="{Binding Typing.CurrentVerseRef}"
-                                           Foreground="{StaticResource Brush.Text2}"
-                                           FontSize="20"
-                                           Margin="0,0,0,6"/>
-                                <TextBlock Text="{Binding Typing.CurrentVerseText}"
-                                           Foreground="{StaticResource Brush.Text}"
-                                           FontSize="20"
-                                           TextWrapping="Wrap"
-                                           LineHeight="24"/>
-                            </StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding Typing.CurrentVerseRef}"
+                                               Foreground="{StaticResource Brush.Text2}"
+                                               FontSize="20"
+                                               Margin="0,0,0,6"/>
+                                    <TextBlock Text="{Binding Typing.CurrentVerseDisplayText}"
+                                               Foreground="{StaticResource Brush.Text}"
+                                               FontSize="20"
+                                               TextWrapping="Wrap"
+                                               LineHeight="24"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="1"
+                                        Margin="12,0,0,0"
+                                        MinWidth="92"
+                                        Height="32"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Content="{Binding Typing.VerseToggleButtonText}"
+                                        Command="{Binding Typing.ToggleVerseHiddenCommand}"/>
+                            </Grid>
                         </Border>
 
                         <!-- 입력 -->
@@ -306,7 +322,6 @@
                                            FontSize="13"
                                            Margin="0,0,0,10"/>
 
-                                <!-- ✅ 정답/오답 2열 + 아래 점수/비율 표시 -->
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -391,15 +406,33 @@
                                                                                TextWrapping="Wrap"
                                                                                Margin="0,4,0,0"/>
 
-                                                                    <TextBlock Text="{Binding Typed}"
-                                                                               Foreground="#EF4444"
-                                                                               TextWrapping="Wrap"
-                                                                               Margin="0,4,0,0"/>
+                                                                    <!-- ✅ 오답 표시(빨간 밑줄 + 아래 정답 글자) -->
+                                                                    <Border Margin="0,8,0,0"
+                                                                            Padding="8"
+                                                                            CornerRadius="6"
+                                                                            Background="#12000000">
+                                                                        <StackPanel>
+                                                                            <!-- Typed: 틀린 글자 빨간 밑줄 -->
+                                                                            <TextBlock FontSize="16"
+                                                                                       Foreground="{StaticResource Brush.Text}"
+                                                                                       TextWrapping="Wrap"
+                                                                                       FontFamily="D2Coding, Consolas"
+                                                                                        behaviors:InlineTextBlockBehavior.InlinesSource="{Binding TypedDiffInlines}" />
+
+                                                                            <!-- 아래 정답 힌트: 틀린 위치에만 정답 글자 -->
+                                                                            <TextBlock FontSize="14"
+                                                                                       Foreground="{StaticResource Brush.Text2}"
+                                                                                       TextWrapping="Wrap"
+                                                                                       Margin="0,6,0,0"
+                                                                                       FontFamily="D2Coding, Consolas"
+                                                                                            behaviors:InlineTextBlockBehavior.InlinesSource="{Binding CorrectHintInlines}" />
+                                                                        </StackPanel>
+                                                                    </Border>
 
                                                                     <TextBlock Text="{Binding MistakeCount, StringFormat=오타 {0}개}"
                                                                                Foreground="{StaticResource Brush.Text2}"
                                                                                FontSize="12"
-                                                                               Margin="0,4,0,0"/>
+                                                                               Margin="0,6,0,0"/>
                                                                 </StackPanel>
                                                             </Border>
                                                         </DataTemplate>
@@ -409,20 +442,25 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <!--  아래: 비율 + 점수(빈공간 채우기) -->
+                                    <!-- 아래: 비율 + 점수 -->
                                     <Border Grid.Row="2" Grid.ColumnSpan="3"
                                             Background="#0FFFFFFF"
                                             CornerRadius="8"
                                             Padding="12">
                                         <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="10"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="12"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- 정답 비율 -->
-                                            <StackPanel Grid.Column="0">
+                                            <StackPanel Grid.Row="0" Grid.Column="0">
                                                 <TextBlock Text="{Binding Typing.CorrectRatePercent, Mode=OneWay, StringFormat=정답 비율 {0}%}"
                                                            Foreground="{StaticResource Brush.Text2}"
                                                            FontSize="20"
@@ -433,8 +471,7 @@
                                                              Value="{Binding Typing.CorrectRatePercent, Mode=OneWay}"/>
                                             </StackPanel>
 
-                                            <!-- 오답 비율 -->
-                                            <StackPanel Grid.Column="2">
+                                            <StackPanel Grid.Row="0" Grid.Column="2">
                                                 <TextBlock Text="{Binding Typing.WrongRatePercent, Mode=OneWay, StringFormat=오답 비율 {0}%}"
                                                            Foreground="{StaticResource Brush.Text2}"
                                                            FontSize="20"
@@ -445,14 +482,13 @@
                                                              Value="{Binding Typing.WrongRatePercent, Mode=OneWay}"/>
                                             </StackPanel>
 
-                                            <!-- 중앙 점수 -->
-                                            <TextBlock Grid.ColumnSpan="3"
+                                            <TextBlock Grid.Row="2"
+                                                       Grid.ColumnSpan="3"
                                                        Text="{Binding Typing.ScoreOutOf100, Mode=OneWay, StringFormat=점수: {0}점 / 100점}"
                                                        Foreground="{StaticResource Brush.Text}"
                                                        FontWeight="SemiBold"
                                                        HorizontalAlignment="Center"
-                                                       VerticalAlignment="Top"
-                                                       Margin="0,18,0,0"/> 
+                                                       Margin="0,10,0,0"/>
                                         </Grid>
                                     </Border>
                                 </Grid>

@@ -10,34 +10,28 @@ namespace ScriptureTyping.Commands
 
         public event EventHandler? CanExecuteChanged
         {
-            add
-            {
-                CommandManager.RequerySuggested += value;
-            }
-            remove
-            {
-                CommandManager.RequerySuggested -= value;
-            }
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
         }
+
+        /// <summary>
+        /// 목적: canExecute 없이도 커맨드를 만들 수 있게 한다(기본 true).
+        /// 이유: 대부분 버튼은 항상 실행 가능이라 canExecute를 매번 쓰면 귀찮다.
+        /// </summary>
+        public RelayCommand(Action<object?> execute)
+            : this(execute, null)
+        {
+        }
+
         public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute)
         {
-            if (execute == null)
-            {
-                throw new ArgumentNullException(nameof(execute));
-            }
-
-            _execute = execute;
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
 
         public bool CanExecute(object? parameter)
         {
-            if (_canExecute == null)
-            {
-                return true;
-            }
-
-            return _canExecute(parameter);
+            return _canExecute?.Invoke(parameter) ?? true;
         }
 
         public void Execute(object? parameter)

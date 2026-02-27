@@ -6,7 +6,7 @@ namespace ScriptureTyping.ViewModels
 {
     public sealed class MainMenuViewModel
     {
-        private readonly Action<object> _navigate;
+        private readonly MainWindowViewModel _host;
         private readonly Action _exit;
 
         public ICommand StartLearningCommand { get; }
@@ -15,55 +15,24 @@ namespace ScriptureTyping.ViewModels
         public ICommand SettingsCommand { get; }
         public ICommand ExitCommand { get; }
 
-        public MainMenuViewModel(Action<object> navigate, Action exit)
+        public MainMenuViewModel(MainWindowViewModel host, Action exit)
         {
-            if (navigate == null)
-            {
-                throw new ArgumentNullException(nameof(navigate));
-            }
+            _host = host ?? throw new ArgumentNullException(nameof(host));
+            _exit = exit ?? throw new ArgumentNullException(nameof(exit));
 
-            if (exit == null)
-            {
-                throw new ArgumentNullException(nameof(exit));
-            }
+            StartLearningCommand = new RelayCommand(_ => _host.NavigateToCourseSelect(), _ => true);
 
-            _navigate = navigate;
-            _exit = exit;
-
-            StartLearningCommand = new RelayCommand(
-                _ => NavigateToCourseSelect(),
-                _ => true);
-
-            GamesCommand = new RelayCommand(
-                _ => OpenPlaceholder("게임", "GameHub 화면으로 연결하면 됨."),
-                _ => true);
+            GamesCommand = new RelayCommand(_ => _host.NavigateToGamesHub(), _ => true);
 
             RecordsCommand = new RelayCommand(
-                _ => OpenPlaceholder("기록/통계", "Progress/Stats 화면으로 연결하면 됨."),
+                _ => _host.NavigateToContent(new PlaceholderViewModel("기록/통계", "Progress/Stats 화면으로 연결하면 됨.")),
                 _ => true);
 
             SettingsCommand = new RelayCommand(
-                _ => OpenPlaceholder("설정", "settings.json 로드/저장으로 연결하면 됨."),
+                _ => _host.NavigateToContent(new PlaceholderViewModel("설정", "settings.json 로드/저장으로 연결하면 됨.")),
                 _ => true);
 
-            ExitCommand = new RelayCommand(
-                _ => Exit(),
-                _ => true);
-        }
-
-        private void NavigateToCourseSelect()
-        {
-            _navigate(new CourseSelectViewModel(_navigate));
-        }
-
-        private void Exit()
-        {
-            _exit();
-        }
-
-        private void OpenPlaceholder(string title, string message)
-        {
-            _navigate(new PlaceholderViewModel(title, message));
+            ExitCommand = new RelayCommand(_ => _exit(), _ => true);
         }
     }
 }

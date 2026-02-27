@@ -1,11 +1,12 @@
-﻿using ScriptureTyping.Commands;
-using ScriptureTyping.Data;
+﻿using ScriptureTyping.Data;
 using ScriptureTyping.Services;
+using ScriptureTyping.Views.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using ScriptureTyping.Commands; 
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -19,6 +20,10 @@ namespace ScriptureTyping.ViewModels
         public string Typed { get; init; } = string.Empty;
         public bool IsCorrect { get; init; }
         public int MistakeCount { get; init; }
+
+        // 추가: 오답 표시용(밑줄/정답 힌트)
+        public IReadOnlyList<InlinePart> TypedDiffInlines { get; init; } = Array.Empty<InlinePart>();
+        public IReadOnlyList<InlinePart> CorrectHintInlines { get; init; } = Array.Empty<InlinePart>();
     }
 
     public sealed class CourseSelectViewModel : INotifyPropertyChanged
@@ -67,7 +72,7 @@ namespace ScriptureTyping.ViewModels
         private double _wrongRatePercent;
         private int _scoreOutOf100;
 
-        //  추가: 구절 가리기
+        // ✅ 추가: 구절 가리기
         private bool _isVerseHidden;
 
         public ObservableCollection<string> Courses { get; } = new ObservableCollection<string>();
@@ -82,7 +87,6 @@ namespace ScriptureTyping.ViewModels
         public ICommand StartLearningCommand { get; }
         public ICommand NextVerseCommand { get; }
 
-        // ✅ 추가: 토글 커맨드
         public ICommand ToggleVerseHiddenCommand { get; }
 
         public CourseSelectViewModel Typing => this;
@@ -141,8 +145,6 @@ namespace ScriptureTyping.ViewModels
                 if (_currentVerseRef == value) return;
                 _currentVerseRef = value;
                 OnPropertyChanged();
-
-                // ✅ 가림 상태에서 Ref만 바뀌어도 화면 갱신 필요
                 OnPropertyChanged(nameof(CurrentVerseDisplayText));
             }
         }
@@ -155,20 +157,17 @@ namespace ScriptureTyping.ViewModels
                 if (_currentVerseText == value) return;
                 _currentVerseText = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(CurrentVerseDisplayText)); // ✅ 표시 텍스트 갱신
+                OnPropertyChanged(nameof(CurrentVerseDisplayText));
                 RecalcMistakes();
             }
         }
 
-        // ✅ 추가: 화면에 보여줄 텍스트 (가리면 “몇장몇절(Ref)”만 보이게)
         public string CurrentVerseDisplayText
         {
             get
             {
                 if (IsVerseHidden)
                 {
-                    // “몇장 몇절만” 보이게: 텍스트 숨김, Ref만 보여주기
-                    // UI에서 Ref는 위에 따로 보이지만, 아래 영역은 비우거나 안내문을 넣고 싶으면 여기서 바꾸면 됨.
                     return "가림";
                 }
 
@@ -176,7 +175,6 @@ namespace ScriptureTyping.ViewModels
             }
         }
 
-        // ✅ 추가: 버튼 표시 문구
         public string VerseToggleButtonText => IsVerseHidden ? "구절 보기" : "구절 가리기";
 
         public bool IsVerseHidden
@@ -366,7 +364,6 @@ namespace ScriptureTyping.ViewModels
             StartLearningCommand = new RelayCommand(StartLearning, _ => true);
             NextVerseCommand = new RelayCommand(_ => NextVerse(), _ => CanNextVerse());
 
-            // ✅ 토글 커맨드
             ToggleVerseHiddenCommand = new RelayCommand(_ =>
             {
                 IsVerseHidden = !IsVerseHidden;
@@ -399,7 +396,6 @@ namespace ScriptureTyping.ViewModels
             WrongRatePercent = 0;
             ScoreOutOf100 = 0;
 
-            // ✅ 학습 시작 시 기본은 “보이기”
             IsVerseHidden = false;
 
             if (_verses.Count == 0)
@@ -457,11 +453,21 @@ namespace ScriptureTyping.ViewModels
         {
             if (_currentVerse == null) return;
 
+            // 정답 판정은 Normalize 기준(너 코드 유지)
             string expectedNorm = TypingEvaluator.Normalize(_currentVerse.Text);
             string typedNorm = TypingEvaluator.Normalize(UserTypedText);
 
             bool isCorrect = string.Equals(expectedNorm, typedNorm, StringComparison.Ordinal);
             int mistakes = TypingEvaluator.CountMistakes(_currentVerse.Text, UserTypedText);
+
+            IReadOnlyList<InlinePart> typedParts = Array.Empty<InlinePart>();
+            IReadOnlyList<InlinePart> hintParts = Array.Empty<InlinePart>();
+
+            // ✅ 오답이면 글자 단위 비교 데이터 생성
+            if (!isCorrect)
+            {
+                BuildDiffInlines(_currentVerse.Text, UserTypedText, out typedParts, out hintParts);
+            }
 
             CourseTypingResultItem item = new CourseTypingResultItem
             {
@@ -469,7 +475,10 @@ namespace ScriptureTyping.ViewModels
                 Expected = _currentVerse.Text,
                 Typed = UserTypedText,
                 IsCorrect = isCorrect,
-                MistakeCount = mistakes
+                MistakeCount = mistakes,
+
+                TypedDiffInlines = typedParts,
+                CorrectHintInlines = hintParts
             };
 
             Results.Add(item);
@@ -481,6 +490,65 @@ namespace ScriptureTyping.ViewModels
             else WrongCount++;
 
             UpdateRatesAndScore();
+        }
+
+        private static void BuildDiffInlines(
+            string expected,
+            string typed,
+            out IReadOnlyList<InlinePart> typedParts,
+            out IReadOnlyList<InlinePart> hintParts)
+        {
+            string e = (expected ?? string.Empty).Replace("\r\n", "\n").Replace("\r", "\n");
+            string t = (typed ?? string.Empty).Replace("\r\n", "\n").Replace("\r", "\n");
+
+            int max = Math.Max(e.Length, t.Length);
+
+            List<InlinePart> typedList = new List<InlinePart>(max);
+            List<InlinePart> hintList = new List<InlinePart>(max);
+
+            for (int i = 0; i < max; i++)
+            {
+                char ec = i < e.Length ? e[i] : '\0';
+                char tc = i < t.Length ? t[i] : '\0';
+
+                // 줄바꿈은 그대로 유지
+                if (ec == '\n' || tc == '\n')
+                {
+                    typedList.Add(new InlinePart { Text = "\n", IsError = false });
+                    hintList.Add(new InlinePart { Text = "\n", IsError = false });
+                    continue;
+                }
+
+                bool mismatch = ec != tc;
+
+                // Typed 줄: 틀린 글자 빨간 밑줄
+                string typedChar = tc == '\0' ? " " : tc.ToString();
+                typedList.Add(new InlinePart
+                {
+                    Text = typedChar,
+                    IsError = mismatch
+                });
+
+                // 아래 줄: 틀린 위치에만 정답 글자 표시
+                string hintChar;
+                if (!mismatch)
+                {
+                    hintChar = " ";
+                }
+                else
+                {
+                    hintChar = ec == '\0' ? " " : ec.ToString();
+                }
+
+                hintList.Add(new InlinePart
+                {
+                    Text = hintChar,
+                    IsError = false
+                });
+            }
+
+            typedParts = typedList;
+            hintParts = hintList;
         }
 
         private void CompleteSet()

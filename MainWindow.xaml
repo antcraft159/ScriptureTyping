@@ -30,11 +30,6 @@
                            FontSize="16"
                            FontWeight="SemiBold"
                            VerticalAlignment="Center"/>
-
-                <TextBlock DockPanel.Dock="Right"
-                           Text="{Binding StatusMessage}"
-                           Foreground="{StaticResource Brush.Muted}"
-                           VerticalAlignment="Center"/>
             </DockPanel>
         </Border>
 

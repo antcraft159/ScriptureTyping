@@ -15,14 +15,15 @@ namespace ScriptureTyping.Services
         private string? _selectedCourseId;
         private int? _selectedDayIndex;
 
-        private IReadOnlyList<VerseItem> _selectedVerses = Array.Empty<VerseItem>();
+        private readonly ObservableCollection<VerseItem> _selectedVerses = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        /// <summary>선택된 과정 ID</summary>
         public string? SelectedCourseId
         {
             get => _selectedCourseId;
-            set
+            private set
             {
                 if (_selectedCourseId == value) return;
                 _selectedCourseId = value;
@@ -31,10 +32,11 @@ namespace ScriptureTyping.Services
             }
         }
 
+        /// <summary>선택된 일차 인덱스</summary>
         public int? SelectedDayIndex
         {
             get => _selectedDayIndex;
-            set
+            private set
             {
                 if (_selectedDayIndex == value) return;
                 _selectedDayIndex = value;
@@ -43,17 +45,11 @@ namespace ScriptureTyping.Services
             }
         }
 
-        public IReadOnlyList<VerseItem> SelectedVerses
-        {
-            get => _selectedVerses;
-            private set
-            {
-                _selectedVerses = value ?? Array.Empty<VerseItem>();
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(SelectedVerseCount));
-                OnPropertyChanged(nameof(HasSelection));
-            }
-        }
+        /// <summary>
+        /// 선택된 구절 목록(읽기 전용 뷰).
+        /// UI에서 바인딩해도 안전하게 읽기만 가능.
+        /// </summary>
+        public ReadOnlyObservableCollection<VerseItem> SelectedVerses { get; }
 
         public int SelectedVerseCount => _selectedVerses.Count;
 
@@ -62,27 +58,55 @@ namespace ScriptureTyping.Services
             && SelectedDayIndex.HasValue
             && SelectedVerseCount > 0;
 
+        public SelectionContext()
+        {
+            SelectedVerses = new ReadOnlyObservableCollection<VerseItem>(_selectedVerses);
+            _selectedVerses.CollectionChanged += (_, __) =>
+            {
+                OnPropertyChanged(nameof(SelectedVerseCount));
+                OnPropertyChanged(nameof(HasSelection));
+            };
+        }
+
+        /// <summary>
+        /// 선택 상태를 한 번에 원자적으로 세팅한다.
+        /// </summary>
         public void SetSelection(string courseId, int dayIndex, IReadOnlyList<VerseItem> verses)
         {
+            if (string.IsNullOrWhiteSpace(courseId))
+            {
+                throw new ArgumentException("courseId is null or empty.", nameof(courseId));
+            }
+
+            if (dayIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(dayIndex), "dayIndex must be >= 0.");
+            }
+
             SelectedCourseId = courseId;
             SelectedDayIndex = dayIndex;
-            SelectedVerses = verses ?? Array.Empty<VerseItem>();
+
+            _selectedVerses.Clear();
+            if (verses != null)
+            {
+                for (int i = 0; i < verses.Count; i++)
+                {
+                    _selectedVerses.Add(verses[i]);
+                }
+            }
         }
 
         public void Clear()
         {
             SelectedCourseId = null;
             SelectedDayIndex = null;
-            SelectedVerses = Array.Empty<VerseItem>();
+            _selectedVerses.Clear();
         }
 
         private void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    /// <summary>
-    /// TODO: 너 프로젝트의 실제 구절 타입으로 바꿔라.
-    /// </summary>
     public sealed class VerseItem
     {
         public string Ref { get; init; } = string.Empty;

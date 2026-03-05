@@ -1,4 +1,3 @@
-<!-- 파일명: Views/CourseSelect.xaml -->
 <UserControl x:Class="ScriptureTyping.Views.CourseSelect"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -46,7 +45,7 @@
         </Style>
     </UserControl.Resources>
 
-    <!-- ✅ 바깥 ScrollViewer 제거 -->
+    <!--  바깥 ScrollViewer 제거 -->
     <Border Padding="24"
             Margin="{StaticResource Layout.MenuSafeMargin}"
             Background="Transparent">
@@ -205,7 +204,6 @@
                         <RowDefinition Height="12"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="12"/>
-                        <!-- ✅ 결과가 남는 공간 먹도록 * -->
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
@@ -303,8 +301,7 @@
                                 Command="{Binding Typing.NextVerseCommand}"/>
                     </StackPanel>
 
-                    <!-- ✅ 결과 패널 자체가 남는 공간을 먹고,
-                         정답/오답 안에서만 스크롤 -->
+                    <!-- 결과 패널 -->
                     <Border Grid.Row="7"
                             Background="{StaticResource Brush.Bg}"
                             BorderBrush="{StaticResource Brush.Border}"
@@ -486,8 +483,9 @@
                                                        Foreground="{StaticResource Brush.Text2}"
                                                        FontSize="20"
                                                        Margin="0,0,0,6"/>
+                                            <!--  FIX: ProgressBar.Value는 TwoWay 성격이 섞여서 예외 날 수 있음 → OneWay로 고정 -->
                                             <ProgressBar Minimum="0" Maximum="100" Height="10"
-                                                         Value="{Binding Typing.CorrectRatePercent}"/>
+                                                         Value="{Binding Typing.CorrectRatePercent, Mode=OneWay}"/>
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="0" Grid.Column="2">
@@ -495,8 +493,9 @@
                                                        Foreground="{StaticResource Brush.Text2}"
                                                        FontSize="20"
                                                        Margin="0,0,0,6"/>
+                                            <!--  FIX: 여기도 동일 -->
                                             <ProgressBar Minimum="0" Maximum="100" Height="10"
-                                                         Value="{Binding Typing.WrongRatePercent}"/>
+                                                         Value="{Binding Typing.WrongRatePercent, Mode=OneWay}"/>
                                         </StackPanel>
 
                                         <TextBlock Grid.Row="2"

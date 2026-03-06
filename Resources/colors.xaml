@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
     <Color x:Key="Color.Bg">#121212</Color>
     <Color x:Key="Color.Surface">#1E1E1E</Color>
@@ -21,6 +22,8 @@
 
     <Thickness x:Key="Layout.MenuSafeMargin">20,0,0,0</Thickness>
     <Thickness x:Key="Layout.MenuPeekMargin">0,0,0,0</Thickness>
+
+    <sys:Double x:Key="Layout.CommonWidth">90</sys:Double>
 
     <Style x:Key="Style.MenuSafeBorder" TargetType="Border">
         <Setter Property="Margin" Value="{StaticResource Layout.MenuSafeMargin}"/>

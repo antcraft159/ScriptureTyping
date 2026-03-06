@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -23,6 +24,9 @@ namespace ScriptureTyping.ViewModels.Games
         private const int DEFAULT_TRY_LEFT = 2;
         private const int DEFAULT_CHOICE_COUNT = 6;
         private const int TIME_ATTACK_SECONDS = 15;
+
+        // 자동 다음문제 이동 딜레이(피드백 보여주기 용)
+        private static readonly TimeSpan AUTO_NEXT_DELAY = TimeSpan.FromMilliseconds(2000);
 
         private readonly MainWindowViewModel? _host;
         private readonly SelectionContext _ctx;
@@ -55,6 +59,9 @@ namespace ScriptureTyping.ViewModels.Games
         private string _selectionError = string.Empty;
 
         private ClozeQuestion? _current;
+
+        // 자동 다음 문제 예약 중복 방지
+        private bool _isAutoNextScheduled;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -89,7 +96,6 @@ namespace ScriptureTyping.ViewModels.Games
 
             BackCommand = new RelayCommand(_ => Back(), _ => true);
             SelectChoiceCommand = new RelayCommand(p => SelectChoice(p as string), _ => AreChoicesEnabled);
-            NextCommand = new RelayCommand(_ => Next(), _ => IsNextEnabled);
             HintCommand = new RelayCommand(_ => Hint(), _ => IsHintEnabled);
             RestartCommand = new RelayCommand(_ => Restart(), _ => true);
 
@@ -242,6 +248,8 @@ namespace ScriptureTyping.ViewModels.Games
             _isAnswered = false;
             _isRoundCompleted = false;
 
+            _isAutoNextScheduled = false;
+
             BuildWordPool(verses);
             BuildRound(verses);
 
@@ -316,7 +324,6 @@ namespace ScriptureTyping.ViewModels.Games
         public ObservableCollection<string> Choices { get; } = new ObservableCollection<string>();
 
         public bool AreChoicesEnabled => !_isRoundCompleted && !_isCorrect && _tryLeft > 0;
-        public bool IsNextEnabled => !_isRoundCompleted && (_isCorrect || _tryLeft <= 0);
         public bool IsHintEnabled => !_isRoundCompleted && !_hintUsed && !_isCorrect && _tryLeft > 0 && _current != null;
 
         // -----------------------------
@@ -325,7 +332,6 @@ namespace ScriptureTyping.ViewModels.Games
 
         public ICommand BackCommand { get; }
         public ICommand SelectChoiceCommand { get; }
-        public ICommand NextCommand { get; }
         public ICommand HintCommand { get; }
         public ICommand RestartCommand { get; }
 
@@ -356,33 +362,60 @@ namespace ScriptureTyping.ViewModels.Games
                 _score += 10;
                 _combo += 1;
 
-                FeedbackText = "정답! 다음 문제로 넘어가세요.";
+                FeedbackText = "정답!";
                 StopTimer();
+                RaiseUiComputed();
+
+                // 다음 버튼이 없으니 정답도 자동으로 넘어가게 처리
+                ScheduleAutoNext();
+                return;
             }
-            else
+
+            _isCorrect = false;
+            _tryLeft -= 1;
+            _score = Math.Max(0, _score - 2);
+            _combo = 0;
+
+            if (_tryLeft <= 0)
             {
-                _isCorrect = false;
-                _tryLeft -= 1;
-                _score = Math.Max(0, _score - 2);
-                _combo = 0;
+                FeedbackText = $"기회 소진. 정답은 \"{_current.Answer}\" 입니다.";
+                StopTimer();
+                RaiseUiComputed();
 
-                if (_tryLeft <= 0)
-                {
-                    FeedbackText = $"기회 소진. 정답은 \"{_current.Answer}\" 입니다. 다음 문제로 넘어가세요.";
-                    StopTimer();
-                }
-                else
-                {
-                    FeedbackText = $"틀렸습니다. 다시 선택하세요. (기회 {_tryLeft}회)";
-                }
+                // ✅ 요청: 기회 0이면 자동으로 다음 문제
+                ScheduleAutoNext();
+                return;
             }
 
+            FeedbackText = $"틀렸습니다. 다시 선택하세요. (기회 {_tryLeft}회)";
             RaiseUiComputed();
         }
 
-        private void Next()
+        private async void ScheduleAutoNext()
         {
-            if (!IsNextEnabled) return;
+            if (_isAutoNextScheduled) return;
+            _isAutoNextScheduled = true;
+
+            try
+            {
+                await Task.Delay(AUTO_NEXT_DELAY);
+                AutoNext();
+            }
+            finally
+            {
+                // LoadQuestion에서 다시 false로 내려줘도 되지만,
+                // 혹시 라운드 종료에서 멈춘 경우 대비해서 여기서도 한번 관리
+                if (_isRoundCompleted) _isAutoNextScheduled = false;
+            }
+        }
+
+        private void AutoNext()
+        {
+            if (_isRoundCompleted)
+            {
+                _isAutoNextScheduled = false;
+                return;
+            }
 
             _index++;
 
@@ -396,6 +429,8 @@ namespace ScriptureTyping.ViewModels.Games
                 Choices.Clear();
 
                 FeedbackText = $"총 {_round.Count}문제 | 점수 {_score}";
+                _isAutoNextScheduled = false;
+
                 RaiseUiComputed();
                 return;
             }
@@ -527,6 +562,8 @@ namespace ScriptureTyping.ViewModels.Games
             _hintUsed = false;
             _isAnswered = false;
 
+            _isAutoNextScheduled = false;
+
             QuestionText = _current.ClozeText;
             ReferenceText = _current.Reference;
 
@@ -572,11 +609,14 @@ namespace ScriptureTyping.ViewModels.Games
 
                 if (_current != null)
                 {
-                    FeedbackText = $"시간 종료. 정답은 \"{_current.Answer}\" 입니다. 다음 문제로 넘어가세요.";
+                    FeedbackText = $"시간 종료. 정답은 \"{_current.Answer}\" 입니다.";
                 }
 
                 StopTimer();
                 RaiseUiComputed();
+
+                // 타임아웃도 기회 0 처리이니 자동 다음
+                ScheduleAutoNext();
             }
         }
 
@@ -596,7 +636,6 @@ namespace ScriptureTyping.ViewModels.Games
                 List<Verse> all = new List<Verse>();
                 for (int day = 1; day <= VerseCatalog.MAX_DAY; day++)
                 {
-                    // 여기서는 누적/추가 선택은 일단 누적 기준
                     IReadOnlyList<Verse> list = VerseCatalog.GetAccumulated(course, day);
                     all.AddRange(list);
                 }
@@ -673,7 +712,6 @@ namespace ScriptureTyping.ViewModels.Games
             OnPropertyChanged(nameof(TimeLeftText));
 
             OnPropertyChanged(nameof(AreChoicesEnabled));
-            OnPropertyChanged(nameof(IsNextEnabled));
             OnPropertyChanged(nameof(IsHintEnabled));
 
             try { CommandManager.InvalidateRequerySuggested(); } catch { }

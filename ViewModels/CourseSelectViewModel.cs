@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using ScriptureTyping.Commands; 
+using ScriptureTyping.Commands;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -29,6 +29,7 @@ namespace ScriptureTyping.ViewModels
     public sealed class CourseSelectViewModel : INotifyPropertyChanged
     {
         private const string ALL_DAY_TEXT = "전일차";
+        private const int ALL_DAY_INDEX = 0; //  전일차를 0으로 통일
         private const string DEFAULT_GUIDE_TEXT = "과정/일차 선택 후 학습 시작을 누르세요.";
         private const string EMPTY_SELECTION_TEXT = "과정/일차를 선택해 주세요.";
         private const string EMPTY_COURSE_TEXT = "과정을 선택해 주세요.";
@@ -72,7 +73,7 @@ namespace ScriptureTyping.ViewModels
         private double _wrongRatePercent;
         private int _scoreOutOf100;
 
-        // ✅ 추가: 구절 가리기
+        // 구절 가리기
         private bool _isVerseHidden;
 
         public ObservableCollection<string> Courses { get; } = new ObservableCollection<string>();
@@ -86,7 +87,6 @@ namespace ScriptureTyping.ViewModels
 
         public ICommand StartLearningCommand { get; }
         public ICommand NextVerseCommand { get; }
-
         public ICommand ToggleVerseHiddenCommand { get; }
 
         public CourseSelectViewModel Typing => this;
@@ -377,6 +377,10 @@ namespace ScriptureTyping.ViewModels
             int course = ParseCourseNo(SelectedCourse!);
             _verses = BuildVerseList(course, SelectedDay!);
 
+            // ✅ 선택값(과정/일차/구절들)을 앱 전역 컨텍스트에 저장
+            // 게임에서도 이 값을 그대로 사용한다.
+            SaveSelectionToContext(_verses);
+
             _currentVerse = null;
             IsSetCompleted = false;
             IsCompletionPopupVisible = false;
@@ -416,6 +420,34 @@ namespace ScriptureTyping.ViewModels
             CommandManager.InvalidateRequerySuggested();
         }
 
+        /// <summary>
+        /// 목적: 현재 선택(과정/일차/구절 리스트)을 App.SelectionContext에 저장한다.
+        /// </summary>
+        private void SaveSelectionToContext(IReadOnlyList<Verse> verses)
+        {
+            // 과정 ID는 지금 UI 문자열 그대로 저장(예: "1과정")
+            string courseId = SelectedCourse ?? string.Empty;
+
+            // 일차 인덱스: 전일차=0, 1일차=1 ...
+            int dayIndex = (SelectedDay == ALL_DAY_TEXT)
+                ? ALL_DAY_INDEX
+                : ParseDayNo(SelectedDay ?? "1일차");
+
+            // Verse -> VerseItem 변환
+            List<VerseItem> items = new List<VerseItem>(verses.Count);
+            for (int i = 0; i < verses.Count; i++)
+            {
+                items.Add(new VerseItem
+                {
+                    Ref = verses[i].Ref,
+                    Text = verses[i].Text
+                });
+            }
+
+            // 전역 컨텍스트 저장
+            App.SelectionContext.SetSelection(courseId, dayIndex, items);
+        }
+
         private void NextVerse()
         {
             if (!CanNextVerse()) return;
@@ -453,7 +485,6 @@ namespace ScriptureTyping.ViewModels
         {
             if (_currentVerse == null) return;
 
-            // 정답 판정은 Normalize 기준(너 코드 유지)
             string expectedNorm = TypingEvaluator.Normalize(_currentVerse.Text);
             string typedNorm = TypingEvaluator.Normalize(UserTypedText);
 
@@ -463,7 +494,6 @@ namespace ScriptureTyping.ViewModels
             IReadOnlyList<InlinePart> typedParts = Array.Empty<InlinePart>();
             IReadOnlyList<InlinePart> hintParts = Array.Empty<InlinePart>();
 
-            // ✅ 오답이면 글자 단위 비교 데이터 생성
             if (!isCorrect)
             {
                 BuildDiffInlines(_currentVerse.Text, UserTypedText, out typedParts, out hintParts);
@@ -511,7 +541,6 @@ namespace ScriptureTyping.ViewModels
                 char ec = i < e.Length ? e[i] : '\0';
                 char tc = i < t.Length ? t[i] : '\0';
 
-                // 줄바꿈은 그대로 유지
                 if (ec == '\n' || tc == '\n')
                 {
                     typedList.Add(new InlinePart { Text = "\n", IsError = false });
@@ -521,7 +550,6 @@ namespace ScriptureTyping.ViewModels
 
                 bool mismatch = ec != tc;
 
-                // Typed 줄: 틀린 글자 빨간 밑줄
                 string typedChar = tc == '\0' ? " " : tc.ToString();
                 typedList.Add(new InlinePart
                 {
@@ -529,7 +557,6 @@ namespace ScriptureTyping.ViewModels
                     IsError = mismatch
                 });
 
-                // 아래 줄: 틀린 위치에만 정답 글자 표시
                 string hintChar;
                 if (!mismatch)
                 {

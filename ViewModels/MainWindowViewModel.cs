@@ -1,5 +1,4 @@
-﻿// 파일명: MainWindowViewModel.cs
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ScriptureTyping.ViewModels.Games;
@@ -54,7 +53,7 @@ namespace ScriptureTyping.ViewModels
 
         public MainWindowViewModel()
         {
-            // ✅ 메뉴가 화면을 바꾸려면 MainWindowVM의 네비게이션을 호출해야 하니까
+            // 메뉴가 화면을 바꾸려면 MainWindowVM의 네비게이션을 호출해야 하니까
             //    host(this)를 넘겨서 메서드 호출 방식으로 통일한다.
             MenuViewModel = new MainMenuViewModel(this, ExitApp);
 

@@ -28,37 +28,6 @@ namespace ScriptureTyping.ViewModels.Games
         private const string DIFFICULTY_SAMUEL_RANK1 = "사무엘 1등";
 
         private static readonly TimeSpan AUTO_NEXT_DELAY = TimeSpan.FromMilliseconds(2000);
-        private static readonly TimeSpan SAMUEL_PREVIEW_DELAY = TimeSpan.FromMilliseconds(1200);
-
-        private static readonly string[] KnownJosa =
-        {
-            "으로부터", "에게서", "께서는", "에서는", "으로는", "으로도",
-            "이었다", "이니라", "이라는", "이라도",
-            "으로", "에게", "께서", "에서", "이다",
-            "이나", "나마", "처럼", "같이",
-            "이", "가", "은", "는", "을", "를",
-            "와", "과", "도", "만", "의", "로", "에", "께"
-        };
-
-        private static readonly string[] EndingPatterns =
-        {
-            "하였느니라", "하였더라", "하였도다",
-            "되었느니라", "되었더라", "되었도다",
-            "하시느니라", "하시니라", "하느니라", "하더라", "하도다", "하노라",
-            "되느니라", "되니라", "되리라", "되더라", "되도다",
-            "느니라", "이니라", "이로다",
-            "으리라", "리라", "니라", "더라", "도다", "노라", "이라",
-            "하라", "하여라", "하니", "하되", "하고",
-            "이다", "이니", "이며"
-        };
-
-        private static readonly string[] ReplacementEndings =
-        {
-            "느니라", "이니라", "이로다",
-            "으리라", "리라", "니라", "더라", "도다", "노라", "이라",
-            "하라", "하여라", "하니", "하되", "하고",
-            "이다", "이니", "이며"
-        };
 
         private readonly MainWindowViewModel? _host;
         private readonly SelectionContext _ctx;
@@ -91,9 +60,6 @@ namespace ScriptureTyping.ViewModels.Games
         private ClozeQuestion? _current;
         private bool _isAutoNextScheduled;
         private int _questionVersion;
-
-        private string? _selectedFirstChoice;
-        private string? _selectedSecondChoice;
 
         public event PropertyChangedEventHandler? PropertyChanged;
         public event Action? BackRequested;
@@ -213,7 +179,6 @@ namespace ScriptureTyping.ViewModels.Games
         public string DifficultyText => $"모드 {CurrentDifficulty}";
         public bool IsTimeAttack { get; private set; }
         public string TimeLeftText => $"남은시간 {_timeLeftSec:00}s";
-        public bool IsNormalMode => CurrentDifficulty == DIFFICULTY_NORMAL;
 
         public string QuestionText
         {
@@ -248,53 +213,13 @@ namespace ScriptureTyping.ViewModels.Games
             }
         }
 
-        public string? SelectedFirstChoice
-        {
-            get => _selectedFirstChoice;
-            private set
-            {
-                if (_selectedFirstChoice == value) return;
-                _selectedFirstChoice = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string? SelectedSecondChoice
-        {
-            get => _selectedSecondChoice;
-            private set
-            {
-                if (_selectedSecondChoice == value) return;
-                _selectedSecondChoice = value;
-                OnPropertyChanged();
-            }
-        }
-
         public bool AreSingleChoicesVisible => _current != null && !_current.IsDualBlank && Choices.Count > 0;
-
-        public bool AreDualChoicesVisible =>
-            _current != null &&
-            _current.IsDualBlank &&
-            FirstChoices.Count > 0 &&
-            SecondChoices.Count > 0;
 
         public bool AreChoicesEnabled =>
             CanAnswerChoices() &&
             _current != null &&
             !_current.IsDualBlank &&
             Choices.Count > 0;
-
-        public bool AreFirstChoicesEnabled =>
-            CanAnswerChoices() &&
-            _current != null &&
-            _current.IsDualBlank &&
-            FirstChoices.Count > 0;
-
-        public bool AreSecondChoicesEnabled =>
-            CanAnswerChoices() &&
-            _current != null &&
-            _current.IsDualBlank &&
-            SecondChoices.Count > 0;
 
         public bool IsHintEnabled =>
             !_isRoundCompleted &&
@@ -306,8 +231,6 @@ namespace ScriptureTyping.ViewModels.Games
 
         public ICommand BackCommand { get; }
         public ICommand SelectChoiceCommand { get; }
-        public ICommand SelectFirstChoiceCommand { get; }
-        public ICommand SelectSecondChoiceCommand { get; }
         public ICommand HintCommand { get; }
         public ICommand RestartCommand { get; }
 
@@ -477,83 +400,6 @@ namespace ScriptureTyping.ViewModels.Games
             }
 
             HandleWrongSingleAnswer();
-        }
-
-        private void SelectFirstChoice(string? choice)
-        {
-            if (choice == null || _current == null || !_current.IsDualBlank || !AreFirstChoicesEnabled)
-            {
-                return;
-            }
-
-            SelectedFirstChoice = choice.Trim();
-
-            if (string.IsNullOrWhiteSpace(SelectedSecondChoice))
-            {
-                FeedbackText = $"첫 번째 빈칸 선택 완료. 두 번째 빈칸을 고르세요. (기회 {_tryLeft}회)";
-                RaiseUiComputed();
-                return;
-            }
-
-            EvaluateDualSelection();
-        }
-
-        private void SelectSecondChoice(string? choice)
-        {
-            if (choice == null || _current == null || !_current.IsDualBlank || !AreSecondChoicesEnabled)
-            {
-                return;
-            }
-
-            SelectedSecondChoice = choice.Trim();
-
-            if (string.IsNullOrWhiteSpace(SelectedFirstChoice))
-            {
-                FeedbackText = $"두 번째 빈칸 선택 완료. 첫 번째 빈칸을 고르세요. (기회 {_tryLeft}회)";
-                RaiseUiComputed();
-                return;
-            }
-
-            EvaluateDualSelection();
-        }
-
-        private void EvaluateDualSelection()
-        {
-            if (_current == null ||
-                !_current.IsDualBlank ||
-                string.IsNullOrWhiteSpace(SelectedFirstChoice) ||
-                string.IsNullOrWhiteSpace(SelectedSecondChoice))
-            {
-                return;
-            }
-
-            bool firstCorrect = string.Equals(SelectedFirstChoice.Trim(), _current.Answers[0].Trim(), StringComparison.Ordinal);
-            bool secondCorrect = string.Equals(SelectedSecondChoice.Trim(), _current.Answers[1].Trim(), StringComparison.Ordinal);
-
-            if (firstCorrect && secondCorrect)
-            {
-                HandleCorrectAnswer();
-                return;
-            }
-
-            _isCorrect = false;
-            _tryLeft -= 1;
-            _score = Math.Max(0, _score - GetWrongPenalty());
-            _combo = 0;
-
-            if (_tryLeft <= 0)
-            {
-                FeedbackText = $"기회 소진. 정답은 \"{string.Join(", ", _current.Answers)}\" 입니다.";
-                StopTimer();
-                RaiseUiComputed();
-                ScheduleAutoNext();
-                return;
-            }
-
-            SelectedFirstChoice = null;
-            SelectedSecondChoice = null;
-            FeedbackText = $"틀렸습니다. 다시 선택하세요. (기회 {_tryLeft}회)";
-            RaiseUiComputed();
         }
 
         private void HandleCorrectAnswer()
@@ -726,6 +572,11 @@ namespace ScriptureTyping.ViewModels.Games
         {
             question = null;
 
+            if (IsVeryHardMode)
+            {
+                return TryMakeVeryHardQuestion(verse, out question);
+            }
+
             List<string> candidates = ExtractCandidateWords(verse.Text)
                 .Distinct(StringComparer.Ordinal)
                 .ToList();
@@ -801,40 +652,6 @@ namespace ScriptureTyping.ViewModels.Games
                 .ToList();
         }
 
-        private int GetBlankCount()
-        {
-            return CurrentDifficulty switch
-            {
-                DIFFICULTY_NORMAL => 2,
-                DIFFICULTY_HARD => 2,
-                DIFFICULTY_VERY_HARD => 2,
-                DIFFICULTY_SAMUEL_RANK1 => 2,
-                _ => 1
-            };
-        }
-
-        private List<string> SelectAnswersByDifficulty(IReadOnlyList<string> candidates, int count)
-        {
-            List<string> pool = candidates.Distinct(StringComparer.Ordinal).ToList();
-
-            if (CurrentDifficulty == DIFFICULTY_HARD ||
-                CurrentDifficulty == DIFFICULTY_VERY_HARD ||
-                CurrentDifficulty == DIFFICULTY_SAMUEL_RANK1 ||
-                CurrentDifficulty == DIFFICULTY_NORMAL)
-            {
-                pool = pool
-                    .OrderByDescending(x => x.Length)
-                    .ThenBy(_ => _rng.Next())
-                    .ToList();
-            }
-            else
-            {
-                Shuffle(pool);
-            }
-
-            return pool.Take(count).ToList();
-        }
-
         private bool TryBuildClozeText(string text, IReadOnlyList<string> answers, out string clozeText)
         {
             clozeText = text;
@@ -874,422 +691,6 @@ namespace ScriptureTyping.ViewModels.Games
 
             clozeText = result;
             return true;
-        }
-
-        private List<string> BuildChoices(string answer)
-        {
-            int choiceCount = GetChoiceCount();
-
-            HashSet<string> set = new HashSet<string>(StringComparer.Ordinal)
-            {
-                answer
-            };
-
-            foreach (string distractor in GenerateDistractors(answer))
-            {
-                if (set.Count >= choiceCount)
-                {
-                    break;
-                }
-
-                if (string.IsNullOrWhiteSpace(distractor))
-                {
-                    continue;
-                }
-
-                if (string.Equals(distractor, answer, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                set.Add(distractor);
-            }
-
-            bool allowGlobalFallback =
-                CurrentDifficulty == DIFFICULTY_EASY ||
-                CurrentDifficulty == DIFFICULTY_NORMAL;
-
-            if (allowGlobalFallback)
-            {
-                int safety = 0;
-
-                while (set.Count < choiceCount && safety < 300)
-                {
-                    safety++;
-
-                    if (_globalWordPool.Count <= 0)
-                    {
-                        break;
-                    }
-
-                    string word = _globalWordPool[_rng.Next(_globalWordPool.Count)];
-
-                    if (string.IsNullOrWhiteSpace(word) ||
-                        string.Equals(word, answer, StringComparison.Ordinal) ||
-                        !IsValidChoiceWord(word))
-                    {
-                        continue;
-                    }
-
-                    set.Add(word);
-                }
-            }
-            else
-            {
-                foreach (string extra in GenerateExtendedHardDistractors(answer))
-                {
-                    if (set.Count >= choiceCount)
-                    {
-                        break;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(extra) ||
-                        string.Equals(extra, answer, StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
-
-                    set.Add(extra);
-                }
-            }
-
-            List<string> list = set.ToList();
-            Shuffle(list);
-            return list.Take(choiceCount).ToList();
-        }
-
-        private IEnumerable<string> GenerateDistractors(string answer)
-        {
-            List<string> sameLengthWords = _globalWordPool
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Where(x => !string.Equals(x, answer, StringComparison.Ordinal))
-                .Where(IsValidChoiceWord)
-                .Where(x => Math.Abs(x.Length - answer.Length) <= 1)
-                .Distinct(StringComparer.Ordinal)
-                .ToList();
-
-            if (CurrentDifficulty == DIFFICULTY_EASY)
-            {
-                Shuffle(sameLengthWords);
-
-                foreach (string item in sameLengthWords)
-                {
-                    yield return item;
-                }
-
-                yield break;
-            }
-
-            if (CurrentDifficulty == DIFFICULTY_NORMAL)
-            {
-                List<string> normalWords = sameLengthWords
-                    .OrderBy(x => Math.Abs(x.Length - answer.Length))
-                    .ThenByDescending(x => SharedPrefixScore(answer, x))
-                    .ToList();
-
-                foreach (string item in normalWords)
-                {
-                    yield return item;
-                }
-
-                yield break;
-            }
-
-            foreach (string variant in BuildSuffixVariants(answer))
-            {
-                yield return variant;
-            }
-        }
-
-        private IEnumerable<string> GenerateExtendedHardDistractors(string answer)
-        {
-            HashSet<string> results = new HashSet<string>(StringComparer.Ordinal);
-
-            foreach (string item in BuildEndingVariants(answer))
-            {
-                results.Add(item);
-            }
-
-            foreach (string item in BuildJosaLikeVariants(answer))
-            {
-                results.Add(item);
-            }
-
-            foreach (string item in BuildStemSimilarWords(answer))
-            {
-                results.Add(item);
-            }
-
-            foreach (string item in results)
-            {
-                yield return item;
-            }
-        }
-
-        private IEnumerable<string> BuildSuffixVariants(string answer)
-        {
-            if (string.IsNullOrWhiteSpace(answer))
-            {
-                yield break;
-            }
-
-            string normalized = answer.Trim();
-            string stem = RemoveKnownJosa(normalized, out string? originalJosa);
-
-            if (!string.IsNullOrWhiteSpace(originalJosa) && !string.IsNullOrWhiteSpace(stem))
-            {
-                foreach (string variant in BuildJosaVariants(stem))
-                {
-                    if (!string.Equals(variant, normalized, StringComparison.Ordinal))
-                    {
-                        yield return variant;
-                    }
-                }
-
-                yield break;
-            }
-
-            bool yielded = false;
-
-            foreach (string variant in BuildEndingVariants(normalized))
-            {
-                if (!string.Equals(variant, normalized, StringComparison.Ordinal))
-                {
-                    yielded = true;
-                    yield return variant;
-                }
-            }
-
-            if (!yielded)
-            {
-                foreach (string word in BuildStemSimilarWords(normalized))
-                {
-                    if (!string.Equals(word, normalized, StringComparison.Ordinal))
-                    {
-                        yield return word;
-                    }
-                }
-            }
-        }
-
-        private IEnumerable<string> BuildEndingVariants(string answer)
-        {
-            if (string.IsNullOrWhiteSpace(answer))
-            {
-                yield break;
-            }
-
-            HashSet<string> results = new HashSet<string>(StringComparer.Ordinal);
-            string normalized = answer.Trim();
-
-            foreach (string ending in EndingPatterns.OrderByDescending(x => x.Length))
-            {
-                if (normalized.Length > ending.Length && normalized.EndsWith(ending, StringComparison.Ordinal))
-                {
-                    string stem = normalized.Substring(0, normalized.Length - ending.Length);
-
-                    foreach (string newEnding in ReplacementEndings)
-                    {
-                        string candidate = stem + newEnding;
-
-                        if (!string.Equals(candidate, normalized, StringComparison.Ordinal) &&
-                            IsValidChoiceWord(candidate))
-                        {
-                            results.Add(candidate);
-                        }
-                    }
-
-                    break;
-                }
-            }
-
-            foreach (string item in results)
-            {
-                yield return item;
-            }
-        }
-
-        private IEnumerable<string> BuildJosaLikeVariants(string answer)
-        {
-            if (string.IsNullOrWhiteSpace(answer))
-            {
-                yield break;
-            }
-
-            HashSet<string> results = new HashSet<string>(StringComparer.Ordinal);
-            string normalized = answer.Trim();
-            string stem = RemoveKnownJosa(normalized, out string? originalJosa);
-
-            if (!string.IsNullOrWhiteSpace(originalJosa) && !string.IsNullOrWhiteSpace(stem))
-            {
-                foreach (string item in BuildJosaVariants(stem))
-                {
-                    results.Add(item);
-                }
-            }
-            else if (normalized.Length >= 2 && IsMostlyNounLike(normalized))
-            {
-                bool hasBatchim = HasFinalConsonant(normalized);
-
-                results.Add(normalized + (hasBatchim ? "이" : "가"));
-                results.Add(normalized + (hasBatchim ? "은" : "는"));
-                results.Add(normalized + (hasBatchim ? "을" : "를"));
-                results.Add(normalized + (hasBatchim ? "과" : "와"));
-                results.Add(normalized + "의");
-                results.Add(normalized + "도");
-                results.Add(normalized + "만");
-            }
-
-            foreach (string item in results)
-            {
-                if (!string.Equals(item, normalized, StringComparison.Ordinal) &&
-                    IsValidChoiceWord(item))
-                {
-                    yield return item;
-                }
-            }
-        }
-
-        private IEnumerable<string> BuildJosaVariants(string stem)
-        {
-            bool hasBatchim = HasFinalConsonant(stem);
-
-            List<string> variants = new List<string>
-            {
-                stem + (hasBatchim ? "이" : "가"),
-                stem + (hasBatchim ? "은" : "는"),
-                stem + (hasBatchim ? "을" : "를"),
-                stem + (hasBatchim ? "과" : "와"),
-                stem + "도",
-                stem + "만",
-                stem + "의",
-                stem + (hasBatchim ? "으로" : "로"),
-                stem + "에",
-                stem + (hasBatchim ? "이나" : "나")
-            };
-
-            Shuffle(variants);
-
-            foreach (string item in variants.Distinct(StringComparer.Ordinal))
-            {
-                yield return item;
-            }
-        }
-
-        private IEnumerable<string> BuildStemSimilarWords(string answer)
-        {
-            List<string> similarWords = _globalWordPool
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Where(x => !string.Equals(x, answer, StringComparison.Ordinal))
-                .Where(IsValidChoiceWord)
-                .Where(x => Math.Abs(x.Length - answer.Length) <= 1)
-                .Where(x => SharedPrefixScore(answer, x) >= Math.Max(2, answer.Length / 2))
-                .Distinct(StringComparer.Ordinal)
-                .OrderByDescending(x => SharedPrefixScore(answer, x))
-                .ThenBy(x => Math.Abs(x.Length - answer.Length))
-                .ToList();
-
-            foreach (string item in similarWords)
-            {
-                yield return item;
-            }
-        }
-
-        private static bool IsValidChoiceWord(string word)
-        {
-            if (string.IsNullOrWhiteSpace(word))
-            {
-                return false;
-            }
-
-            string normalized = word.Trim();
-
-            if (normalized.Length < 2)
-            {
-                return false;
-            }
-
-            if (normalized.Any(char.IsWhiteSpace))
-            {
-                return false;
-            }
-
-            int koreanCount = normalized.Count(ch => ch >= 0xAC00 && ch <= 0xD7A3);
-            if (koreanCount < Math.Max(1, normalized.Length / 2))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private static bool IsMostlyNounLike(string word)
-        {
-            if (string.IsNullOrWhiteSpace(word))
-            {
-                return false;
-            }
-
-            string[] verbLikeEndings =
-            {
-                "하다", "되다", "가다", "오다", "보다", "이다",
-                "니라", "리라", "더라", "도다", "노라",
-                "하라", "하여라", "하며", "하고", "하니", "하되"
-            };
-
-            return !verbLikeEndings.Any(word.EndsWith);
-        }
-
-        private static string RemoveKnownJosa(string word, out string? josa)
-        {
-            foreach (string candidate in KnownJosa.OrderByDescending(x => x.Length))
-            {
-                if (word.Length > candidate.Length && word.EndsWith(candidate, StringComparison.Ordinal))
-                {
-                    josa = candidate;
-                    return word.Substring(0, word.Length - candidate.Length);
-                }
-            }
-
-            josa = null;
-            return word;
-        }
-
-        private static bool HasFinalConsonant(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return false;
-            }
-
-            char lastChar = text[^1];
-
-            if (lastChar < 0xAC00 || lastChar > 0xD7A3)
-            {
-                return false;
-            }
-
-            int code = lastChar - 0xAC00;
-            int jong = code % 28;
-            return jong != 0;
-        }
-
-        private int SharedPrefixScore(string a, string b)
-        {
-            int len = Math.Min(a.Length, b.Length);
-            int count = 0;
-
-            for (int i = 0; i < len; i++)
-            {
-                if (a[i] != b[i])
-                {
-                    break;
-                }
-
-                count++;
-            }
-
-            return count;
         }
 
         private async void LoadQuestion(int index)
@@ -1332,24 +733,13 @@ namespace ScriptureTyping.ViewModels.Games
             _questionVersion++;
             int localVersion = _questionVersion;
 
-            if (CurrentDifficulty == DIFFICULTY_SAMUEL_RANK1)
+            if (IsSamuelRank1Mode)
             {
-                _isPreviewing = true;
-                QuestionText = _current.OriginalText;
-                FeedbackText = "잠깐 보여줍니다. 집중해서 기억하세요.";
-                _timeLeftSec = 0;
-                RaiseUiComputed();
-
-                await Task.Delay(SAMUEL_PREVIEW_DELAY);
-
-                if (localVersion != _questionVersion || _current == null || _isRoundCompleted)
+                bool canContinue = await RunSamuelRank1PreviewAsync(localVersion);
+                if (!canContinue)
                 {
                     return;
                 }
-
-                _isPreviewing = false;
-                QuestionText = _current.ClozeText;
-                FeedbackText = BuildInitialGuideText();
             }
             else
             {
@@ -1368,21 +758,6 @@ namespace ScriptureTyping.ViewModels.Games
             }
 
             RaiseUiComputed();
-        }
-
-        private string BuildInitialGuideText()
-        {
-            if (_current == null)
-            {
-                return string.Empty;
-            }
-
-            if (_current.IsDualBlank)
-            {
-                return $"위/아래 보기에서 각 빈칸의 정답을 고르세요. (기회 {_tryLeft}회)";
-            }
-
-            return $"보기에서 정답을 고르세요. (기회 {_tryLeft}회)";
         }
 
         private void OnTimerTick()
@@ -1536,73 +911,6 @@ namespace ScriptureTyping.ViewModels.Games
                 int j = _rng.Next(i + 1);
                 (list[i], list[j]) = (list[j], list[i]);
             }
-        }
-
-        private int GetChoiceCount()
-        {
-            return CurrentDifficulty switch
-            {
-                DIFFICULTY_EASY => 6,
-                DIFFICULTY_NORMAL => 6,
-                DIFFICULTY_HARD => 6,
-                DIFFICULTY_VERY_HARD => 5,
-                DIFFICULTY_SAMUEL_RANK1 => 4,
-                _ => 6
-            };
-        }
-
-        private int GetTryCount()
-        {
-            return CurrentDifficulty switch
-            {
-                DIFFICULTY_EASY => 2,
-                DIFFICULTY_NORMAL => 2,
-                DIFFICULTY_HARD => 1,
-                DIFFICULTY_VERY_HARD => 1,
-                DIFFICULTY_SAMUEL_RANK1 => 1,
-                _ => 2
-            };
-        }
-
-        private int GetCorrectScore()
-        {
-            return CurrentDifficulty switch
-            {
-                DIFFICULTY_EASY => 10,
-                DIFFICULTY_NORMAL => 12,
-                DIFFICULTY_HARD => 14,
-                DIFFICULTY_VERY_HARD => 16,
-                DIFFICULTY_SAMUEL_RANK1 => 20,
-                _ => 10
-            };
-        }
-
-        private int GetWrongPenalty()
-        {
-            return CurrentDifficulty switch
-            {
-                DIFFICULTY_EASY => 2,
-                DIFFICULTY_NORMAL => 2,
-                DIFFICULTY_HARD => 3,
-                DIFFICULTY_VERY_HARD => 4,
-                DIFFICULTY_SAMUEL_RANK1 => 5,
-                _ => 2
-            };
-        }
-
-        private bool IsTimeAttackDifficulty(string difficulty)
-        {
-            return difficulty == DIFFICULTY_VERY_HARD || difficulty == DIFFICULTY_SAMUEL_RANK1;
-        }
-
-        private int GetTimeAttackSeconds()
-        {
-            return CurrentDifficulty switch
-            {
-                DIFFICULTY_VERY_HARD => 12,
-                DIFFICULTY_SAMUEL_RANK1 => 8,
-                _ => 15
-            };
         }
 
         private void RaiseUiComputed()

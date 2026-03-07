@@ -1,0 +1,484 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="Cloze.Bg" Color="#FFF7F8FC"/>
+    <SolidColorBrush x:Key="Cloze.Surface" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="Cloze.SurfaceSoft" Color="#FFF3F6FB"/>
+    <SolidColorBrush x:Key="Cloze.Border" Color="#FFD7DFEA"/>
+    <SolidColorBrush x:Key="Cloze.BorderStrong" Color="#FFB8C6D8"/>
+
+    <SolidColorBrush x:Key="Cloze.Text" Color="#FF1F2937"/>
+    <SolidColorBrush x:Key="Cloze.TextSub" Color="#FF6B7280"/>
+    <SolidColorBrush x:Key="Cloze.TextHint" Color="#FF94A3B8"/>
+
+    <SolidColorBrush x:Key="Cloze.Primary" Color="#FF2563EB"/>
+    <SolidColorBrush x:Key="Cloze.PrimaryHover" Color="#FF1D4ED8"/>
+    <SolidColorBrush x:Key="Cloze.PrimaryPressed" Color="#FF1E40AF"/>
+
+    <SolidColorBrush x:Key="Cloze.Success" Color="#FF16A34A"/>
+    <SolidColorBrush x:Key="Cloze.SuccessSoft" Color="#FFDCFCE7"/>
+
+    <SolidColorBrush x:Key="Cloze.Warning" Color="#FFF59E0B"/>
+    <SolidColorBrush x:Key="Cloze.WarningSoft" Color="#FFFEF3C7"/>
+
+    <SolidColorBrush x:Key="Cloze.Danger" Color="#FFDC2626"/>
+    <SolidColorBrush x:Key="Cloze.DangerSoft" Color="#FFFEE2E2"/>
+
+    <SolidColorBrush x:Key="Cloze.Shadow" Color="#18000000"/>
+
+    <CornerRadius x:Key="Cloze.Corner.Small">8</CornerRadius>
+    <CornerRadius x:Key="Cloze.Corner.Medium">12</CornerRadius>
+    <CornerRadius x:Key="Cloze.Corner.Large">18</CornerRadius>
+
+    <Style x:Key="Cloze.TitleText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Text}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="Cloze.SectionTitleText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Text}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="Cloze.BodyText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Text}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="LineHeight" Value="24"/>
+    </Style>
+
+    <Style x:Key="Cloze.SubText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.TextSub}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="Cloze.CardBorder" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Cloze.Surface}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{StaticResource Cloze.Corner.Large}"/>
+        <Setter Property="Padding" Value="20"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="14"
+                                  ShadowDepth="0"
+                                  Opacity="0.12"
+                                  Color="Black"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Cloze.SoftPanelBorder" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Cloze.SurfaceSoft}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{StaticResource Cloze.Corner.Medium}"/>
+        <Setter Property="Padding" Value="14"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Cloze.PrimaryButton" TargetType="Button">
+        <Setter Property="Height" Value="44"/>
+        <Setter Property="MinWidth" Value="112"/>
+        <Setter Property="Padding" Value="18,0"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Background" Value="{StaticResource Cloze.Primary}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Primary}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource Cloze.Corner.Medium}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Cloze.PrimaryHover}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Cloze.PrimaryHover}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Cloze.PrimaryPressed}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Cloze.PrimaryPressed}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Cloze.SecondaryButton" TargetType="Button" BasedOn="{StaticResource Cloze.PrimaryButton}">
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Text}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.BorderStrong}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource Cloze.Corner.Medium}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#FFF8FAFD"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#FF94A3B8"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#FFEFF4FA"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Cloze.DangerButton" TargetType="Button" BasedOn="{StaticResource Cloze.PrimaryButton}">
+        <Setter Property="Background" Value="{StaticResource Cloze.Danger}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Danger}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource Cloze.Corner.Medium}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.92"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.82"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Cloze.BadgeBorder" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Cloze.SurfaceSoft}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="999"/>
+        <Setter Property="Padding" Value="10,4"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="Cloze.BadgeText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.TextSub}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="Cloze.ProgressBar" TargetType="ProgressBar">
+        <Setter Property="Height" Value="10"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Primary}"/>
+        <Setter Property="Background" Value="#FFE5ECF5"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="999"
+                            SnapsToDevicePixels="True">
+                        <Grid ClipToBounds="True">
+                            <Border x:Name="PART_Track"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="999"/>
+                            <Border x:Name="PART_Indicator"
+                                    Background="{TemplateBinding Foreground}"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="999"
+                                    Width="0"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsIndeterminate" Value="False">
+                            <Setter TargetName="PART_Indicator"
+                                    Property="Width"
+                                    Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Value}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Cloze.ScriptureContainer" TargetType="Border">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.BorderStrong}"/>
+        <Setter Property="BorderThickness" Value="1.2"/>
+        <Setter Property="CornerRadius" Value="{StaticResource Cloze.Corner.Large}"/>
+        <Setter Property="Padding" Value="24"/>
+    </Style>
+
+    <Style x:Key="Cloze.ScriptureText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="26"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Text}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="LineHeight" Value="42"/>
+    </Style>
+
+    <Style x:Key="Cloze.BlankBox" TargetType="Border">
+        <Setter Property="MinWidth" Value="110"/>
+        <Setter Property="Height" Value="42"/>
+        <Setter Property="Margin" Value="4,2"/>
+        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="Background" Value="#FFF8FAFC"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.BorderStrong}"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
+        <Setter Property="CornerRadius" Value="{StaticResource Cloze.Corner.Small}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="Cloze.BlankBox.Correct" TargetType="Border" BasedOn="{StaticResource Cloze.BlankBox}">
+        <Setter Property="Background" Value="{StaticResource Cloze.SuccessSoft}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Success}"/>
+    </Style>
+
+    <Style x:Key="Cloze.BlankBox.Wrong" TargetType="Border" BasedOn="{StaticResource Cloze.BlankBox}">
+        <Setter Property="Background" Value="{StaticResource Cloze.DangerSoft}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Danger}"/>
+    </Style>
+
+    <Style x:Key="Cloze.BlankText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Text}"/>
+        <Setter Property="TextAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style x:Key="Cloze.OptionButton" TargetType="Button">
+        <Setter Property="Height" Value="52"/>
+        <Setter Property="MinWidth" Value="120"/>
+        <Setter Property="Margin" Value="6"/>
+        <Setter Property="Padding" Value="12,0"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Text}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.BorderStrong}"/>
+        <Setter Property="BorderThickness" Value="1.2"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource Cloze.Corner.Medium}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#FFF8FBFF"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Cloze.Primary}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#FFEAF2FF"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Cloze.OptionButton.Correct" TargetType="Button" BasedOn="{StaticResource Cloze.OptionButton}">
+        <Setter Property="Background" Value="{StaticResource Cloze.SuccessSoft}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Success}"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Success}"/>
+    </Style>
+
+    <Style x:Key="Cloze.OptionButton.Wrong" TargetType="Button" BasedOn="{StaticResource Cloze.OptionButton}">
+        <Setter Property="Background" Value="{StaticResource Cloze.DangerSoft}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Danger}"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Danger}"/>
+    </Style>
+
+    <Style x:Key="Cloze.OptionButton.Selected" TargetType="Button" BasedOn="{StaticResource Cloze.OptionButton}">
+        <Setter Property="Background" Value="#FFEAF2FF"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Primary}"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Primary}"/>
+    </Style>
+
+    <Style x:Key="Cloze.OptionGroupBorder" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Cloze.SurfaceSoft}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{StaticResource Cloze.Corner.Large}"/>
+        <Setter Property="Padding" Value="16"/>
+    </Style>
+
+    <Style x:Key="Cloze.TextBox" TargetType="TextBox">
+        <Setter Property="MinHeight" Value="44"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Text}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.BorderStrong}"/>
+        <Setter Property="BorderThickness" Value="1.4"/>
+        <Setter Property="CaretBrush" Value="{StaticResource Cloze.Primary}"/>
+        <Setter Property="SelectionBrush" Value="#663B82F6"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource Cloze.Corner.Medium}"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="0"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Cloze.Primary}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Cloze.DifficultyCardButton" TargetType="Button">
+        <Setter Property="Margin" Value="8"/>
+        <Setter Property="Padding" Value="18"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.BorderStrong}"/>
+        <Setter Property="BorderThickness" Value="1.2"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource Cloze.Corner.Large}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#FFF8FBFF"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Cloze.Primary}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#FFEAF2FF"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Cloze.ResultSummaryBorder" TargetType="Border">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Cloze.BorderStrong}"/>
+        <Setter Property="BorderThickness" Value="1.2"/>
+        <Setter Property="CornerRadius" Value="{StaticResource Cloze.Corner.Large}"/>
+        <Setter Property="Padding" Value="20"/>
+    </Style>
+
+    <Style x:Key="Cloze.ResultCorrectText" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Success}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="16"/>
+    </Style>
+
+    <Style x:Key="Cloze.ResultWrongText" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource Cloze.Danger}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="16"/>
+    </Style>
+    
+    <Style TargetType="ListBox" x:Key="Cloze.ListBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <Style TargetType="ListBoxItem" x:Key="Cloze.ListBoxItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border Background="{TemplateBinding Background}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

@@ -6,6 +6,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/colors.xaml"/>
                 <ResourceDictionary Source="Resources/DataTemplates.xaml"/>
+                <ResourceDictionary Source="Views/Games/Cloze/Styles/ClozeStyles.xaml"/>
+                <ResourceDictionary Source="Views/Games/Cloze/Templates/ClozeTemplates.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

@@ -36,88 +36,6 @@ namespace ScriptureTyping.ViewModels.Games
             "이다", "이니", "이며"
         };
 
-        private List<string> BuildChoices(string answer)
-        {
-            int choiceCount = GetChoiceCount();
-
-            HashSet<string> set = new HashSet<string>(StringComparer.Ordinal)
-            {
-                answer
-            };
-
-            foreach (string distractor in GenerateDistractors(answer))
-            {
-                if (set.Count >= choiceCount)
-                {
-                    break;
-                }
-
-                if (string.IsNullOrWhiteSpace(distractor))
-                {
-                    continue;
-                }
-
-                if (string.Equals(distractor, answer, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                set.Add(distractor);
-            }
-
-            bool allowGlobalFallback =
-                CurrentDifficulty == DIFFICULTY_EASY ||
-                CurrentDifficulty == DIFFICULTY_NORMAL;
-
-            if (allowGlobalFallback)
-            {
-                int safety = 0;
-
-                while (set.Count < choiceCount && safety < 300)
-                {
-                    safety++;
-
-                    if (_globalWordPool.Count <= 0)
-                    {
-                        break;
-                    }
-
-                    string word = _globalWordPool[_rng.Next(_globalWordPool.Count)];
-
-                    if (string.IsNullOrWhiteSpace(word) ||
-                        string.Equals(word, answer, StringComparison.Ordinal) ||
-                        !IsValidChoiceWord(word))
-                    {
-                        continue;
-                    }
-
-                    set.Add(word);
-                }
-            }
-            else
-            {
-                foreach (string extra in GenerateExtendedHardDistractors(answer))
-                {
-                    if (set.Count >= choiceCount)
-                    {
-                        break;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(extra) ||
-                        string.Equals(extra, answer, StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
-
-                    set.Add(extra);
-                }
-            }
-
-            List<string> list = set.ToList();
-            Shuffle(list);
-            return list.Take(choiceCount).ToList();
-        }
-
         private IEnumerable<string> GenerateDistractors(string answer)
         {
             List<string> sameLengthWords = _globalWordPool
@@ -355,34 +273,6 @@ namespace ScriptureTyping.ViewModels.Games
             }
         }
 
-        private static bool IsValidChoiceWord(string word)
-        {
-            if (string.IsNullOrWhiteSpace(word))
-            {
-                return false;
-            }
-
-            string normalized = word.Trim();
-
-            if (normalized.Length < 2)
-            {
-                return false;
-            }
-
-            if (normalized.Any(char.IsWhiteSpace))
-            {
-                return false;
-            }
-
-            int koreanCount = normalized.Count(ch => ch >= 0xAC00 && ch <= 0xD7A3);
-            if (koreanCount < Math.Max(1, normalized.Length / 2))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         private static bool IsMostlyNounLike(string word)
         {
             if (string.IsNullOrWhiteSpace(word))
@@ -413,43 +303,6 @@ namespace ScriptureTyping.ViewModels.Games
 
             josa = null;
             return word;
-        }
-
-        private static bool HasFinalConsonant(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return false;
-            }
-
-            char lastChar = text[^1];
-
-            if (lastChar < 0xAC00 || lastChar > 0xD7A3)
-            {
-                return false;
-            }
-
-            int code = lastChar - 0xAC00;
-            int jong = code % 28;
-            return jong != 0;
-        }
-
-        private int SharedPrefixScore(string a, string b)
-        {
-            int len = Math.Min(a.Length, b.Length);
-            int count = 0;
-
-            for (int i = 0; i < len; i++)
-            {
-                if (a[i] != b[i])
-                {
-                    break;
-                }
-
-                count++;
-            }
-
-            return count;
         }
     }
 }

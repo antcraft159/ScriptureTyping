@@ -1,6 +1,7 @@
 ﻿using ScriptureTyping.Commands;
 using ScriptureTyping.Data;
 using ScriptureTyping.Services;
+using ScriptureTyping.ViewModels.Games.Cloze.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -551,11 +552,12 @@ namespace ScriptureTyping.ViewModels.Games
             List<VerseItem> shuffled = verses.ToList();
             Shuffle(shuffled);
 
-            int limit = Math.Min(DEFAULT_ROUND_COUNT, shuffled.Count);
-
-            for (int i = 0; i < limit; i++)
+            foreach (VerseItem verse in shuffled)
             {
-                VerseItem verse = shuffled[i];
+                if (_round.Count >= DEFAULT_ROUND_COUNT)
+                {
+                    break;
+                }
 
                 if (!TryMakeQuestion(verse, out ClozeQuestion? question) || question == null)
                 {
@@ -572,14 +574,17 @@ namespace ScriptureTyping.ViewModels.Games
         {
             question = null;
 
-            if (IsVeryHardMode)
-            {
-                return TryMakeVeryHardQuestion(verse, out question);
-            }
-
             List<string> candidates = ExtractCandidateWords(verse.Text)
                 .Distinct(StringComparer.Ordinal)
                 .ToList();
+
+            if (CurrentDifficulty == DIFFICULTY_HARD)
+            {
+                candidates = candidates
+                    .Where(IsHardDifficultyAnswerCandidate)
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+            }
 
             int blankCount = GetBlankCount();
 
@@ -611,7 +616,7 @@ namespace ScriptureTyping.ViewModels.Games
             {
                 List<string> choices = BuildChoices(answer);
 
-                if (choices.Count < Math.Min(3, GetChoiceCount()))
+                if (choices.Count < GetChoiceCount())
                 {
                     return false;
                 }
@@ -629,6 +634,21 @@ namespace ScriptureTyping.ViewModels.Games
             };
 
             return true;
+        }
+
+        private bool IsHardDifficultyAnswerCandidate(string word)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+            {
+                return false;
+            }
+
+            ClozeWordAnalysisResult analysis = WordAnalyzer.Analyze(word);
+
+            return analysis.IsValid &&
+                   analysis.WordType == ClozeWordType.NounWithParticle &&
+                   !string.IsNullOrWhiteSpace(analysis.Stem) &&
+                   !string.IsNullOrWhiteSpace(analysis.Particle);
         }
 
         private static List<string> OrderAnswersByAppearance(string text, IReadOnlyList<string> answers)

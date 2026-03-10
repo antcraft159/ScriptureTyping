@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 
@@ -53,6 +54,46 @@ namespace ScriptureTyping.ViewModels.Games
 
         public ICommand SelectFirstChoiceCommand { get; }
         public ICommand SelectSecondChoiceCommand { get; }
+
+        private bool IsNormalDifficulty()
+        {
+            return CurrentDifficulty == DIFFICULTY_NORMAL;
+        }
+
+        private int GetNormalBlankCount()
+        {
+            return 2;
+        }
+
+        private int GetNormalChoiceCount()
+        {
+            return 6;
+        }
+
+        private int GetNormalTryCount()
+        {
+            return 2;
+        }
+
+        private int GetNormalCorrectScore()
+        {
+            return 12;
+        }
+
+        private int GetNormalWrongPenalty()
+        {
+            return 2;
+        }
+
+        private bool IsNormalTimeAttack()
+        {
+            return false;
+        }
+
+        private int GetNormalTimeAttackSeconds()
+        {
+            return 15;
+        }
 
         private void SelectFirstChoice(string? choice)
         {
@@ -150,16 +191,22 @@ namespace ScriptureTyping.ViewModels.Games
         {
             return CurrentDifficulty switch
             {
-                DIFFICULTY_NORMAL => 2,
-                DIFFICULTY_HARD => 2,
-                DIFFICULTY_VERY_HARD => 2,
-                DIFFICULTY_SAMUEL_RANK1 => 2,
-                _ => 1
+                DIFFICULTY_EASY => GetEasyBlankCount(),
+                DIFFICULTY_NORMAL => GetNormalBlankCount(),
+                DIFFICULTY_HARD => GetHardBlankCount(),
+                DIFFICULTY_VERY_HARD => GetVeryHardBlankCount(),
+                DIFFICULTY_SAMUEL_RANK1 => GetSamuelRank1BlankCount(),
+                _ => GetEasyBlankCount()
             };
         }
 
         private List<string> SelectAnswersByDifficulty(IReadOnlyList<string> candidates, int count)
         {
+            if (CurrentDifficulty == DIFFICULTY_EASY)
+            {
+                return SelectEasyAnswers(candidates, count);
+            }
+
             List<string> pool = candidates.Distinct(StringComparer.Ordinal).ToList();
 
             if (CurrentDifficulty == DIFFICULTY_HARD ||
@@ -184,12 +231,12 @@ namespace ScriptureTyping.ViewModels.Games
         {
             return CurrentDifficulty switch
             {
-                DIFFICULTY_EASY => 6,
-                DIFFICULTY_NORMAL => 6,
-                DIFFICULTY_HARD => 6,
-                DIFFICULTY_VERY_HARD => 5,
-                DIFFICULTY_SAMUEL_RANK1 => 4,
-                _ => 6
+                DIFFICULTY_EASY => GetEasyChoiceCount(),
+                DIFFICULTY_NORMAL => GetNormalChoiceCount(),
+                DIFFICULTY_HARD => GetHardChoiceCount(),
+                DIFFICULTY_VERY_HARD => GetVeryHardChoiceCount(),
+                DIFFICULTY_SAMUEL_RANK1 => GetSamuelRank1ChoiceCount(),
+                _ => GetEasyChoiceCount()
             };
         }
 
@@ -197,12 +244,12 @@ namespace ScriptureTyping.ViewModels.Games
         {
             return CurrentDifficulty switch
             {
-                DIFFICULTY_EASY => 2,
-                DIFFICULTY_NORMAL => 2,
-                DIFFICULTY_HARD => 1,
-                DIFFICULTY_VERY_HARD => 1,
-                DIFFICULTY_SAMUEL_RANK1 => 1,
-                _ => 2
+                DIFFICULTY_EASY => GetEasyTryCount(),
+                DIFFICULTY_NORMAL => GetNormalTryCount(),
+                DIFFICULTY_HARD => GetHardTryCount(),
+                DIFFICULTY_VERY_HARD => GetVeryHardTryCount(),
+                DIFFICULTY_SAMUEL_RANK1 => GetSamuelRank1TryCount(),
+                _ => GetEasyTryCount()
             };
         }
 
@@ -210,12 +257,12 @@ namespace ScriptureTyping.ViewModels.Games
         {
             return CurrentDifficulty switch
             {
-                DIFFICULTY_EASY => 10,
-                DIFFICULTY_NORMAL => 12,
-                DIFFICULTY_HARD => 14,
-                DIFFICULTY_VERY_HARD => 16,
-                DIFFICULTY_SAMUEL_RANK1 => 20,
-                _ => 10
+                DIFFICULTY_EASY => GetEasyCorrectScore(),
+                DIFFICULTY_NORMAL => GetNormalCorrectScore(),
+                DIFFICULTY_HARD => GetHardCorrectScore(),
+                DIFFICULTY_VERY_HARD => GetVeryHardCorrectScore(),
+                DIFFICULTY_SAMUEL_RANK1 => GetSamuelRank1CorrectScore(),
+                _ => GetEasyCorrectScore()
             };
         }
 
@@ -223,26 +270,37 @@ namespace ScriptureTyping.ViewModels.Games
         {
             return CurrentDifficulty switch
             {
-                DIFFICULTY_EASY => 2,
-                DIFFICULTY_NORMAL => 2,
-                DIFFICULTY_HARD => 3,
-                DIFFICULTY_VERY_HARD => 4,
-                DIFFICULTY_SAMUEL_RANK1 => 5,
-                _ => 2
+                DIFFICULTY_EASY => GetEasyWrongPenalty(),
+                DIFFICULTY_NORMAL => GetNormalWrongPenalty(),
+                DIFFICULTY_HARD => GetHardWrongPenalty(),
+                DIFFICULTY_VERY_HARD => GetVeryHardWrongPenalty(),
+                DIFFICULTY_SAMUEL_RANK1 => GetSamuelRank1WrongPenalty(),
+                _ => GetEasyWrongPenalty()
             };
         }
 
         private bool IsTimeAttackDifficulty(string difficulty)
         {
-            return difficulty == DIFFICULTY_VERY_HARD || difficulty == DIFFICULTY_SAMUEL_RANK1;
+            return difficulty switch
+            {
+                DIFFICULTY_EASY => IsEasyTimeAttack(),
+                DIFFICULTY_NORMAL => IsNormalTimeAttack(),
+                DIFFICULTY_HARD => IsHardTimeAttack(),
+                DIFFICULTY_VERY_HARD => IsVeryHardTimeAttack(),
+                DIFFICULTY_SAMUEL_RANK1 => IsSamuelRank1TimeAttack(),
+                _ => false
+            };
         }
 
         private int GetTimeAttackSeconds()
         {
             return CurrentDifficulty switch
             {
-                DIFFICULTY_VERY_HARD => 10,
-                DIFFICULTY_SAMUEL_RANK1 => 8,
+                DIFFICULTY_EASY => GetEasyTimeAttackSeconds(),
+                DIFFICULTY_NORMAL => GetNormalTimeAttackSeconds(),
+                DIFFICULTY_HARD => GetHardTimeAttackSeconds(),
+                DIFFICULTY_VERY_HARD => GetVeryHardTimeAttackSeconds(),
+                DIFFICULTY_SAMUEL_RANK1 => GetSamuelRank1TimeAttackSeconds(),
                 _ => 15
             };
         }

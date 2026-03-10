@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ScriptureTyping.ViewModels.Games.Cloze.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,6 +7,17 @@ namespace ScriptureTyping.ViewModels.Games
 {
     public sealed partial class ClozeGameViewModel
     {
+        private static readonly HashSet<string> HardAllowedParticles = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "이", "가",
+            "은", "는",
+            "을", "를",
+            "와", "과",
+            "에", "에서", "에게",
+            "로", "으로",
+            "도", "만", "의"
+        };
+
         private static readonly string[] KnownJosa =
         {
             "으로부터", "에게서", "께서는", "에서는", "으로는", "으로도",
@@ -35,6 +47,46 @@ namespace ScriptureTyping.ViewModels.Games
             "하라", "하여라", "하니", "하되", "하고",
             "이다", "이니", "이며"
         };
+
+        private bool IsHardDifficulty()
+        {
+            return CurrentDifficulty == DIFFICULTY_HARD;
+        }
+
+        private int GetHardBlankCount()
+        {
+            return 2;
+        }
+
+        private int GetHardChoiceCount()
+        {
+            return 6;
+        }
+
+        private int GetHardTryCount()
+        {
+            return 1;
+        }
+
+        private int GetHardCorrectScore()
+        {
+            return 14;
+        }
+
+        private int GetHardWrongPenalty()
+        {
+            return 3;
+        }
+
+        private bool IsHardTimeAttack()
+        {
+            return false;
+        }
+
+        private int GetHardTimeAttackSeconds()
+        {
+            return 15;
+        }
 
         private IEnumerable<string> GenerateDistractors(string answer)
         {
@@ -271,6 +323,64 @@ namespace ScriptureTyping.ViewModels.Games
             {
                 yield return item;
             }
+        }
+
+        private bool IsHardDifficultyAnswerCandidate(string word)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+            {
+                return false;
+            }
+
+            ClozeWordAnalysisResult analysis = WordAnalyzer.Analyze(word);
+
+            if (!analysis.IsValid)
+            {
+                return false;
+            }
+
+            if (analysis.WordType != ClozeWordType.NounWithParticle)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(analysis.Stem) ||
+                string.IsNullOrWhiteSpace(analysis.Particle))
+            {
+                return false;
+            }
+
+            if (!HardAllowedParticles.Contains(analysis.Particle))
+            {
+                return false;
+            }
+
+            if (!IsNaturalHardNounStem(analysis.Stem))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsNaturalHardNounStem(string stem)
+        {
+            if (string.IsNullOrWhiteSpace(stem))
+            {
+                return false;
+            }
+
+            if (stem.Length < 2)
+            {
+                return false;
+            }
+
+            string[] invalidStemSuffixes =
+            {
+                "하", "되", "있", "없", "오", "가", "보", "이르", "모으", "보이"
+            };
+
+            return !invalidStemSuffixes.Any(stem.EndsWith);
         }
 
         private static bool IsMostlyNounLike(string word)

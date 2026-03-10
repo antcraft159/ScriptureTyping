@@ -1,7 +1,6 @@
 ﻿using ScriptureTyping.Commands;
 using ScriptureTyping.Data;
 using ScriptureTyping.Services;
-using ScriptureTyping.ViewModels.Games.Cloze.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -29,17 +28,6 @@ namespace ScriptureTyping.ViewModels.Games
         private const string DIFFICULTY_SAMUEL_RANK1 = "사무엘 1등";
 
         private static readonly TimeSpan AUTO_NEXT_DELAY = TimeSpan.FromMilliseconds(2000);
-
-        private static readonly HashSet<string> HardAllowedParticles = new HashSet<string>(StringComparer.Ordinal)
-        {
-            "이", "가",
-            "은", "는",
-            "을", "를",
-            "와", "과",
-            "에", "에서", "에게",
-            "로", "으로",
-            "도", "만", "의"
-        };
 
         private readonly MainWindowViewModel? _host;
         private readonly SelectionContext _ctx;
@@ -225,7 +213,10 @@ namespace ScriptureTyping.ViewModels.Games
             }
         }
 
-        public bool AreSingleChoicesVisible => _current != null && !_current.IsDualBlank && Choices.Count > 0;
+        public bool AreSingleChoicesVisible =>
+            _current != null &&
+            !_current.IsDualBlank &&
+            Choices.Count > 0;
 
         public bool AreChoicesEnabled =>
             CanAnswerChoices() &&
@@ -246,7 +237,10 @@ namespace ScriptureTyping.ViewModels.Games
         public ICommand HintCommand { get; }
         public ICommand RestartCommand { get; }
 
-        private string CurrentDifficulty => string.IsNullOrWhiteSpace(SelectedDifficulty) ? DIFFICULTY_EASY : SelectedDifficulty!;
+        private string CurrentDifficulty =>
+            string.IsNullOrWhiteSpace(SelectedDifficulty)
+                ? DIFFICULTY_EASY
+                : SelectedDifficulty!;
 
         private void InitSelectionUi()
         {
@@ -650,208 +644,6 @@ namespace ScriptureTyping.ViewModels.Games
             };
 
             return true;
-        }
-
-        private List<string> RebuildEasyChoices(string answer, IReadOnlyList<string> originalChoices)
-        {
-            int requiredCount = GetChoiceCount();
-
-            List<string> rebuilt = new List<string> { answer };
-
-            foreach (string choice in originalChoices)
-            {
-                if (rebuilt.Count >= requiredCount)
-                {
-                    break;
-                }
-
-                if (string.Equals(choice, answer, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                if (IsTooSimilarForEasy(answer, choice))
-                {
-                    continue;
-                }
-
-                if (rebuilt.Contains(choice, StringComparer.Ordinal))
-                {
-                    continue;
-                }
-
-                rebuilt.Add(choice);
-            }
-
-            List<string> fallbackPool = _globalWordPool
-                .Where(word => !string.IsNullOrWhiteSpace(word))
-                .Distinct(StringComparer.Ordinal)
-                .Where(word => !string.Equals(word, answer, StringComparison.Ordinal))
-                .Where(word => !IsTooSimilarForEasy(answer, word))
-                .Where(word => !rebuilt.Contains(word, StringComparer.Ordinal))
-                .ToList();
-
-            Shuffle(fallbackPool);
-
-            foreach (string word in fallbackPool)
-            {
-                if (rebuilt.Count >= requiredCount)
-                {
-                    break;
-                }
-
-                rebuilt.Add(word);
-            }
-
-            if (rebuilt.Count < requiredCount)
-            {
-                return new List<string>();
-            }
-
-            Shuffle(rebuilt);
-            return rebuilt;
-        }
-
-        private bool IsTooSimilarForEasy(string answer, string candidate)
-        {
-            if (string.IsNullOrWhiteSpace(answer) || string.IsNullOrWhiteSpace(candidate))
-            {
-                return false;
-            }
-
-            string answerCore = NormalizeEasyWord(answer);
-            string candidateCore = NormalizeEasyWord(candidate);
-
-            if (string.IsNullOrWhiteSpace(answerCore) || string.IsNullOrWhiteSpace(candidateCore))
-            {
-                return false;
-            }
-
-            if (string.Equals(answerCore, candidateCore, StringComparison.Ordinal))
-            {
-                return true;
-            }
-
-            if (answerCore.Contains(candidateCore, StringComparison.Ordinal) ||
-                candidateCore.Contains(answerCore, StringComparison.Ordinal))
-            {
-                return true;
-            }
-
-            int minLength = Math.Min(answerCore.Length, candidateCore.Length);
-            if (minLength >= 2 && GetCommonPrefixLength(answerCore, candidateCore) >= minLength - 1)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static string NormalizeEasyWord(string word)
-        {
-            if (string.IsNullOrWhiteSpace(word))
-            {
-                return string.Empty;
-            }
-
-            string normalized = TrimPunctuation(word.Trim());
-            normalized = Regex.Replace(normalized, @"[^\p{L}\p{N}]", "");
-
-            string[] particles =
-            {
-                "으로", "에서", "에게",
-                "은", "는", "이", "가", "을", "를",
-                "와", "과", "의", "에", "도", "만", "로",
-                "나", "이나", "랑", "하고", "께"
-            };
-
-            foreach (string particle in particles.OrderByDescending(x => x.Length))
-            {
-                if (normalized.Length > particle.Length &&
-                    normalized.EndsWith(particle, StringComparison.Ordinal))
-                {
-                    normalized = normalized.Substring(0, normalized.Length - particle.Length);
-                    break;
-                }
-            }
-
-            return normalized;
-        }
-
-        private static int GetCommonPrefixLength(string left, string right)
-        {
-            int max = Math.Min(left.Length, right.Length);
-            int count = 0;
-
-            for (int i = 0; i < max; i++)
-            {
-                if (left[i] != right[i])
-                {
-                    break;
-                }
-
-                count++;
-            }
-
-            return count;
-        }
-
-        private bool IsHardDifficultyAnswerCandidate(string word)
-        {
-            if (string.IsNullOrWhiteSpace(word))
-            {
-                return false;
-            }
-
-            ClozeWordAnalysisResult analysis = WordAnalyzer.Analyze(word);
-
-            if (!analysis.IsValid)
-            {
-                return false;
-            }
-
-            if (analysis.WordType != ClozeWordType.NounWithParticle)
-            {
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(analysis.Stem) ||
-                string.IsNullOrWhiteSpace(analysis.Particle))
-            {
-                return false;
-            }
-
-            if (!HardAllowedParticles.Contains(analysis.Particle))
-            {
-                return false;
-            }
-
-            if (!IsNaturalHardNounStem(analysis.Stem))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private static bool IsNaturalHardNounStem(string stem)
-        {
-            if (string.IsNullOrWhiteSpace(stem))
-            {
-                return false;
-            }
-
-            if (stem.Length < 2)
-            {
-                return false;
-            }
-
-            string[] invalidStemSuffixes =
-            {
-                "하", "되", "있", "없", "오", "가", "보", "이르", "모으", "보이"
-            };
-
-            return !invalidStemSuffixes.Any(stem.EndsWith);
         }
 
         private static List<string> OrderAnswersByAppearance(string text, IReadOnlyList<string> answers)

@@ -241,7 +241,7 @@ namespace ScriptureTyping.ViewModels.Games
         {
             return CurrentDifficulty switch
             {
-                DIFFICULTY_VERY_HARD => 12,
+                DIFFICULTY_VERY_HARD => 10,
                 DIFFICULTY_SAMUEL_RANK1 => 8,
                 _ => 15
             };

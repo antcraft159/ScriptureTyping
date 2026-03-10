@@ -122,6 +122,16 @@ namespace ScriptureTyping.ViewModels.Games
                 return new List<string>();
             }
 
+            if (!HardAllowedParticles.Contains(answerAnalysis.Particle))
+            {
+                return new List<string>();
+            }
+
+            if (!IsNaturalHardNounStem(answerAnalysis.Stem))
+            {
+                return new List<string>();
+            }
+
             HashSet<string> selected = new HashSet<string>(StringComparer.Ordinal)
             {
                 answer
@@ -155,10 +165,33 @@ namespace ScriptureTyping.ViewModels.Games
                 yield break;
             }
 
+            if (!HardAllowedParticles.Contains(answerAnalysis.Particle))
+            {
+                yield break;
+            }
+
+            if (!IsNaturalHardNounStem(answerAnalysis.Stem))
+            {
+                yield break;
+            }
+
             string stem = answerAnalysis.Stem;
             bool hasBatchim = HasFinalConsonant(stem);
 
-            List<string> candidates = new List<string>();
+            List<string> candidates = new List<string>
+            {
+                stem + (hasBatchim ? "이" : "가"),
+                stem + (hasBatchim ? "은" : "는"),
+                stem + (hasBatchim ? "을" : "를"),
+                stem + (hasBatchim ? "과" : "와"),
+                stem + "에",
+                stem + "에서",
+                stem + "에게",
+                stem + (hasBatchim ? "으로" : "로"),
+                stem + "도",
+                stem + "만",
+                stem + "의"
+            };
 
             foreach (string[] group in ParticleConfusionGroups)
             {
@@ -169,22 +202,13 @@ namespace ScriptureTyping.ViewModels.Games
 
                 foreach (string particle in group)
                 {
-                    candidates.Add(stem + particle);
+                    string candidate = stem + particle;
+                    if (HardAllowedParticles.Contains(particle))
+                    {
+                        candidates.Add(candidate);
+                    }
                 }
             }
-
-            candidates.Add(stem + (hasBatchim ? "이" : "가"));
-            candidates.Add(stem + (hasBatchim ? "은" : "는"));
-            candidates.Add(stem + (hasBatchim ? "을" : "를"));
-            candidates.Add(stem + (hasBatchim ? "과" : "와"));
-            candidates.Add(stem + "에");
-            candidates.Add(stem + "에서");
-            candidates.Add(stem + "에게");
-            candidates.Add(stem + (hasBatchim ? "으로" : "로"));
-            candidates.Add(stem + "도");
-            candidates.Add(stem + "만");
-            candidates.Add(stem + "의");
-            candidates.Add(stem + (hasBatchim ? "이나" : "나"));
 
             HashSet<string> yielded = new HashSet<string>(StringComparer.Ordinal);
 

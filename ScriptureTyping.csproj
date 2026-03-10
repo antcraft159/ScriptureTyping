@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Folder Include="Resources\" />
+    <Folder Include="Views\Games\Cloze\Styles\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,25 +8,29 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace ScriptureTyping.ViewModels.Games
 {
-    public sealed class ClozeGameViewModel : INotifyPropertyChanged
+    public sealed partial class ClozeGameViewModel : INotifyPropertyChanged
     {
         private const string DEFAULT_TITLE = "빈칸 채우기";
         private const string ALL_DAY_TEXT = "전일차";
         private const int ALL_DAY_INDEX = 0;
-
         private const int DEFAULT_ROUND_COUNT = 10;
-        private const int DEFAULT_TRY_LEFT = 2;
-        private const int DEFAULT_CHOICE_COUNT = 6;
-        private const int TIME_ATTACK_SECONDS = 15;
+
+        private const string DIFFICULTY_EASY = "쉬움";
+        private const string DIFFICULTY_NORMAL = "보통";
+        private const string DIFFICULTY_HARD = "어려움";
+        private const string DIFFICULTY_VERY_HARD = "매우 어려움";
+        private const string DIFFICULTY_SAMUEL_RANK1 = "사무엘 1등";
+
+        private static readonly TimeSpan AUTO_NEXT_DELAY = TimeSpan.FromMilliseconds(2000);
 
         private readonly MainWindowViewModel? _host;
         private readonly SelectionContext _ctx;
-
         private readonly Random _rng = new Random();
         private readonly DispatcherTimer _timer;
 
@@ -36,13 +40,11 @@ namespace ScriptureTyping.ViewModels.Games
         private int _index;
         private int _score;
         private int _combo;
-
         private int _tryLeft;
         private bool _isCorrect;
         private bool _hintUsed;
-        private bool _isAnswered;
         private bool _isRoundCompleted;
-
+        private bool _isPreviewing;
         private int _timeLeftSec;
 
         private string _title = DEFAULT_TITLE;
@@ -52,17 +54,15 @@ namespace ScriptureTyping.ViewModels.Games
 
         private string? _selectedCourse;
         private string? _selectedDay;
+        private string? _selectedDifficulty;
         private string _selectionError = string.Empty;
 
         private ClozeQuestion? _current;
+        private bool _isAutoNextScheduled;
+        private int _questionVersion;
 
         public event PropertyChangedEventHandler? PropertyChanged;
-
         public event Action? BackRequested;
-
-        // -----------------------------
-        //  생성자
-        // -----------------------------
 
         public ClozeGameViewModel()
             : this(host: null, selectionContext: App.SelectionContext)
@@ -89,25 +89,25 @@ namespace ScriptureTyping.ViewModels.Games
 
             BackCommand = new RelayCommand(_ => Back(), _ => true);
             SelectChoiceCommand = new RelayCommand(p => SelectChoice(p as string), _ => AreChoicesEnabled);
-            NextCommand = new RelayCommand(_ => Next(), _ => IsNextEnabled);
+            SelectFirstChoiceCommand = new RelayCommand(p => SelectFirstChoice(p as string), _ => AreFirstChoicesEnabled);
+            SelectSecondChoiceCommand = new RelayCommand(p => SelectSecondChoice(p as string), _ => AreSecondChoicesEnabled);
             HintCommand = new RelayCommand(_ => Hint(), _ => IsHintEnabled);
             RestartCommand = new RelayCommand(_ => Restart(), _ => true);
-
-            //  게임 상단 선택 UI 커맨드
             ApplySelectionCommand = new RelayCommand(_ => ApplySelection(), _ => CanApplySelection());
 
             Title = DEFAULT_TITLE;
 
             InitSelectionUi();
-            ApplySelectionFromContextOrDefault(); // 시작 시 한번 세팅
+            ApplySelectionFromContextOrDefault();
         }
-
-        // -----------------------------
-        //  상단 선택 UI 바인딩
-        // -----------------------------
 
         public ObservableCollection<string> Courses { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> Days { get; } = new ObservableCollection<string>();
+        public ObservableCollection<string> DifficultyOptions { get; } = new ObservableCollection<string>();
+
+        public ObservableCollection<string> Choices { get; } = new ObservableCollection<string>();
+        public ObservableCollection<string> FirstChoices { get; } = new ObservableCollection<string>();
+        public ObservableCollection<string> SecondChoices { get; } = new ObservableCollection<string>();
 
         public string? SelectedCourse
         {
@@ -135,6 +135,20 @@ namespace ScriptureTyping.ViewModels.Games
             }
         }
 
+        public string? SelectedDifficulty
+        {
+            get => _selectedDifficulty;
+            set
+            {
+                if (_selectedDifficulty == value) return;
+                _selectedDifficulty = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DifficultyText));
+                OnPropertyChanged(nameof(IsNormalMode));
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
         public string SelectionError
         {
             get => _selectionError;
@@ -147,120 +161,6 @@ namespace ScriptureTyping.ViewModels.Games
         }
 
         public ICommand ApplySelectionCommand { get; }
-
-        private void InitSelectionUi()
-        {
-            Courses.Clear();
-            for (int i = 1; i <= VerseCatalog.MAX_COURSE; i++)
-            {
-                Courses.Add($"{i}과정");
-            }
-
-            Days.Clear();
-            Days.Add(ALL_DAY_TEXT);
-            for (int d = 1; d <= VerseCatalog.MAX_DAY; d++)
-            {
-                Days.Add($"{d}일차");
-            }
-        }
-
-        private void ApplySelectionFromContextOrDefault()
-        {
-            // Context가 있으면 그걸 UI에 반영
-            if (_ctx.HasSelection)
-            {
-                SelectedCourse = _ctx.SelectedCourseId;
-                int dayIndex = _ctx.SelectedDayIndex ?? 0;
-                SelectedDay = dayIndex == 0 ? ALL_DAY_TEXT : $"{dayIndex}일차";
-
-                ApplySelection();
-                return;
-            }
-
-            // 없으면 기본값(1과정/전일차 같은)만 잡고, 아직 게임 시작은 안 함
-            SelectedCourse = Courses.FirstOrDefault();
-            SelectedDay = ALL_DAY_TEXT;
-
-            QuestionText = "상단에서 과정/일차 선택 후 [적용]을 누르세요.";
-            ReferenceText = "";
-            FeedbackText = "";
-            Choices.Clear();
-            RaiseUiComputed();
-        }
-
-        private bool CanApplySelection()
-        {
-            return !string.IsNullOrWhiteSpace(SelectedCourse) && !string.IsNullOrWhiteSpace(SelectedDay);
-        }
-
-        private void ApplySelection()
-        {
-            if (string.IsNullOrWhiteSpace(SelectedCourse) || string.IsNullOrWhiteSpace(SelectedDay))
-            {
-                SelectionError = "과정/일차를 선택해 주세요.";
-                return;
-            }
-
-            int courseNo = ParseCourseNo(SelectedCourse);
-            int dayIndex = (SelectedDay == ALL_DAY_TEXT) ? ALL_DAY_INDEX : ParseDayNo(SelectedDay);
-
-            // VerseCatalog로 구절 로드
-            IReadOnlyList<Verse> verses = BuildVerseList(courseNo, SelectedDay);
-
-            if (verses.Count == 0)
-            {
-                SelectionError = "해당 선택에 구절이 없습니다.";
-                QuestionText = "구절이 없습니다.";
-                ReferenceText = "";
-                FeedbackText = "";
-                Choices.Clear();
-                RaiseUiComputed();
-                return;
-            }
-
-            // SelectionContext에 저장(게임/다른 곳도 동기화)
-            List<VerseItem> items = verses.Select(v => new VerseItem { Ref = v.Ref, Text = v.Text }).ToList();
-            _ctx.SetSelection(SelectedCourse, dayIndex, items);
-
-            // 게임 라운드 재생성(점수/인덱스 리셋)
-            RestartRound(items);
-        }
-
-        private void RestartRound(IReadOnlyList<VerseItem> verses)
-        {
-            StopTimer();
-
-            _round.Clear();
-            _globalWordPool.Clear();
-            _index = 0;
-            _score = 0;
-            _combo = 0;
-
-            _tryLeft = DEFAULT_TRY_LEFT;
-            _isCorrect = false;
-            _hintUsed = false;
-            _isAnswered = false;
-            _isRoundCompleted = false;
-
-            BuildWordPool(verses);
-            BuildRound(verses);
-
-            if (_round.Count <= 0)
-            {
-                QuestionText = "문제를 만들 수 있는 구절이 없습니다.";
-                ReferenceText = "";
-                FeedbackText = "다른 과정/일차를 선택해 주세요.";
-                Choices.Clear();
-                RaiseUiComputed();
-                return;
-            }
-
-            LoadQuestion(0);
-        }
-
-        // -----------------------------
-        // 기존 게임 바인딩
-        // -----------------------------
 
         public string Title
         {
@@ -276,8 +176,8 @@ namespace ScriptureTyping.ViewModels.Games
         public string ProgressText => _round.Count <= 0 ? "0/0" : $"{Math.Min(_index + 1, _round.Count)}/{_round.Count}";
         public string ScoreText => $"점수 {_score}";
         public string ComboText => _combo > 0 ? $"콤보 x{_combo}" : "콤보 -";
-
-        public bool IsTimeAttack { get; private set; } = false;
+        public string DifficultyText => $"모드 {CurrentDifficulty}";
+        public bool IsTimeAttack { get; private set; }
         public string TimeLeftText => $"남은시간 {_timeLeftSec:00}s";
 
         public string QuestionText
@@ -313,21 +213,162 @@ namespace ScriptureTyping.ViewModels.Games
             }
         }
 
-        public ObservableCollection<string> Choices { get; } = new ObservableCollection<string>();
+        public bool AreSingleChoicesVisible =>
+            _current != null &&
+            !_current.IsDualBlank &&
+            Choices.Count > 0;
 
-        public bool AreChoicesEnabled => !_isRoundCompleted && !_isCorrect && _tryLeft > 0;
-        public bool IsNextEnabled => !_isRoundCompleted && (_isCorrect || _tryLeft <= 0);
-        public bool IsHintEnabled => !_isRoundCompleted && !_hintUsed && !_isCorrect && _tryLeft > 0 && _current != null;
+        public bool AreChoicesEnabled =>
+            CanAnswerChoices() &&
+            _current != null &&
+            !_current.IsDualBlank &&
+            Choices.Count > 0;
 
-        // -----------------------------
-        // Commands
-        // -----------------------------
+        public bool IsHintEnabled =>
+            !_isRoundCompleted &&
+            !_hintUsed &&
+            !_isCorrect &&
+            _tryLeft > 0 &&
+            !_isPreviewing &&
+            _current != null;
 
         public ICommand BackCommand { get; }
         public ICommand SelectChoiceCommand { get; }
-        public ICommand NextCommand { get; }
         public ICommand HintCommand { get; }
         public ICommand RestartCommand { get; }
+
+        private string CurrentDifficulty =>
+            string.IsNullOrWhiteSpace(SelectedDifficulty)
+                ? DIFFICULTY_EASY
+                : SelectedDifficulty!;
+
+        private void InitSelectionUi()
+        {
+            Courses.Clear();
+            for (int i = 1; i <= VerseCatalog.MAX_COURSE; i++)
+            {
+                Courses.Add($"{i}과정");
+            }
+
+            Days.Clear();
+            Days.Add(ALL_DAY_TEXT);
+            for (int d = 1; d <= VerseCatalog.MAX_DAY; d++)
+            {
+                Days.Add($"{d}일차");
+            }
+
+            DifficultyOptions.Clear();
+            DifficultyOptions.Add(DIFFICULTY_EASY);
+            DifficultyOptions.Add(DIFFICULTY_NORMAL);
+            DifficultyOptions.Add(DIFFICULTY_HARD);
+            DifficultyOptions.Add(DIFFICULTY_VERY_HARD);
+            DifficultyOptions.Add(DIFFICULTY_SAMUEL_RANK1);
+        }
+
+        private void ApplySelectionFromContextOrDefault()
+        {
+            SelectedDifficulty = DIFFICULTY_EASY;
+
+            if (_ctx.HasSelection)
+            {
+                SelectedCourse = _ctx.SelectedCourseId;
+                int dayIndex = _ctx.SelectedDayIndex ?? 0;
+                SelectedDay = dayIndex == 0 ? ALL_DAY_TEXT : $"{dayIndex}일차";
+
+                ApplySelection();
+                return;
+            }
+
+            SelectedCourse = Courses.FirstOrDefault();
+            SelectedDay = ALL_DAY_TEXT;
+
+            QuestionText = "상단에서 과정/일차/모드를 선택 후 [적용]을 누르세요.";
+            ReferenceText = string.Empty;
+            FeedbackText = string.Empty;
+            ClearAllChoiceCollections();
+            RaiseUiComputed();
+        }
+
+        private bool CanApplySelection()
+        {
+            return !string.IsNullOrWhiteSpace(SelectedCourse)
+                && !string.IsNullOrWhiteSpace(SelectedDay)
+                && !string.IsNullOrWhiteSpace(SelectedDifficulty);
+        }
+
+        private void ApplySelection()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedCourse) ||
+                string.IsNullOrWhiteSpace(SelectedDay) ||
+                string.IsNullOrWhiteSpace(SelectedDifficulty))
+            {
+                SelectionError = "과정/일차/모드를 선택해 주세요.";
+                return;
+            }
+
+            int courseNo = ParseCourseNo(SelectedCourse);
+            int dayIndex = SelectedDay == ALL_DAY_TEXT ? ALL_DAY_INDEX : ParseDayNo(SelectedDay);
+
+            IReadOnlyList<Verse> verses = BuildVerseList(courseNo, SelectedDay);
+
+            if (verses.Count == 0)
+            {
+                SelectionError = "해당 선택에 구절이 없습니다.";
+                QuestionText = "구절이 없습니다.";
+                ReferenceText = string.Empty;
+                FeedbackText = string.Empty;
+                ClearAllChoiceCollections();
+                RaiseUiComputed();
+                return;
+            }
+
+            List<VerseItem> items = verses
+                .Select(v => new VerseItem { Ref = v.Ref, Text = v.Text })
+                .ToList();
+
+            _ctx.SetSelection(SelectedCourse, dayIndex, items);
+            RestartRound(items);
+        }
+
+        private void RestartRound(IReadOnlyList<VerseItem> verses)
+        {
+            StopTimer();
+
+            _round.Clear();
+            _globalWordPool.Clear();
+            _index = 0;
+            _score = 0;
+            _combo = 0;
+
+            _tryLeft = GetTryCount();
+            _isCorrect = false;
+            _hintUsed = false;
+            _isRoundCompleted = false;
+            _isPreviewing = false;
+            _isAutoNextScheduled = false;
+            SelectedFirstChoice = null;
+            SelectedSecondChoice = null;
+
+            IsTimeAttack = IsTimeAttackDifficulty(CurrentDifficulty);
+            OnPropertyChanged(nameof(IsTimeAttack));
+            OnPropertyChanged(nameof(DifficultyText));
+            OnPropertyChanged(nameof(IsNormalMode));
+
+            BuildWordPool(verses);
+            BuildRound(verses);
+
+            if (_round.Count <= 0)
+            {
+                QuestionText = "문제를 만들 수 있는 구절이 없습니다.";
+                ReferenceText = string.Empty;
+                FeedbackText = "다른 과정/일차를 선택해 주세요.";
+                ClearAllChoiceCollections();
+                RaiseUiComputed();
+                return;
+            }
+
+            LoadQuestion(0);
+        }
 
         private void Back()
         {
@@ -342,47 +383,98 @@ namespace ScriptureTyping.ViewModels.Games
             BackRequested?.Invoke();
         }
 
+        private bool CanAnswerChoices()
+        {
+            return !_isRoundCompleted &&
+                   !_isCorrect &&
+                   _tryLeft > 0 &&
+                   !_isPreviewing &&
+                   _current != null;
+        }
+
         private void SelectChoice(string? choice)
         {
-            if (choice == null) return;
-            if (_current == null) return;
-            if (!AreChoicesEnabled) return;
-
-            _isAnswered = true;
-
-            if (string.Equals(choice.Trim(), _current.Answer.Trim(), StringComparison.Ordinal))
+            if (choice == null || _current == null || _current.IsDualBlank || !AreChoicesEnabled)
             {
-                _isCorrect = true;
-                _score += 10;
-                _combo += 1;
+                return;
+            }
 
-                FeedbackText = "정답! 다음 문제로 넘어가세요.";
+            if (string.Equals(choice.Trim(), _current.Answers[0].Trim(), StringComparison.Ordinal))
+            {
+                HandleCorrectAnswer();
+                return;
+            }
+
+            HandleWrongSingleAnswer();
+        }
+
+        private void HandleCorrectAnswer()
+        {
+            _isCorrect = true;
+            _score += GetCorrectScore();
+            _combo += 1;
+
+            FeedbackText = "정답!";
+            StopTimer();
+            RaiseUiComputed();
+            ScheduleAutoNext();
+        }
+
+        private void HandleWrongSingleAnswer()
+        {
+            if (_current == null)
+            {
+                return;
+            }
+
+            _isCorrect = false;
+            _tryLeft -= 1;
+            _score = Math.Max(0, _score - GetWrongPenalty());
+            _combo = 0;
+
+            if (_tryLeft <= 0)
+            {
+                FeedbackText = $"기회 소진. 정답은 \"{_current.Answers[0]}\" 입니다.";
                 StopTimer();
-            }
-            else
-            {
-                _isCorrect = false;
-                _tryLeft -= 1;
-                _score = Math.Max(0, _score - 2);
-                _combo = 0;
-
-                if (_tryLeft <= 0)
-                {
-                    FeedbackText = $"기회 소진. 정답은 \"{_current.Answer}\" 입니다. 다음 문제로 넘어가세요.";
-                    StopTimer();
-                }
-                else
-                {
-                    FeedbackText = $"틀렸습니다. 다시 선택하세요. (기회 {_tryLeft}회)";
-                }
+                RaiseUiComputed();
+                ScheduleAutoNext();
+                return;
             }
 
+            FeedbackText = $"틀렸습니다. 다시 선택하세요. (기회 {_tryLeft}회)";
             RaiseUiComputed();
         }
 
-        private void Next()
+        private async void ScheduleAutoNext()
         {
-            if (!IsNextEnabled) return;
+            if (_isAutoNextScheduled)
+            {
+                return;
+            }
+
+            _isAutoNextScheduled = true;
+
+            try
+            {
+                await Task.Delay(AUTO_NEXT_DELAY);
+                AutoNext();
+            }
+            finally
+            {
+                if (_isRoundCompleted)
+                {
+                    _isAutoNextScheduled = false;
+                }
+            }
+        }
+
+        private void AutoNext()
+        {
+            if (_isRoundCompleted)
+            {
+                _isAutoNextScheduled = false;
+                return;
+            }
 
             _index++;
 
@@ -392,10 +484,11 @@ namespace ScriptureTyping.ViewModels.Games
                 StopTimer();
 
                 QuestionText = "라운드 종료!";
-                ReferenceText = "";
-                Choices.Clear();
-
+                ReferenceText = string.Empty;
+                ClearAllChoiceCollections();
                 FeedbackText = $"총 {_round.Count}문제 | 점수 {_score}";
+                _isAutoNextScheduled = false;
+
                 RaiseUiComputed();
                 return;
             }
@@ -405,14 +498,35 @@ namespace ScriptureTyping.ViewModels.Games
 
         private void Hint()
         {
-            if (!IsHintEnabled) return;
-            if (_current == null) return;
+            if (!IsHintEnabled || _current == null)
+            {
+                return;
+            }
 
             _hintUsed = true;
             _score = Math.Max(0, _score - 1);
 
-            string first = string.IsNullOrWhiteSpace(_current.Answer) ? "" : _current.Answer.Substring(0, 1);
-            QuestionText = _current.ClozeText.Replace("____", $"{first}…");
+            if (_current.IsDualBlank)
+            {
+                string hinted = _current.ClozeText;
+
+                for (int i = 0; i < _current.Answers.Count; i++)
+                {
+                    string answer = _current.Answers[i];
+                    string first = string.IsNullOrWhiteSpace(answer) ? string.Empty : answer.Substring(0, 1);
+                    hinted = ReplacePlaceholderByOrder(hinted, i, $"{first}…");
+                }
+
+                QuestionText = hinted;
+            }
+            else
+            {
+                string first = string.IsNullOrWhiteSpace(_current.Answers[0])
+                    ? string.Empty
+                    : _current.Answers[0].Substring(0, 1);
+
+                QuestionText = _current.ClozeText.Replace("____", $"{first}…");
+            }
 
             FeedbackText = "힌트 사용(-1점).";
             RaiseUiComputed();
@@ -420,23 +534,18 @@ namespace ScriptureTyping.ViewModels.Games
 
         private void Restart()
         {
-            // 현재 선택(상단 콤보)을 그대로 기준으로 다시 적용
             ApplySelection();
         }
-
-        // -----------------------------
-        // Round Build
-        // -----------------------------
 
         private void BuildWordPool(IEnumerable<VerseItem> verses)
         {
             _globalWordPool.Clear();
 
-            foreach (VerseItem v in verses)
+            foreach (VerseItem verse in verses)
             {
-                foreach (string w in ExtractCandidateWords(v.Text))
+                foreach (string word in ExtractCandidateWords(verse.Text))
                 {
-                    _globalWordPool.Add(w);
+                    _globalWordPool.Add(word);
                 }
             }
         }
@@ -448,18 +557,19 @@ namespace ScriptureTyping.ViewModels.Games
             List<VerseItem> shuffled = verses.ToList();
             Shuffle(shuffled);
 
-            int limit = Math.Min(DEFAULT_ROUND_COUNT, shuffled.Count);
-
-            for (int i = 0; i < limit; i++)
+            foreach (VerseItem verse in shuffled)
             {
-                VerseItem v = shuffled[i];
+                if (_round.Count >= DEFAULT_ROUND_COUNT)
+                {
+                    break;
+                }
 
-                if (!TryMakeQuestion(v, out ClozeQuestion? q) || q == null)
+                if (!TryMakeQuestion(verse, out ClozeQuestion? question) || question == null)
                 {
                     continue;
                 }
 
-                _round.Add(q);
+                _round.Add(question);
             }
 
             Shuffle(_round);
@@ -469,78 +579,192 @@ namespace ScriptureTyping.ViewModels.Games
         {
             question = null;
 
-            List<string> candidates = ExtractCandidateWords(verse.Text).ToList();
-            if (candidates.Count <= 0) return false;
+            List<string> candidates = ExtractCandidateWords(verse.Text)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
 
-            string answer = candidates[_rng.Next(candidates.Count)];
-            string cloze = ReplaceFirst(verse.Text, answer, "____");
-            if (string.Equals(cloze, verse.Text, StringComparison.Ordinal)) return false;
+            if (CurrentDifficulty == DIFFICULTY_HARD)
+            {
+                candidates = candidates
+                    .Where(IsHardDifficultyAnswerCandidate)
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+            }
 
-            List<string> choices = BuildChoices(answer);
+            int blankCount = GetBlankCount();
+
+            if (candidates.Count < blankCount)
+            {
+                return false;
+            }
+
+            List<string> selectedAnswers = SelectAnswersByDifficulty(candidates, blankCount);
+            if (selectedAnswers.Count != blankCount)
+            {
+                return false;
+            }
+
+            List<string> orderedAnswers = OrderAnswersByAppearance(verse.Text, selectedAnswers);
+            if (orderedAnswers.Count != blankCount)
+            {
+                return false;
+            }
+
+            if (!TryBuildClozeText(verse.Text, orderedAnswers, out string clozeText))
+            {
+                return false;
+            }
+
+            List<IReadOnlyList<string>> choiceSets = new List<IReadOnlyList<string>>();
+
+            foreach (string answer in orderedAnswers)
+            {
+                List<string> choices = BuildChoices(answer);
+
+                if (CurrentDifficulty == DIFFICULTY_EASY || CurrentDifficulty == DIFFICULTY_NORMAL)
+                {
+                    choices = RebuildEasyChoices(answer, choices);
+                }
+
+                if (choices.Count < GetChoiceCount())
+                {
+                    return false;
+                }
+
+                choiceSets.Add(choices);
+            }
 
             question = new ClozeQuestion
             {
                 Reference = verse.Ref,
-                ClozeText = cloze,
-                Answer = answer,
-                Choices = choices
+                OriginalText = verse.Text,
+                ClozeText = clozeText,
+                Answers = orderedAnswers,
+                ChoiceSets = choiceSets
             };
 
             return true;
         }
 
-        private List<string> BuildChoices(string answer)
+        private static List<string> OrderAnswersByAppearance(string text, IReadOnlyList<string> answers)
         {
-            HashSet<string> set = new HashSet<string>(StringComparer.Ordinal) { answer };
+            List<(string Answer, int Index)> indexedAnswers = new List<(string Answer, int Index)>();
 
-            int safety = 0;
-            while (set.Count < DEFAULT_CHOICE_COUNT && safety < 5000)
+            foreach (string answer in answers)
             {
-                safety++;
-                if (_globalWordPool.Count <= 0) break;
+                int index = text.IndexOf(answer, StringComparison.Ordinal);
+                if (index < 0)
+                {
+                    return new List<string>();
+                }
 
-                string w = _globalWordPool[_rng.Next(_globalWordPool.Count)];
-                if (string.IsNullOrWhiteSpace(w)) continue;
-                if (string.Equals(w, answer, StringComparison.Ordinal)) continue;
-
-                set.Add(w);
+                indexedAnswers.Add((answer, index));
             }
 
-            while (set.Count < DEFAULT_CHOICE_COUNT)
-            {
-                set.Add("...");
-            }
-
-            List<string> list = set.ToList();
-            Shuffle(list);
-            return list;
+            return indexedAnswers
+                .OrderBy(x => x.Index)
+                .Select(x => x.Answer)
+                .ToList();
         }
 
-        private void LoadQuestion(int index)
+        private bool TryBuildClozeText(string text, IReadOnlyList<string> answers, out string clozeText)
+        {
+            clozeText = text;
+
+            List<ReplacementTarget> targets = new List<ReplacementTarget>();
+
+            foreach (string answer in answers)
+            {
+                int index = text.IndexOf(answer, StringComparison.Ordinal);
+                if (index < 0)
+                {
+                    clozeText = text;
+                    return false;
+                }
+
+                targets.Add(new ReplacementTarget(index, answer));
+            }
+
+            if (targets.Select(x => x.Index).Distinct().Count() != targets.Count)
+            {
+                clozeText = text;
+                return false;
+            }
+
+            string result = text;
+
+            foreach (ReplacementTarget target in targets.OrderByDescending(x => x.Index))
+            {
+                result = result.Substring(0, target.Index) + "____" + result.Substring(target.Index + target.Answer.Length);
+            }
+
+            if (string.Equals(result, text, StringComparison.Ordinal))
+            {
+                clozeText = text;
+                return false;
+            }
+
+            clozeText = result;
+            return true;
+        }
+
+        private async void LoadQuestion(int index)
         {
             StopTimer();
 
             _current = _round[index];
-
-            _tryLeft = DEFAULT_TRY_LEFT;
+            _tryLeft = GetTryCount();
             _isCorrect = false;
             _hintUsed = false;
-            _isAnswered = false;
+            _isPreviewing = false;
+            _isAutoNextScheduled = false;
 
-            QuestionText = _current.ClozeText;
+            SelectedFirstChoice = null;
+            SelectedSecondChoice = null;
+
             ReferenceText = _current.Reference;
+            ClearAllChoiceCollections();
 
-            Choices.Clear();
-            foreach (string c in _current.Choices)
+            if (_current.IsDualBlank)
             {
-                Choices.Add(c);
+                foreach (string choice in _current.ChoiceSets[0])
+                {
+                    FirstChoices.Add(choice);
+                }
+
+                foreach (string choice in _current.ChoiceSets[1])
+                {
+                    SecondChoices.Add(choice);
+                }
+            }
+            else
+            {
+                foreach (string choice in _current.ChoiceSets[0])
+                {
+                    Choices.Add(choice);
+                }
             }
 
-            FeedbackText = $"보기에서 정답을 고르세요. (기회 {_tryLeft}회)";
+            _questionVersion++;
+            int localVersion = _questionVersion;
+
+            if (IsSamuelRank1Mode)
+            {
+                bool canContinue = await RunSamuelRank1PreviewAsync(localVersion);
+                if (!canContinue)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                QuestionText = _current.ClozeText;
+                FeedbackText = BuildInitialGuideText();
+            }
 
             if (IsTimeAttack)
             {
-                _timeLeftSec = TIME_ATTACK_SECONDS;
+                _timeLeftSec = GetTimeAttackSeconds();
                 _timer.Start();
             }
             else
@@ -551,57 +775,62 @@ namespace ScriptureTyping.ViewModels.Games
             RaiseUiComputed();
         }
 
-        // -----------------------------
-        // Timer
-        // -----------------------------
-
         private void OnTimerTick()
         {
-            if (!IsTimeAttack) return;
-            if (_isCorrect) { StopTimer(); return; }
-            if (_isRoundCompleted) { StopTimer(); return; }
+            if (!IsTimeAttack || _isPreviewing)
+            {
+                return;
+            }
+
+            if (_isCorrect || _isRoundCompleted)
+            {
+                StopTimer();
+                return;
+            }
 
             _timeLeftSec = Math.Max(0, _timeLeftSec - 1);
             OnPropertyChanged(nameof(TimeLeftText));
 
             if (_timeLeftSec <= 0)
             {
-                _isAnswered = true;
                 _isCorrect = false;
                 _tryLeft = 0;
 
                 if (_current != null)
                 {
-                    FeedbackText = $"시간 종료. 정답은 \"{_current.Answer}\" 입니다. 다음 문제로 넘어가세요.";
+                    FeedbackText = $"시간 종료. 정답은 \"{string.Join(", ", _current.Answers)}\" 입니다.";
                 }
 
                 StopTimer();
                 RaiseUiComputed();
+                ScheduleAutoNext();
             }
         }
 
         private void StopTimer()
         {
-            if (_timer.IsEnabled) _timer.Stop();
+            if (_timer.IsEnabled)
+            {
+                _timer.Stop();
+            }
         }
-
-        // -----------------------------
-        // Verse loading (CourseSelect과 동일 로직)
-        // -----------------------------
 
         private IReadOnlyList<Verse> BuildVerseList(int course, string selectedDay)
         {
             if (selectedDay == ALL_DAY_TEXT)
             {
                 List<Verse> all = new List<Verse>();
+
                 for (int day = 1; day <= VerseCatalog.MAX_DAY; day++)
                 {
-                    // 여기서는 누적/추가 선택은 일단 누적 기준
                     IReadOnlyList<Verse> list = VerseCatalog.GetAccumulated(course, day);
                     all.AddRange(list);
                 }
 
-                return all.GroupBy(v => v.Ref).Select(g => g.First()).ToList();
+                return all
+                    .GroupBy(v => v.Ref)
+                    .Select(g => g.First())
+                    .ToList();
             }
 
             int oneDay = ParseDayNo(selectedDay);
@@ -611,49 +840,83 @@ namespace ScriptureTyping.ViewModels.Games
         private static int ParseCourseNo(string courseText)
         {
             string digits = new string(courseText.Where(char.IsDigit).ToArray());
-            return int.TryParse(digits, out int n) ? n : 1;
+            return int.TryParse(digits, out int number) ? number : 1;
         }
 
         private static int ParseDayNo(string dayText)
         {
             string digits = new string(dayText.Where(char.IsDigit).ToArray());
-            return int.TryParse(digits, out int n) ? n : 1;
+            return int.TryParse(digits, out int number) ? number : 1;
         }
-
-        // -----------------------------
-        // Helpers
-        // -----------------------------
 
         private static IEnumerable<string> ExtractCandidateWords(string text)
         {
-            if (string.IsNullOrWhiteSpace(text)) yield break;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                yield break;
+            }
 
             string[] raw = text.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < raw.Length; i++)
             {
-                string w = raw[i].Trim();
-                w = TrimPunctuation(w);
+                string word = raw[i].Trim();
+                word = TrimPunctuation(word);
 
-                if (w.Length < 3) continue;
-                if (w.All(char.IsDigit)) continue;
+                if (word.Length < 3)
+                {
+                    continue;
+                }
 
-                yield return w;
+                if (word.All(char.IsDigit))
+                {
+                    continue;
+                }
+
+                yield return word;
             }
         }
 
         private static string TrimPunctuation(string s)
         {
-            if (string.IsNullOrEmpty(s)) return s;
+            if (string.IsNullOrEmpty(s))
+            {
+                return s;
+            }
+
             return Regex.Replace(s, @"^\p{P}+|\p{P}+$", "");
         }
 
-        private static string ReplaceFirst(string text, string search, string replace)
+        private static string ReplacePlaceholderByOrder(string text, int placeholderOrder, string replacement)
         {
-            int idx = text.IndexOf(search, StringComparison.Ordinal);
-            if (idx < 0) return text;
+            const string placeholder = "____";
+            int searchStart = 0;
 
-            return text.Substring(0, idx) + replace + text.Substring(idx + search.Length);
+            for (int i = 0; i <= placeholderOrder; i++)
+            {
+                int idx = text.IndexOf(placeholder, searchStart, StringComparison.Ordinal);
+
+                if (idx < 0)
+                {
+                    return text;
+                }
+
+                if (i == placeholderOrder)
+                {
+                    return text.Substring(0, idx) + replacement + text.Substring(idx + placeholder.Length);
+                }
+
+                searchStart = idx + placeholder.Length;
+            }
+
+            return text;
+        }
+
+        private void ClearAllChoiceCollections()
+        {
+            Choices.Clear();
+            FirstChoices.Clear();
+            SecondChoices.Clear();
         }
 
         private void Shuffle<T>(IList<T> list)
@@ -671,23 +934,51 @@ namespace ScriptureTyping.ViewModels.Games
             OnPropertyChanged(nameof(ScoreText));
             OnPropertyChanged(nameof(ComboText));
             OnPropertyChanged(nameof(TimeLeftText));
+            OnPropertyChanged(nameof(DifficultyText));
+            OnPropertyChanged(nameof(IsNormalMode));
+
+            OnPropertyChanged(nameof(AreSingleChoicesVisible));
+            OnPropertyChanged(nameof(AreDualChoicesVisible));
 
             OnPropertyChanged(nameof(AreChoicesEnabled));
-            OnPropertyChanged(nameof(IsNextEnabled));
+            OnPropertyChanged(nameof(AreFirstChoicesEnabled));
+            OnPropertyChanged(nameof(AreSecondChoicesEnabled));
             OnPropertyChanged(nameof(IsHintEnabled));
 
-            try { CommandManager.InvalidateRequerySuggested(); } catch { }
+            try
+            {
+                CommandManager.InvalidateRequerySuggested();
+            }
+            catch
+            {
+            }
         }
 
         private void OnPropertyChanged([CallerMemberName] string? name = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
 
         private sealed class ClozeQuestion
         {
             public string Reference { get; init; } = string.Empty;
+            public string OriginalText { get; init; } = string.Empty;
             public string ClozeText { get; init; } = string.Empty;
-            public string Answer { get; init; } = string.Empty;
-            public IReadOnlyList<string> Choices { get; init; } = Array.Empty<string>();
+            public IReadOnlyList<string> Answers { get; init; } = Array.Empty<string>();
+            public IReadOnlyList<IReadOnlyList<string>> ChoiceSets { get; init; } = Array.Empty<IReadOnlyList<string>>();
+            public bool IsDualBlank => Answers.Count >= 2;
+        }
+
+        private readonly struct ReplacementTarget
+        {
+            public ReplacementTarget(int index, string answer)
+            {
+                Index = index;
+                Answer = answer;
+            }
+
+            public int Index { get; }
+            public string Answer { get; }
         }
     }
 }

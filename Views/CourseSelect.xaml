@@ -24,6 +24,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bd"
                                 Background="{TemplateBinding Background}"
+                                Width="{StaticResource Layout.CommonWidth}"
                                 CornerRadius="8">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"/>
@@ -180,6 +181,7 @@
 
                     <Button Grid.Column="6"
                             Content="학습 시작"
+                            Width="{StaticResource Layout.CommonWidth}"
                             Style="{StaticResource PrimaryButton}"
                             Command="{Binding StartLearningCommand}"/>
                 </Grid>
@@ -224,6 +226,7 @@
                                 <TextBlock Text="{Binding Typing.CurrentVerseRef}"
                                            Foreground="{StaticResource Brush.Text2}"
                                            FontSize="20"
+                                           
                                            Margin="0,0,0,6"/>
                                 <TextBlock Text="{Binding Typing.CurrentVerseDisplayText}"
                                            Foreground="{StaticResource Brush.Text}"
@@ -297,6 +300,7 @@
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Right">
                         <Button Content="다음 구절"
+                                Width="{StaticResource Layout.CommonWidth}"
                                 Style="{StaticResource PrimaryButton}"
                                 Command="{Binding Typing.NextVerseCommand}"/>
                     </StackPanel>

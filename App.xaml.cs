@@ -1,4 +1,10 @@
-﻿using ScriptureTyping.Services;
+﻿using Microsoft.Extensions.DependencyInjection;
+using ScriptureTyping.Services;
+using ScriptureTyping.ViewModels;
+using ScriptureTyping.ViewModels.Games;
+using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
+using ScriptureTyping.ViewModels.Games.Cloze.Models;
+using System;
 using System.Windows;
 
 namespace ScriptureTyping
@@ -11,12 +17,38 @@ namespace ScriptureTyping
         /// </summary>
         public static SelectionContext SelectionContext { get; } = new SelectionContext();
 
+        /// <summary>
+        /// 목적: 앱 전체 DI 컨테이너
+        /// </summary>
+        public static IServiceProvider Services { get; private set; } = null!;
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            var window = new MainWindow();
+            ServiceCollection services = new ServiceCollection();
+            ConfigureServices(services);
+
+            Services = services.BuildServiceProvider();
+
+            MainWindow window = Services.GetRequiredService<MainWindow>();
             window.Show();
+        }
+
+        private static void ConfigureServices(IServiceCollection services)
+        {
+            // 공용 상태
+            services.AddSingleton(SelectionContext);
+
+            // 분석 서비스
+            services.AddSingleton<IClozeWordAnalyzer, ClozeWordAnalyzer>();
+
+            // ViewModel
+            services.AddSingleton<MainWindowViewModel>();
+            services.AddTransient<ClozeGameViewModel>();
+
+            // View
+            services.AddSingleton<MainWindow>();
         }
     }
 }

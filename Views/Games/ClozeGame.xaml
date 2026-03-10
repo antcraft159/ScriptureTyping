@@ -9,7 +9,6 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <!-- 기본 버튼 스타일 (CourseSelect와 동일 톤) -->
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Height" Value="32"/>
             <Setter Property="Padding" Value="14,0"/>
@@ -44,21 +43,27 @@
             </Setter>
         </Style>
 
-        <!-- 보기 버튼 -->
         <Style x:Key="ChoiceButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
             <Setter Property="Height" Value="42"/>
             <Setter Property="Margin" Value="6"/>
             <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
         </Style>
 
-        <!-- 상단 선택 ComboBox 공통 -->
         <Style x:Key="TopCombo" TargetType="ComboBox">
             <Setter Property="Height" Value="32"/>
-            <Setter Property="MinWidth" Value="90"/>
+            <Setter Property="MinWidth" Value="110"/>
+        </Style>
+
+        <Style x:Key="ChoiceGroupBorder" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Brush.Surface}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12"/>
         </Style>
     </UserControl.Resources>
 
-    <!-- 메뉴바 안전 영역 + 추가 왼쪽 여백 -->
     <Border Margin="{StaticResource Layout.MenuSafeMargin}"
             Padding="20,0,0,0">
 
@@ -69,7 +74,6 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- 본문 카드 -->
             <Border Grid.Row="2"
                     Background="{StaticResource Brush.Surface}"
                     BorderBrush="{StaticResource Brush.Border}"
@@ -86,7 +90,6 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- 헤더: 뒤로 + 타이틀 + 과정/일차 선택 UI -->
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -94,25 +97,24 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- 뒤로 -->
                         <Button Grid.Column="0"
                                 Content="← 뒤로"
+                                Width="{StaticResource Layout.CommonWidth}"
                                 Style="{StaticResource PrimaryButton}"
                                 Command="{Binding BackCommand}"/>
 
-                        <!-- 타이틀 + 선택 UI -->
                         <StackPanel Grid.Column="2"
                                     Orientation="Vertical">
 
-                            <!-- 타이틀 -->
                             <TextBlock Text="{Binding Title}"
                                        FontSize="22"
                                        FontWeight="SemiBold"
                                        Foreground="{StaticResource Brush.Text}"/>
 
-                            <!-- 과정/일차 선택 라인 -->
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="10"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="10"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -132,13 +134,18 @@
                                           ItemsSource="{Binding Days}"
                                           SelectedItem="{Binding SelectedDay, Mode=TwoWay}"/>
 
-                                <Button Grid.Column="4"
+                                <ComboBox Grid.Column="4"
+                                          Style="{StaticResource TopCombo}"
+                                          ItemsSource="{Binding DifficultyOptions}"
+                                          SelectedItem="{Binding SelectedDifficulty, Mode=TwoWay}"/>
+
+                                <Button Grid.Column="6"
                                         Content="적용"
+                                        Width="{StaticResource Layout.CommonWidth}"
                                         Style="{StaticResource PrimaryButton}"
                                         Command="{Binding ApplySelectionCommand}"/>
 
-                                <!-- 에러 메시지 -->
-                                <TextBlock Grid.Column="6"
+                                <TextBlock Grid.Column="8"
                                            Text="{Binding SelectionError}"
                                            Foreground="#EF4444"
                                            FontSize="12"
@@ -163,7 +170,6 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- 게임 UI -->
                     <Border Grid.Row="2"
                             Background="{StaticResource Brush.Bg}"
                             CornerRadius="8"
@@ -182,9 +188,10 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <!-- 상태바 -->
                             <Grid Grid.Row="0">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="14"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="14"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -210,13 +217,17 @@
                                            FontSize="12"/>
 
                                 <TextBlock Grid.Column="6"
+                                           Text="{Binding DifficultyText}"
+                                           Foreground="{StaticResource Brush.Text2}"
+                                           FontSize="12"/>
+
+                                <TextBlock Grid.Column="8"
                                            Text="{Binding TimeLeftText}"
                                            Foreground="{StaticResource Brush.Text2}"
                                            FontSize="12"
                                            Visibility="{Binding IsTimeAttack, Converter={StaticResource BoolToVis}}"/>
                             </Grid>
 
-                            <!-- 문제 카드 -->
                             <Border Grid.Row="2"
                                     Background="{StaticResource Brush.Surface}"
                                     BorderBrush="{StaticResource Brush.Border}"
@@ -238,59 +249,148 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- 피드백 -->
                             <TextBlock Grid.Row="4"
                                        Text="{Binding FeedbackText}"
                                        Foreground="{StaticResource Brush.Text2}"
-                                       FontSize="13"
+                                       FontSize="25"
                                        TextWrapping="Wrap"/>
 
-                            <!-- 선택지 -->
-                            <ItemsControl Grid.Row="6"
-                                          ItemsSource="{Binding Choices}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Columns="3"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
+                            <Grid Grid.Row="6">
+                                <!-- 단일 보기 -->
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled"
+                                              Visibility="{Binding AreSingleChoicesVisible, Converter={StaticResource BoolToVis}}">
+                                    <ItemsControl ItemsSource="{Binding Choices}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Columns="3"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
 
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Button Content="{Binding}"
-                                                Style="{StaticResource ChoiceButton}"
-                                                Command="{Binding DataContext.SelectChoiceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}"
-                                                IsEnabled="{Binding DataContext.AreChoicesEnabled, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Content="{Binding}"
+                                                        Style="{StaticResource ChoiceButton}"
+                                                        Command="{Binding DataContext.SelectChoiceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        IsEnabled="{Binding DataContext.AreChoicesEnabled, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
 
-                            <!-- 하단 버튼 -->
+                                <!-- 보통: 남는 공간을 위/아래 1:1로 채움 -->
+                                <Grid Visibility="{Binding AreDualChoicesVisible, Converter={StaticResource BoolToVis}}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- 첫 번째 보기 -->
+                                    <Border Grid.Row="0"
+                                            Style="{StaticResource ChoiceGroupBorder}"
+                                            VerticalAlignment="Stretch">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="8"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0"
+                                                       Text="첫 번째 빈칸 보기"
+                                                       Foreground="{StaticResource Brush.Text}"
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"/>
+
+                                            <ScrollViewer Grid.Row="2"
+                                                          VerticalScrollBarVisibility="Auto"
+                                                          HorizontalScrollBarVisibility="Disabled">
+                                                <ItemsControl ItemsSource="{Binding FirstChoices}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <UniformGrid Columns="3"/>
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Content="{Binding}"
+                                                                    Style="{StaticResource ChoiceButton}"
+                                                                    Command="{Binding DataContext.SelectFirstChoiceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    IsEnabled="{Binding DataContext.AreFirstChoicesEnabled, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- 두 번째 보기 -->
+                                    <Border Grid.Row="2"
+                                            Style="{StaticResource ChoiceGroupBorder}"
+                                            VerticalAlignment="Stretch">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="8"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0"
+                                                       Text="두 번째 빈칸 보기"
+                                                       Foreground="{StaticResource Brush.Text}"
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"/>
+
+                                            <ScrollViewer Grid.Row="2"
+                                                          VerticalScrollBarVisibility="Auto"
+                                                          HorizontalScrollBarVisibility="Disabled">
+                                                <ItemsControl ItemsSource="{Binding SecondChoices}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <UniformGrid Columns="3"/>
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Content="{Binding}"
+                                                                    Style="{StaticResource ChoiceButton}"
+                                                                    Command="{Binding DataContext.SelectSecondChoiceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    IsEnabled="{Binding DataContext.AreSecondChoicesEnabled, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+
                             <Grid Grid.Row="8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="12"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
                                 <Button Grid.Column="0"
                                         Content="힌트"
+                                        Width="{StaticResource Layout.CommonWidth}"
                                         Style="{StaticResource PrimaryButton}"
                                         Command="{Binding HintCommand}"
                                         IsEnabled="{Binding IsHintEnabled}"/>
 
                                 <Button Grid.Column="2"
                                         Content="다시하기"
+                                        Width="{StaticResource Layout.CommonWidth}"
                                         Style="{StaticResource PrimaryButton}"
                                         Command="{Binding RestartCommand}"/>
-
-                                <Button Grid.Column="4"
-                                        Content="다음 문제 →"
-                                        Style="{StaticResource PrimaryButton}"
-                                        Command="{Binding NextCommand}"
-                                        IsEnabled="{Binding IsNextEnabled}"/>
                             </Grid>
                         </Grid>
                     </Border>

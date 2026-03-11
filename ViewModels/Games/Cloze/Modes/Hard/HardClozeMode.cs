@@ -22,7 +22,7 @@ namespace ScriptureTyping.ViewModels.Games.Cloze.Modes.Hard
 
         public HardClozeMode()
             : this(
-                  new HardQuestionGenerator(new SuffixVariantChoiceGenerator()),
+                  new HardQuestionGenerator(new HardChoiceGenerator()),
                   new HardScoringPolicy())
         {
         }

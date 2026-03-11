@@ -1,5 +1,4 @@
-﻿// 파일명: ClozeModeFactory.cs
-using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
+﻿using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
 using ScriptureTyping.ViewModels.Games.Cloze.Modes.Easy;
 using ScriptureTyping.ViewModels.Games.Cloze.Modes.Hard;
 using ScriptureTyping.ViewModels.Games.Cloze.Modes.Normal;

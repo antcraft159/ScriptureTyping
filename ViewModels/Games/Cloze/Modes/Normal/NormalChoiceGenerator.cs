@@ -1,5 +1,4 @@
-﻿// 파일명: NormalChoiceGenerator.cs
-using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
+﻿using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
 using ScriptureTyping.ViewModels.Games.Cloze.Models;
 using System;
 using System.Collections.Generic;

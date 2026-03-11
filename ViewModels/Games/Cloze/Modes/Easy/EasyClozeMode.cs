@@ -1,5 +1,4 @@
-﻿// 파일명: EasyClozeMode.cs
-using ScriptureTyping.ViewModels.Games.Cloze.Models;
+﻿using ScriptureTyping.ViewModels.Games.Cloze.Models;
 using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
 using System;
 using System.Collections.Generic;

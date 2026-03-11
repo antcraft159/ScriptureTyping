@@ -1,6 +1,7 @@
 ﻿using ScriptureTyping.Commands;
 using ScriptureTyping.Data;
 using ScriptureTyping.Services;
+using ScriptureTyping.ViewModels.Games.Cloze.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,6 +29,22 @@ namespace ScriptureTyping.ViewModels.Games
         private const string DIFFICULTY_SAMUEL_RANK1 = "사무엘 1등";
 
         private static readonly TimeSpan AUTO_NEXT_DELAY = TimeSpan.FromMilliseconds(2000);
+
+        private static readonly HashSet<string> JosaVariantBlockedWords = new(StringComparer.Ordinal)
+        {
+            "그러므로",
+            "그러나",
+            "또한",
+            "만일",
+            "이미",
+            "오직",
+            "곧",
+            "참으로",
+            "정녕",
+            "진실로",
+            "실로",
+            "과연"
+        };
 
         private readonly MainWindowViewModel? _host;
         private readonly SelectionContext _ctx;
@@ -108,6 +125,12 @@ namespace ScriptureTyping.ViewModels.Games
         public ObservableCollection<string> Choices { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> FirstChoices { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> SecondChoices { get; } = new ObservableCollection<string>();
+        public ObservableCollection<ClozeChoiceGroupItem> ChoiceGroups { get; } = new ObservableCollection<ClozeChoiceGroupItem>();
+
+        public bool AreChoiceGroupsVisible =>
+            !IsVeryHardInputVisible &&
+            _current != null &&
+            ChoiceGroups.Count > 0;
 
         public string? SelectedCourse
         {
@@ -146,6 +169,7 @@ namespace ScriptureTyping.ViewModels.Games
                 OnPropertyChanged(nameof(DifficultyText));
                 OnPropertyChanged(nameof(IsNormalMode));
                 OnPropertyChanged(nameof(IsVeryHardInputVisible));
+                OnPropertyChanged(nameof(AreChoiceGroupsVisible));
                 CommandManager.InvalidateRequerySuggested();
             }
         }
@@ -361,6 +385,7 @@ namespace ScriptureTyping.ViewModels.Games
             OnPropertyChanged(nameof(DifficultyText));
             OnPropertyChanged(nameof(IsNormalMode));
             OnPropertyChanged(nameof(IsVeryHardInputVisible));
+            OnPropertyChanged(nameof(AreChoiceGroupsVisible));
 
             BuildWordPool(verses);
             BuildRound(verses);
@@ -609,7 +634,7 @@ namespace ScriptureTyping.ViewModels.Games
             if (CurrentDifficulty == DIFFICULTY_HARD)
             {
                 candidates = candidates
-                    .Where(IsHardDifficultyAnswerCandidate)
+                    .Where(word => IsHardDifficultyAnswerCandidate(word) && CanMakeJosaVariants(word))
                     .Distinct(StringComparer.Ordinal)
                     .ToList();
             }
@@ -666,6 +691,23 @@ namespace ScriptureTyping.ViewModels.Games
                 Answers = orderedAnswers,
                 ChoiceSets = choiceSets
             };
+
+            return true;
+        }
+
+        private bool CanMakeJosaVariants(string word)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+            {
+                return false;
+            }
+
+            string normalizedWord = word.Trim();
+
+            if (JosaVariantBlockedWords.Contains(normalizedWord))
+            {
+                return false;
+            }
 
             return true;
         }
@@ -732,6 +774,29 @@ namespace ScriptureTyping.ViewModels.Games
             return true;
         }
 
+        private void PopulateChoiceGroups(ClozeQuestion question)
+        {
+            ChoiceGroups.Clear();
+
+            for (int i = 0; i < question.ChoiceSets.Count; i++)
+            {
+                ClozeChoiceGroupItem group = new ClozeChoiceGroupItem
+                {
+                    BlankIndex = i
+                };
+
+                foreach (string choice in question.ChoiceSets[i])
+                {
+                    group.Choices.Add(choice);
+                }
+
+                ChoiceGroups.Add(group);
+            }
+
+            OnPropertyChanged(nameof(ChoiceGroups));
+            OnPropertyChanged(nameof(AreChoiceGroupsVisible));
+        }
+
         private async void LoadQuestion(int index)
         {
             StopTimer();
@@ -759,6 +824,8 @@ namespace ScriptureTyping.ViewModels.Games
             else
             {
                 ReferenceText = _current.OriginalReference;
+
+                PopulateChoiceGroups(_current);
 
                 if (_current.IsDualBlank)
                 {
@@ -960,6 +1027,7 @@ namespace ScriptureTyping.ViewModels.Games
             Choices.Clear();
             FirstChoices.Clear();
             SecondChoices.Clear();
+            ChoiceGroups.Clear();
         }
 
         private void Shuffle<T>(IList<T> list)
@@ -982,6 +1050,7 @@ namespace ScriptureTyping.ViewModels.Games
 
             OnPropertyChanged(nameof(AreSingleChoicesVisible));
             OnPropertyChanged(nameof(AreDualChoicesVisible));
+            OnPropertyChanged(nameof(AreChoiceGroupsVisible));
             OnPropertyChanged(nameof(IsVeryHardInputVisible));
 
             OnPropertyChanged(nameof(AreChoicesEnabled));

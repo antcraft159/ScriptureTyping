@@ -150,8 +150,8 @@ namespace ScriptureTyping.ViewModels.Games
                 return;
             }
 
-            VeryHardInputs.Add(new VeryHardInputItem { Label = "본문 빈칸 1", Answer = question.Answers[0] });
-            VeryHardInputs.Add(new VeryHardInputItem { Label = "본문 빈칸 2", Answer = question.Answers[1] });
+            VeryHardInputs.Add(new VeryHardInputItem { Label = "빈칸 1", Answer = question.Answers[0] });
+            VeryHardInputs.Add(new VeryHardInputItem { Label = "빈칸 2", Answer = question.Answers[1] });
             VeryHardInputs.Add(new VeryHardInputItem { Label = "권", Answer = question.Answers[2] });
             VeryHardInputs.Add(new VeryHardInputItem { Label = "장", Answer = question.Answers[3] });
             VeryHardInputs.Add(new VeryHardInputItem { Label = "절", Answer = question.Answers[4] });

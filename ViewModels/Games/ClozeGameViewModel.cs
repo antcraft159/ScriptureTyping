@@ -739,16 +739,18 @@ namespace ScriptureTyping.ViewModels.Games
 
             List<ReplacementTarget> targets = new List<ReplacementTarget>();
 
-            foreach (string answer in answers)
+            for (int i = 0; i < answers.Count; i++)
             {
+                string answer = answers[i];
                 int index = text.IndexOf(answer, StringComparison.Ordinal);
+
                 if (index < 0)
                 {
                     clozeText = text;
                     return false;
                 }
 
-                targets.Add(new ReplacementTarget(index, answer));
+                targets.Add(new ReplacementTarget(index, answer, i + 1));
             }
 
             if (targets.Select(x => x.Index).Distinct().Count() != targets.Count)
@@ -761,7 +763,11 @@ namespace ScriptureTyping.ViewModels.Games
 
             foreach (ReplacementTarget target in targets.OrderByDescending(x => x.Index))
             {
-                result = result.Substring(0, target.Index) + "____" + result.Substring(target.Index + target.Answer.Length);
+                string numberedBlank = $"[{target.Order}] ____";
+
+                result = result.Substring(0, target.Index)
+                       + numberedBlank
+                       + result.Substring(target.Index + target.Answer.Length);
             }
 
             if (string.Equals(result, text, StringComparison.Ordinal))
@@ -1084,16 +1090,18 @@ namespace ScriptureTyping.ViewModels.Games
             public bool IsDualBlank => Answers.Count == 2;
         }
 
-        private readonly struct ReplacementTarget
+        private sealed class ReplacementTarget
         {
-            public ReplacementTarget(int index, string answer)
+            public int Index { get; }
+            public string Answer { get; }
+            public int Order { get; }
+
+            public ReplacementTarget(int index, string answer, int order)
             {
                 Index = index;
                 Answer = answer;
+                Order = order;
             }
-
-            public int Index { get; }
-            public string Answer { get; }
         }
     }
 }

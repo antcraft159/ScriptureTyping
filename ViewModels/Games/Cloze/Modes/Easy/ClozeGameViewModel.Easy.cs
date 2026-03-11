@@ -14,7 +14,7 @@ namespace ScriptureTyping.ViewModels.Games
 
         private int GetEasyBlankCount()
         {
-            return 1;
+            return 2;
         }
 
         private int GetEasyChoiceCount()

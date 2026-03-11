@@ -1,6 +1,7 @@
 ﻿using ScriptureTyping.Commands;
 using ScriptureTyping.Data;
 using ScriptureTyping.Services;
+using ScriptureTyping.ViewModels.Games.Cloze.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,6 +29,22 @@ namespace ScriptureTyping.ViewModels.Games
         private const string DIFFICULTY_SAMUEL_RANK1 = "사무엘 1등";
 
         private static readonly TimeSpan AUTO_NEXT_DELAY = TimeSpan.FromMilliseconds(2000);
+
+        private static readonly HashSet<string> JosaVariantBlockedWords = new(StringComparer.Ordinal)
+        {
+            "그러므로",
+            "그러나",
+            "또한",
+            "만일",
+            "이미",
+            "오직",
+            "곧",
+            "참으로",
+            "정녕",
+            "진실로",
+            "실로",
+            "과연"
+        };
 
         private readonly MainWindowViewModel? _host;
         private readonly SelectionContext _ctx;
@@ -108,6 +125,12 @@ namespace ScriptureTyping.ViewModels.Games
         public ObservableCollection<string> Choices { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> FirstChoices { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> SecondChoices { get; } = new ObservableCollection<string>();
+        public ObservableCollection<ClozeChoiceGroupItem> ChoiceGroups { get; } = new ObservableCollection<ClozeChoiceGroupItem>();
+
+        public bool AreChoiceGroupsVisible =>
+            !IsVeryHardInputVisible &&
+            _current != null &&
+            ChoiceGroups.Count > 0;
 
         public string? SelectedCourse
         {
@@ -145,6 +168,8 @@ namespace ScriptureTyping.ViewModels.Games
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DifficultyText));
                 OnPropertyChanged(nameof(IsNormalMode));
+                OnPropertyChanged(nameof(IsVeryHardInputVisible));
+                OnPropertyChanged(nameof(AreChoiceGroupsVisible));
                 CommandManager.InvalidateRequerySuggested();
             }
         }
@@ -214,11 +239,13 @@ namespace ScriptureTyping.ViewModels.Games
         }
 
         public bool AreSingleChoicesVisible =>
+            !IsVeryHardInputVisible &&
             _current != null &&
             !_current.IsDualBlank &&
             Choices.Count > 0;
 
         public bool AreChoicesEnabled =>
+            !IsVeryHardInputVisible &&
             CanAnswerChoices() &&
             _current != null &&
             !_current.IsDualBlank &&
@@ -286,6 +313,7 @@ namespace ScriptureTyping.ViewModels.Games
             ReferenceText = string.Empty;
             FeedbackText = string.Empty;
             ClearAllChoiceCollections();
+            ClearVeryHardInputs();
             RaiseUiComputed();
         }
 
@@ -318,6 +346,7 @@ namespace ScriptureTyping.ViewModels.Games
                 ReferenceText = string.Empty;
                 FeedbackText = string.Empty;
                 ClearAllChoiceCollections();
+                ClearVeryHardInputs();
                 RaiseUiComputed();
                 return;
             }
@@ -349,10 +378,14 @@ namespace ScriptureTyping.ViewModels.Games
             SelectedFirstChoice = null;
             SelectedSecondChoice = null;
 
+            ClearVeryHardInputs();
+
             IsTimeAttack = IsTimeAttackDifficulty(CurrentDifficulty);
             OnPropertyChanged(nameof(IsTimeAttack));
             OnPropertyChanged(nameof(DifficultyText));
             OnPropertyChanged(nameof(IsNormalMode));
+            OnPropertyChanged(nameof(IsVeryHardInputVisible));
+            OnPropertyChanged(nameof(AreChoiceGroupsVisible));
 
             BuildWordPool(verses);
             BuildRound(verses);
@@ -363,6 +396,7 @@ namespace ScriptureTyping.ViewModels.Games
                 ReferenceText = string.Empty;
                 FeedbackText = "다른 과정/일차를 선택해 주세요.";
                 ClearAllChoiceCollections();
+                ClearVeryHardInputs();
                 RaiseUiComputed();
                 return;
             }
@@ -486,6 +520,7 @@ namespace ScriptureTyping.ViewModels.Games
                 QuestionText = "라운드 종료!";
                 ReferenceText = string.Empty;
                 ClearAllChoiceCollections();
+                ClearVeryHardInputs();
                 FeedbackText = $"총 {_round.Count}문제 | 점수 {_score}";
                 _isAutoNextScheduled = false;
 
@@ -505,6 +540,14 @@ namespace ScriptureTyping.ViewModels.Games
 
             _hintUsed = true;
             _score = Math.Max(0, _score - 1);
+
+            if (IsVeryHardInputVisible)
+            {
+                ApplyVeryHardHint();
+                FeedbackText = "힌트 사용(-1점).";
+                RaiseUiComputed();
+                return;
+            }
 
             if (_current.IsDualBlank)
             {
@@ -579,6 +622,11 @@ namespace ScriptureTyping.ViewModels.Games
         {
             question = null;
 
+            if (IsVeryHardDifficulty())
+            {
+                return TryMakeVeryHardQuestion(verse, out question);
+            }
+
             List<string> candidates = ExtractCandidateWords(verse.Text)
                 .Distinct(StringComparer.Ordinal)
                 .ToList();
@@ -586,7 +634,7 @@ namespace ScriptureTyping.ViewModels.Games
             if (CurrentDifficulty == DIFFICULTY_HARD)
             {
                 candidates = candidates
-                    .Where(IsHardDifficultyAnswerCandidate)
+                    .Where(word => IsHardDifficultyAnswerCandidate(word) && CanMakeJosaVariants(word))
                     .Distinct(StringComparer.Ordinal)
                     .ToList();
             }
@@ -637,11 +685,29 @@ namespace ScriptureTyping.ViewModels.Games
             question = new ClozeQuestion
             {
                 Reference = verse.Ref,
+                OriginalReference = verse.Ref,
                 OriginalText = verse.Text,
                 ClozeText = clozeText,
                 Answers = orderedAnswers,
                 ChoiceSets = choiceSets
             };
+
+            return true;
+        }
+
+        private bool CanMakeJosaVariants(string word)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+            {
+                return false;
+            }
+
+            string normalizedWord = word.Trim();
+
+            if (JosaVariantBlockedWords.Contains(normalizedWord))
+            {
+                return false;
+            }
 
             return true;
         }
@@ -673,16 +739,18 @@ namespace ScriptureTyping.ViewModels.Games
 
             List<ReplacementTarget> targets = new List<ReplacementTarget>();
 
-            foreach (string answer in answers)
+            for (int i = 0; i < answers.Count; i++)
             {
+                string answer = answers[i];
                 int index = text.IndexOf(answer, StringComparison.Ordinal);
+
                 if (index < 0)
                 {
                     clozeText = text;
                     return false;
                 }
 
-                targets.Add(new ReplacementTarget(index, answer));
+                targets.Add(new ReplacementTarget(index, answer, i + 1));
             }
 
             if (targets.Select(x => x.Index).Distinct().Count() != targets.Count)
@@ -695,7 +763,11 @@ namespace ScriptureTyping.ViewModels.Games
 
             foreach (ReplacementTarget target in targets.OrderByDescending(x => x.Index))
             {
-                result = result.Substring(0, target.Index) + "____" + result.Substring(target.Index + target.Answer.Length);
+                string numberedBlank = $"[{target.Order}] ____";
+
+                result = result.Substring(0, target.Index)
+                       + numberedBlank
+                       + result.Substring(target.Index + target.Answer.Length);
             }
 
             if (string.Equals(result, text, StringComparison.Ordinal))
@@ -706,6 +778,29 @@ namespace ScriptureTyping.ViewModels.Games
 
             clozeText = result;
             return true;
+        }
+
+        private void PopulateChoiceGroups(ClozeQuestion question)
+        {
+            ChoiceGroups.Clear();
+
+            for (int i = 0; i < question.ChoiceSets.Count; i++)
+            {
+                ClozeChoiceGroupItem group = new ClozeChoiceGroupItem
+                {
+                    BlankIndex = i
+                };
+
+                foreach (string choice in question.ChoiceSets[i])
+                {
+                    group.Choices.Add(choice);
+                }
+
+                ChoiceGroups.Add(group);
+            }
+
+            OnPropertyChanged(nameof(ChoiceGroups));
+            OnPropertyChanged(nameof(AreChoiceGroupsVisible));
         }
 
         private async void LoadQuestion(int index)
@@ -722,44 +817,58 @@ namespace ScriptureTyping.ViewModels.Games
             SelectedFirstChoice = null;
             SelectedSecondChoice = null;
 
-            ReferenceText = _current.Reference;
             ClearAllChoiceCollections();
+            ClearVeryHardInputs();
 
-            if (_current.IsDualBlank)
-            {
-                foreach (string choice in _current.ChoiceSets[0])
-                {
-                    FirstChoices.Add(choice);
-                }
-
-                foreach (string choice in _current.ChoiceSets[1])
-                {
-                    SecondChoices.Add(choice);
-                }
-            }
-            else
-            {
-                foreach (string choice in _current.ChoiceSets[0])
-                {
-                    Choices.Add(choice);
-                }
-            }
-
-            _questionVersion++;
-            int localVersion = _questionVersion;
-
-            if (IsSamuelRank1Mode)
-            {
-                bool canContinue = await RunSamuelRank1PreviewAsync(localVersion);
-                if (!canContinue)
-                {
-                    return;
-                }
-            }
-            else
+            if (IsVeryHardDifficulty())
             {
                 QuestionText = _current.ClozeText;
+                ReferenceText = _current.Reference;
+                InitializeVeryHardInputs(_current);
                 FeedbackText = BuildInitialGuideText();
+            }
+            else
+            {
+                ReferenceText = _current.OriginalReference;
+
+                PopulateChoiceGroups(_current);
+
+                if (_current.IsDualBlank)
+                {
+                    foreach (string choice in _current.ChoiceSets[0])
+                    {
+                        FirstChoices.Add(choice);
+                    }
+
+                    foreach (string choice in _current.ChoiceSets[1])
+                    {
+                        SecondChoices.Add(choice);
+                    }
+                }
+                else
+                {
+                    foreach (string choice in _current.ChoiceSets[0])
+                    {
+                        Choices.Add(choice);
+                    }
+                }
+
+                _questionVersion++;
+                int localVersion = _questionVersion;
+
+                if (IsSamuelRank1Mode)
+                {
+                    bool canContinue = await RunSamuelRank1PreviewAsync(localVersion);
+                    if (!canContinue)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    QuestionText = _current.ClozeText;
+                    FeedbackText = BuildInitialGuideText();
+                }
             }
 
             if (IsTimeAttack)
@@ -798,7 +907,14 @@ namespace ScriptureTyping.ViewModels.Games
 
                 if (_current != null)
                 {
-                    FeedbackText = $"시간 종료. 정답은 \"{string.Join(", ", _current.Answers)}\" 입니다.";
+                    if (IsVeryHardDifficulty())
+                    {
+                        FeedbackText = $"시간 종료. 정답은 {BuildVeryHardAnswerSummary(_current)} 입니다.";
+                    }
+                    else
+                    {
+                        FeedbackText = $"시간 종료. 정답은 \"{string.Join(", ", _current.Answers)}\" 입니다.";
+                    }
                 }
 
                 StopTimer();
@@ -917,6 +1033,7 @@ namespace ScriptureTyping.ViewModels.Games
             Choices.Clear();
             FirstChoices.Clear();
             SecondChoices.Clear();
+            ChoiceGroups.Clear();
         }
 
         private void Shuffle<T>(IList<T> list)
@@ -939,11 +1056,14 @@ namespace ScriptureTyping.ViewModels.Games
 
             OnPropertyChanged(nameof(AreSingleChoicesVisible));
             OnPropertyChanged(nameof(AreDualChoicesVisible));
+            OnPropertyChanged(nameof(AreChoiceGroupsVisible));
+            OnPropertyChanged(nameof(IsVeryHardInputVisible));
 
             OnPropertyChanged(nameof(AreChoicesEnabled));
             OnPropertyChanged(nameof(AreFirstChoicesEnabled));
             OnPropertyChanged(nameof(AreSecondChoicesEnabled));
             OnPropertyChanged(nameof(IsHintEnabled));
+            OnPropertyChanged(nameof(CanSubmitVeryHardAnswer));
 
             try
             {
@@ -962,23 +1082,26 @@ namespace ScriptureTyping.ViewModels.Games
         private sealed class ClozeQuestion
         {
             public string Reference { get; init; } = string.Empty;
+            public string OriginalReference { get; init; } = string.Empty;
             public string OriginalText { get; init; } = string.Empty;
             public string ClozeText { get; init; } = string.Empty;
             public IReadOnlyList<string> Answers { get; init; } = Array.Empty<string>();
             public IReadOnlyList<IReadOnlyList<string>> ChoiceSets { get; init; } = Array.Empty<IReadOnlyList<string>>();
-            public bool IsDualBlank => Answers.Count >= 2;
+            public bool IsDualBlank => Answers.Count == 2;
         }
 
-        private readonly struct ReplacementTarget
+        private sealed class ReplacementTarget
         {
-            public ReplacementTarget(int index, string answer)
+            public int Index { get; }
+            public string Answer { get; }
+            public int Order { get; }
+
+            public ReplacementTarget(int index, string answer, int order)
             {
                 Index = index;
                 Answer = answer;
+                Order = order;
             }
-
-            public int Index { get; }
-            public string Answer { get; }
         }
     }
 }

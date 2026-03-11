@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ScriptureTyping.Commands;
+using ScriptureTyping.ViewModels.Games.Cloze.Models;
+using System;
 using System.Linq;
 using System.Windows.Input;
 
@@ -15,7 +16,11 @@ namespace ScriptureTyping.ViewModels.Games
             get => _selectedFirstChoice;
             private set
             {
-                if (_selectedFirstChoice == value) return;
+                if (_selectedFirstChoice == value)
+                {
+                    return;
+                }
+
                 _selectedFirstChoice = value;
                 OnPropertyChanged();
             }
@@ -26,7 +31,11 @@ namespace ScriptureTyping.ViewModels.Games
             get => _selectedSecondChoice;
             private set
             {
-                if (_selectedSecondChoice == value) return;
+                if (_selectedSecondChoice == value)
+                {
+                    return;
+                }
+
                 _selectedSecondChoice = value;
                 OnPropertyChanged();
             }
@@ -50,10 +59,30 @@ namespace ScriptureTyping.ViewModels.Games
             _current.IsDualBlank &&
             SecondChoices.Count > 0;
 
+        /// <summary>
+        /// 목적:
+        /// ChoiceGroups 기반 공통 다중 빈칸 보기 선택 가능 여부를 판단한다.
+        /// </summary>
+        public bool AreChoiceGroupsEnabled =>
+            CanAnswerChoices() &&
+            _current != null &&
+            ChoiceGroups.Count > 0;
+
         public bool IsNormalMode => CurrentDifficulty == DIFFICULTY_NORMAL;
 
         public ICommand SelectFirstChoiceCommand { get; }
         public ICommand SelectSecondChoiceCommand { get; }
+
+        /// <summary>
+        /// 목적:
+        /// 공통 다중 빈칸 보기 그룹에서 선택지를 고를 때 사용하는 커맨드
+        /// </summary>
+        public ICommand SelectChoiceGroupCommand =>
+            _selectChoiceGroupCommand ??= new RelayCommand(
+                p => ExecuteSelectChoiceGroup(p),
+                _ => AreChoiceGroupsEnabled);
+
+        private RelayCommand? _selectChoiceGroupCommand;
 
         private bool IsNormalDifficulty()
         {
@@ -62,7 +91,7 @@ namespace ScriptureTyping.ViewModels.Games
 
         private int GetNormalBlankCount()
         {
-            return 2;
+            return 5;
         }
 
         private int GetNormalChoiceCount()
@@ -172,11 +201,111 @@ namespace ScriptureTyping.ViewModels.Games
             RaiseUiComputed();
         }
 
+        /// <summary>
+        /// 목적:
+        /// ChoiceGroups에서 선택이 들어오면 해당 그룹에 선택값을 반영한다.
+        /// 모든 그룹이 선택되면 정답 판정을 수행한다.
+        /// </summary>
+        private void ExecuteSelectChoiceGroup(object? parameter)
+        {
+            if (!AreChoiceGroupsEnabled || parameter is not object[] values || values.Length != 2)
+            {
+                return;
+            }
+
+            if (values[0] is not ClozeChoiceGroupItem group)
+            {
+                return;
+            }
+
+            if (values[1] is not string choice || string.IsNullOrWhiteSpace(choice))
+            {
+                return;
+            }
+
+            group.SelectedChoice = choice.Trim();
+
+            bool allSelected = ChoiceGroups.All(x => !string.IsNullOrWhiteSpace(x.SelectedChoice));
+
+            if (!allSelected)
+            {
+                FeedbackText = $"모든 빈칸을 선택하세요. (기회 {_tryLeft}회)";
+                RaiseUiComputed();
+                return;
+            }
+
+            EvaluateChoiceGroupsSelection();
+        }
+
+        /// <summary>
+        /// 목적:
+        /// ChoiceGroups에 담긴 다중 빈칸 선택 결과를 정답과 비교한다.
+        /// </summary>
+        private void EvaluateChoiceGroupsSelection()
+        {
+            if (_current == null)
+            {
+                return;
+            }
+
+            if (ChoiceGroups.Count != _current.Answers.Count)
+            {
+                return;
+            }
+
+            bool allCorrect = true;
+
+            for (int i = 0; i < ChoiceGroups.Count; i++)
+            {
+                string selected = ChoiceGroups[i].SelectedChoice?.Trim() ?? string.Empty;
+                string expected = _current.Answers[i].Trim();
+
+                if (!string.Equals(selected, expected, StringComparison.Ordinal))
+                {
+                    allCorrect = false;
+                    break;
+                }
+            }
+
+            if (allCorrect)
+            {
+                HandleCorrectAnswer();
+                return;
+            }
+
+            _isCorrect = false;
+            _tryLeft -= 1;
+            _score = Math.Max(0, _score - GetWrongPenalty());
+            _combo = 0;
+
+            if (_tryLeft <= 0)
+            {
+                FeedbackText = $"기회 소진. 정답은 \"{string.Join(", ", _current.Answers)}\" 입니다.";
+                StopTimer();
+                RaiseUiComputed();
+                ScheduleAutoNext();
+                return;
+            }
+
+            foreach (ClozeChoiceGroupItem item in ChoiceGroups)
+            {
+                item.SelectedChoice = null;
+            }
+
+            FeedbackText = $"틀렸습니다. 다시 선택하세요. (기회 {_tryLeft}회)";
+            RaiseUiComputed();
+        }
+
         private string BuildInitialGuideText()
         {
             if (_current == null)
             {
                 return string.Empty;
+            }
+
+            if (ChoiceGroups.Count > 0)
+            {
+                return $"각 빈칸의 정답을 모두 고르세요. (기회 {_tryLeft}회)";
             }
 
             if (_current.IsDualBlank)

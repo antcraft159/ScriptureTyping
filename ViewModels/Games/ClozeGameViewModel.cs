@@ -128,6 +128,7 @@ namespace ScriptureTyping.ViewModels.Games
 
         public bool AreChoiceGroupsVisible =>
             !IsVeryHardInputVisible &&
+            !IsSamuelRank1InputVisible &&
             _current != null &&
             ChoiceGroups.Count > 0;
 
@@ -168,6 +169,8 @@ namespace ScriptureTyping.ViewModels.Games
                 OnPropertyChanged(nameof(DifficultyText));
                 OnPropertyChanged(nameof(IsNormalMode));
                 OnPropertyChanged(nameof(IsVeryHardInputVisible));
+                OnPropertyChanged(nameof(IsSamuelRank1InputVisible));
+                OnPropertyChanged(nameof(CanSubmitSamuelRank1Answer));
                 OnPropertyChanged(nameof(AreChoiceGroupsVisible));
                 CommandManager.InvalidateRequerySuggested();
             }
@@ -239,18 +242,21 @@ namespace ScriptureTyping.ViewModels.Games
 
         public bool AreSingleChoicesVisible =>
             !IsVeryHardInputVisible &&
+            !IsSamuelRank1InputVisible &&
             _current != null &&
             !_current.IsDualBlank &&
             Choices.Count > 0;
 
         public bool AreChoicesEnabled =>
             !IsVeryHardInputVisible &&
+            !IsSamuelRank1InputVisible &&
             CanAnswerChoices() &&
             _current != null &&
             !_current.IsDualBlank &&
             Choices.Count > 0;
 
         public bool IsHintEnabled =>
+            !IsSamuelRank1Mode &&
             !_isRoundCompleted &&
             !_hintUsed &&
             !_isCorrect &&
@@ -308,6 +314,7 @@ namespace ScriptureTyping.ViewModels.Games
             SelectedCourse = Courses.FirstOrDefault();
             SelectedDay = ALL_DAY_TEXT;
 
+            SamuelRank1InputText = string.Empty;
             QuestionText = "상단에서 과정/일차/모드를 선택 후 [적용]을 누르세요.";
             ReferenceText = string.Empty;
             FeedbackText = string.Empty;
@@ -341,6 +348,7 @@ namespace ScriptureTyping.ViewModels.Games
             if (verses.Count == 0)
             {
                 SelectionError = "해당 선택에 구절이 없습니다.";
+                SamuelRank1InputText = string.Empty;
                 QuestionText = "구절이 없습니다.";
                 ReferenceText = string.Empty;
                 FeedbackText = string.Empty;
@@ -377,6 +385,7 @@ namespace ScriptureTyping.ViewModels.Games
             SelectedFirstChoice = null;
             SelectedSecondChoice = null;
 
+            SamuelRank1InputText = string.Empty;
             ClearVeryHardInputs();
 
             IsTimeAttack = IsTimeAttackDifficulty(CurrentDifficulty);
@@ -384,6 +393,8 @@ namespace ScriptureTyping.ViewModels.Games
             OnPropertyChanged(nameof(DifficultyText));
             OnPropertyChanged(nameof(IsNormalMode));
             OnPropertyChanged(nameof(IsVeryHardInputVisible));
+            OnPropertyChanged(nameof(IsSamuelRank1InputVisible));
+            OnPropertyChanged(nameof(CanSubmitSamuelRank1Answer));
             OnPropertyChanged(nameof(AreChoiceGroupsVisible));
 
             BuildWordPool(verses);
@@ -391,6 +402,7 @@ namespace ScriptureTyping.ViewModels.Games
 
             if (_round.Count <= 0)
             {
+                SamuelRank1InputText = string.Empty;
                 QuestionText = "문제를 만들 수 있는 구절이 없습니다.";
                 ReferenceText = string.Empty;
                 FeedbackText = "다른 과정/일차를 선택해 주세요.";
@@ -418,7 +430,8 @@ namespace ScriptureTyping.ViewModels.Games
 
         private bool CanAnswerChoices()
         {
-            return !_isRoundCompleted &&
+            return !IsSamuelRank1Mode &&
+                   !_isRoundCompleted &&
                    !_isCorrect &&
                    _tryLeft > 0 &&
                    !_isPreviewing &&
@@ -516,6 +529,7 @@ namespace ScriptureTyping.ViewModels.Games
                 _isRoundCompleted = true;
                 StopTimer();
 
+                SamuelRank1InputText = string.Empty;
                 QuestionText = "라운드 종료!";
                 ReferenceText = string.Empty;
                 ClearAllChoiceCollections();
@@ -601,7 +615,6 @@ namespace ScriptureTyping.ViewModels.Games
 
             foreach (VerseItem verse in shuffled)
             {
-
                 if (!TryMakeQuestion(verse, out ClozeQuestion? question) || question == null)
                 {
                     continue;
@@ -616,6 +629,11 @@ namespace ScriptureTyping.ViewModels.Games
         private bool TryMakeQuestion(VerseItem verse, out ClozeQuestion? question)
         {
             question = null;
+
+            if (IsSamuelRank1Mode)
+            {
+                return TryMakeSamuelRank1Question(verse, out question);
+            }
 
             if (IsVeryHardDifficulty())
             {
@@ -686,6 +704,28 @@ namespace ScriptureTyping.ViewModels.Games
                 ClozeText = clozeText,
                 Answers = orderedAnswers,
                 ChoiceSets = choiceSets
+            };
+
+            return true;
+        }
+
+        private bool TryMakeSamuelRank1Question(VerseItem verse, out ClozeQuestion? question)
+        {
+            question = null;
+
+            if (string.IsNullOrWhiteSpace(verse.Text))
+            {
+                return false;
+            }
+
+            question = new ClozeQuestion
+            {
+                Reference = verse.Ref,
+                OriginalReference = verse.Ref,
+                OriginalText = verse.Text,
+                ClozeText = string.Empty,
+                Answers = Array.Empty<string>(),
+                ChoiceSets = Array.Empty<IReadOnlyList<string>>()
             };
 
             return true;
@@ -799,7 +839,7 @@ namespace ScriptureTyping.ViewModels.Games
             OnPropertyChanged(nameof(AreChoiceGroupsVisible));
         }
 
-        private async void LoadQuestion(int index)
+        private void LoadQuestion(int index)
         {
             StopTimer();
 
@@ -813,10 +853,17 @@ namespace ScriptureTyping.ViewModels.Games
             SelectedFirstChoice = null;
             SelectedSecondChoice = null;
 
+            SamuelRank1InputText = string.Empty;
             ClearAllChoiceCollections();
             ClearVeryHardInputs();
 
-            if (IsVeryHardDifficulty())
+            if (IsSamuelRank1Mode)
+            {
+                ReferenceText = _current.OriginalReference;
+                QuestionText = string.Empty;
+                FeedbackText = "권/장/절만 보고 말씀 전체를 입력하세요.";
+            }
+            else if (IsVeryHardDifficulty())
             {
                 QuestionText = _current.ClozeText;
                 ReferenceText = _current.Reference;
@@ -849,22 +896,8 @@ namespace ScriptureTyping.ViewModels.Games
                     }
                 }
 
-                _questionVersion++;
-                int localVersion = _questionVersion;
-
-                if (IsSamuelRank1Mode)
-                {
-                    bool canContinue = await RunSamuelRank1PreviewAsync(localVersion);
-                    if (!canContinue)
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    QuestionText = _current.ClozeText;
-                    FeedbackText = BuildInitialGuideText();
-                }
+                QuestionText = _current.ClozeText;
+                FeedbackText = BuildInitialGuideText();
             }
 
             if (IsTimeAttack)
@@ -903,7 +936,11 @@ namespace ScriptureTyping.ViewModels.Games
 
                 if (_current != null)
                 {
-                    if (IsVeryHardDifficulty())
+                    if (IsSamuelRank1Mode)
+                    {
+                        FeedbackText = $"시간 종료. 정답은 \"{_current.OriginalText}\" 입니다.";
+                    }
+                    else if (IsVeryHardDifficulty())
                     {
                         FeedbackText = $"시간 종료. 정답은 {BuildVeryHardAnswerSummary(_current)} 입니다.";
                     }
@@ -1054,12 +1091,14 @@ namespace ScriptureTyping.ViewModels.Games
             OnPropertyChanged(nameof(AreDualChoicesVisible));
             OnPropertyChanged(nameof(AreChoiceGroupsVisible));
             OnPropertyChanged(nameof(IsVeryHardInputVisible));
+            OnPropertyChanged(nameof(IsSamuelRank1InputVisible));
 
             OnPropertyChanged(nameof(AreChoicesEnabled));
             OnPropertyChanged(nameof(AreFirstChoicesEnabled));
             OnPropertyChanged(nameof(AreSecondChoicesEnabled));
             OnPropertyChanged(nameof(IsHintEnabled));
             OnPropertyChanged(nameof(CanSubmitVeryHardAnswer));
+            OnPropertyChanged(nameof(CanSubmitSamuelRank1Answer));
 
             try
             {

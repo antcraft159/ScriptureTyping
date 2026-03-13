@@ -1,5 +1,4 @@
-﻿// 파일명: SamuelRank1ClozeMode.cs
-using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
+﻿using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
 using ScriptureTyping.ViewModels.Games.Cloze.Models;
 using System;
 using System.Collections.Generic;
@@ -9,11 +8,11 @@ namespace ScriptureTyping.ViewModels.Games.Cloze.Modes.SamuelRank1
     /// <summary>
     /// 목적:
     /// 최고 난이도 "사무엘 1등" 모드 전략 객체.
-    /// 
+    ///
     /// 특징:
-    /// - 빈칸 2개
-    /// - 보기 없이 직접 입력하는 방향
-    /// - 플래시 미리보기와 압박형 채점 사용
+    /// - 권/장/절만 보여주고 말씀 전체를 직접 입력한다.
+    /// - 보기는 제공하지 않는다.
+    /// - 플래시 미리보기와 압박형 채점을 사용한다.
     /// </summary>
     public sealed class SamuelRank1ClozeMode : IClozeMode
     {
@@ -45,8 +44,14 @@ namespace ScriptureTyping.ViewModels.Games.Cloze.Modes.SamuelRank1
 
         public string Name => "SamuelRank1";
 
-        public int BlankCount => 2;
+        /// <summary>
+        /// 사무엘 1등은 빈칸 채우기가 아니라 전체 입력 방식이다.
+        /// </summary>
+        public int BlankCount => 0;
 
+        /// <summary>
+        /// 사무엘 1등은 보기를 제공하지 않는다.
+        /// </summary>
         public int ChoiceCountPerBlank => 0;
 
         public ClozeQuestion CreateQuestion(string verseText, IReadOnlyList<string> wordPool)

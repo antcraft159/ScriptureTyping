@@ -70,10 +70,28 @@
         </Style>
 
         <Style x:Key="VeryHardTextBox" TargetType="TextBox">
-            <Setter Property="Height" Value="40"/>
+            <Setter Property="MinHeight" Value="100"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="Background" Value="{StaticResource Brush.Surface}"/>
+            <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+
+        <Style x:Key="SamuelRank1TextBox" TargetType="TextBox">
+            <Setter Property="MinHeight" Value="180"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
             <Setter Property="Background" Value="{StaticResource Brush.Surface}"/>
             <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
             <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
@@ -199,7 +217,6 @@
                                           ItemsSource="{Binding Days}"
                                           SelectedItem="{Binding SelectedDay, Mode=TwoWay}"/>
 
-                                <!-- 난이도 버튼형 선택 -->
                                 <ListBox Grid.Column="4"
                                          Style="{StaticResource DifficultyListBox}"
                                          ItemContainerStyle="{StaticResource DifficultyListBoxItem}"
@@ -334,6 +351,50 @@
                                        TextWrapping="Wrap"/>
 
                             <Grid Grid.Row="6">
+                                <!-- 사무엘 1등 전체 입력 -->
+                                <Border Background="{StaticResource Brush.Surface}"
+                                        BorderBrush="{StaticResource Brush.Border}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="14"
+                                        Visibility="{Binding IsSamuelRank1InputVisible, Converter={StaticResource BoolToVis}}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="8"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="12"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="12"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0"
+                                                   Text="권/장/절만 보고 말씀 전체를 입력하세요."
+                                                   Foreground="{StaticResource Brush.Text}"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"/>
+
+                                        <TextBlock Grid.Row="2"
+                                                   Text="보기 없이 직접 암송합니다. 띄어쓰기와 문장부호 차이는 자동 보정됩니다."
+                                                   Foreground="{StaticResource Brush.Text2}"
+                                                   FontSize="13"
+                                                   TextWrapping="Wrap"/>
+
+                                        <TextBox Grid.Row="4"
+                                                 Style="{StaticResource SamuelRank1TextBox}"
+                                                 Text="{Binding SamuelRank1InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                        <Button Grid.Row="6"
+                                                Content="제출"
+                                                Width="{StaticResource Layout.CommonWidth}"
+                                                HorizontalAlignment="Left"
+                                                Style="{StaticResource PrimaryButton}"
+                                                Command="{Binding SubmitSamuelRank1AnswerCommand}"
+                                                IsEnabled="{Binding CanSubmitSamuelRank1Answer}"/>
+                                    </Grid>
+                                </Border>
+
                                 <!-- 매우 어려움 직접 입력 -->
                                 <Border Background="{StaticResource Brush.Surface}"
                                         BorderBrush="{StaticResource Brush.Border}"
@@ -344,6 +405,8 @@
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="8"/>
+                                            <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="12"/>
                                             <RowDefinition Height="*"/>
                                             <RowDefinition Height="12"/>
@@ -351,24 +414,32 @@
                                         </Grid.RowDefinitions>
 
                                         <TextBlock Grid.Row="0"
-                                                   Text="보기 없이 직접 입력하세요. 본문 2칸 + 권/장/절 3칸"
+                                                   Text="문장의 빈칸을 직접 입력하세요."
                                                    Foreground="{StaticResource Brush.Text}"
                                                    FontSize="16"
                                                    FontWeight="SemiBold"/>
 
-                                        <ScrollViewer Grid.Row="2"
+                                        <TextBlock Grid.Row="2"
+                                                   Text="매우 어려움은 보기 없이 진행됩니다. 빈칸 수가 많을 수 있습니다."
+                                                   Foreground="{StaticResource Brush.Text2}"
+                                                   FontSize="13"
+                                                   TextWrapping="Wrap"/>
+
+                                        <ScrollViewer Grid.Row="4"
                                                       VerticalScrollBarVisibility="Auto"
                                                       HorizontalScrollBarVisibility="Disabled">
                                             <ItemsControl ItemsSource="{Binding VeryHardInputs}">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>
-                                                        <UniformGrid Columns="2"/>
+                                                        <WrapPanel Orientation="Horizontal"/>
                                                     </ItemsPanelTemplate>
                                                 </ItemsControl.ItemsPanel>
 
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Border Margin="6"
+                                                        <Border Width="320"
+                                                                MinHeight="150"
+                                                                Margin="0,0,12,12"
                                                                 Padding="10"
                                                                 CornerRadius="8"
                                                                 Background="{StaticResource Brush.Bg}"
@@ -377,7 +448,8 @@
                                                             <StackPanel>
                                                                 <TextBlock Text="{Binding Label}"
                                                                            Foreground="{StaticResource Brush.Text2}"
-                                                                           FontSize="13"/>
+                                                                           FontSize="13"
+                                                                           FontWeight="SemiBold"/>
                                                                 <TextBox Style="{StaticResource VeryHardTextBox}"
                                                                          Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                                             </StackPanel>
@@ -387,7 +459,7 @@
                                             </ItemsControl>
                                         </ScrollViewer>
 
-                                        <Button Grid.Row="4"
+                                        <Button Grid.Row="6"
                                                 Content="제출"
                                                 Width="{StaticResource Layout.CommonWidth}"
                                                 HorizontalAlignment="Left"

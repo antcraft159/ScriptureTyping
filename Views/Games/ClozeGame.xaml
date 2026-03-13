@@ -323,32 +323,56 @@
                             </Grid>
 
                             <Border Grid.Row="2"
-                                    Background="{StaticResource Brush.Surface}"
-                                    BorderBrush="{StaticResource Brush.Border}"
-                                    BorderThickness="1"
-                                    CornerRadius="8"
-                                    Padding="14">
+                                Background="{StaticResource Brush.Surface}"
+                                BorderBrush="{StaticResource Brush.Border}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="14">
+                                
                                 <StackPanel>
                                     <TextBlock Text="{Binding QuestionText}"
-                                               TextWrapping="Wrap"
-                                               Foreground="{StaticResource Brush.Text}"
-                                               FontSize="20"
-                                               FontWeight="SemiBold"
-                                               LineHeight="26"/>
+                                        TextWrapping="Wrap"
+                                        Foreground="{StaticResource Brush.Text}"
+                                        FontSize="20"
+                                        FontWeight="SemiBold"
+                                        LineHeight="26">
+                                        
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSamuelRank1InputVisible}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding QuestionText}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
 
                                     <TextBlock Text="{Binding ReferenceText}"
-                                               Margin="0,10,0,0"
-                                               Foreground="{StaticResource Brush.Text2}"
-                                               FontSize="16"
-                                               FontWeight="SemiBold"/>
+                                        FontWeight="SemiBold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Margin" Value="0,10,0,0"/>
+                                                <Setter Property="FontSize" Value="16"/>
+                                                <Setter Property="Foreground" Value="{StaticResource Brush.Text2}"/>
+                                                <Setter Property="TextAlignment" Value="Left"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSamuelRank1InputVisible}" Value="True">
+                                                        <Setter Property="Margin" Value="0"/>
+                                                        <Setter Property="FontSize" Value="24"/>
+                                                        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+                                                        <Setter Property="TextAlignment" Value="Center"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </StackPanel>
                             </Border>
-
-                            <TextBlock Grid.Row="4"
-                                       Text="{Binding FeedbackText}"
-                                       Foreground="{StaticResource Brush.Text2}"
-                                       FontSize="25"
-                                       TextWrapping="Wrap"/>
 
                             <Grid Grid.Row="6">
                                 <!-- 사무엘 1등 전체 입력 -->

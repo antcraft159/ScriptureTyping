@@ -75,7 +75,6 @@ namespace ScriptureTyping.ViewModels.Games
 
         private ClozeQuestion? _current;
         private bool _isAutoNextScheduled;
-        private int _questionVersion;
 
         public event PropertyChangedEventHandler? PropertyChanged;
         public event Action? BackRequested;

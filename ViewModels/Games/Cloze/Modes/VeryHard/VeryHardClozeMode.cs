@@ -1,17 +1,17 @@
-﻿// 파일명: VeryHard/VeryHardClozeMode.cs
-using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
+﻿using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
 using ScriptureTyping.ViewModels.Games.Cloze.Models;
 using System;
 using System.Collections.Generic;
+
 namespace ScriptureTyping.ViewModels.Games.Cloze.Modes.VeryHard
 {
     /// <summary>
     /// 목적:
     /// 매우 어려움 모드 전략 객체.
-    /// 
+    ///
     /// 특징:
-    /// - 빈칸 2개
     /// - 보기 없이 직접 입력하는 주관식 중심
+    /// - 빈칸 수는 생성기에서 동적으로 계산 가능
     /// </summary>
     public sealed class VeryHardClozeMode : IClozeMode
     {
@@ -35,7 +35,7 @@ namespace ScriptureTyping.ViewModels.Games.Cloze.Modes.VeryHard
 
         public string Name => "VeryHard";
 
-        public int BlankCount => 2;
+        public int BlankCount => 0;
 
         public int ChoiceCountPerBlank => 0;
 

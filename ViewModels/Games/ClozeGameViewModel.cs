@@ -20,7 +20,6 @@ namespace ScriptureTyping.ViewModels.Games
         private const string DEFAULT_TITLE = "빈칸 채우기";
         private const string ALL_DAY_TEXT = "전일차";
         private const int ALL_DAY_INDEX = 0;
-        private const int DEFAULT_ROUND_COUNT = 10;
 
         private const string DIFFICULTY_EASY = "쉬움";
         private const string DIFFICULTY_NORMAL = "보통";
@@ -602,10 +601,6 @@ namespace ScriptureTyping.ViewModels.Games
 
             foreach (VerseItem verse in shuffled)
             {
-                if (_round.Count >= DEFAULT_ROUND_COUNT)
-                {
-                    break;
-                }
 
                 if (!TryMakeQuestion(verse, out ClozeQuestion? question) || question == null)
                 {
@@ -639,9 +634,10 @@ namespace ScriptureTyping.ViewModels.Games
                     .ToList();
             }
 
-            int blankCount = GetBlankCount();
+            int requestedBlankCount = GetBlankCount();
+            int blankCount = Math.Min(requestedBlankCount, candidates.Count);
 
-            if (candidates.Count < blankCount)
+            if (blankCount <= 0)
             {
                 return false;
             }

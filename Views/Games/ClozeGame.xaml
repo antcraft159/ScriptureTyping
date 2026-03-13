@@ -79,6 +79,54 @@
             <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
+
+        <!-- 난이도 버튼형 선택 -->
+        <Style x:Key="DifficultyListBox" TargetType="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+
+        <Style x:Key="DifficultyListBoxItem" TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="#334155"/>
+            <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="14,8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.92"/>
+                            </Trigger>
+
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#2563EB"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Border Margin="{StaticResource Layout.MenuSafeMargin}"
@@ -151,10 +199,22 @@
                                           ItemsSource="{Binding Days}"
                                           SelectedItem="{Binding SelectedDay, Mode=TwoWay}"/>
 
-                                <ComboBox Grid.Column="4"
-                                          Style="{StaticResource TopCombo}"
-                                          ItemsSource="{Binding DifficultyOptions}"
-                                          SelectedItem="{Binding SelectedDifficulty, Mode=TwoWay}"/>
+                                <!-- 난이도 버튼형 선택 -->
+                                <ListBox Grid.Column="4"
+                                         Style="{StaticResource DifficultyListBox}"
+                                         ItemContainerStyle="{StaticResource DifficultyListBoxItem}"
+                                         ItemsSource="{Binding DifficultyOptions}"
+                                         SelectedItem="{Binding SelectedDifficulty, Mode=TwoWay}"
+                                         SelectionMode="Single"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Center"
+                                         MinHeight="32">
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                </ListBox>
 
                                 <Button Grid.Column="6"
                                         Content="적용"
@@ -352,8 +412,8 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Style="{StaticResource ChoiceGroupBorder}"
-                                                    Margin="0,0,12,12"
-                                                    Width="210">
+                                                        Margin="0,0,12,12"
+                                                        Width="210">
                                                     <Grid>
                                                         <Grid.RowDefinitions>
                                                             <RowDefinition Height="Auto"/>
@@ -362,9 +422,9 @@
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
-                                                            Text="{Binding Title}"
-                                                            FontSize="16"
-                                                            FontWeight="SemiBold">
+                                                                   Text="{Binding Title}"
+                                                                   FontSize="16"
+                                                                   FontWeight="SemiBold">
                                                             <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                     <Setter Property="Foreground" Value="#86EFAC"/>
@@ -379,11 +439,11 @@
                                                                 </Style>
                                                             </TextBlock.Style>
                                                         </TextBlock>
-                                                        
+
                                                         <ItemsControl Grid.Row="2"
-                                                            ItemsSource="{Binding Choices}"
-                                                            Tag="{Binding}"
-                                                            HorizontalAlignment="Center">
+                                                                      ItemsSource="{Binding Choices}"
+                                                                      Tag="{Binding}"
+                                                                      HorizontalAlignment="Center">
                                                             <ItemsControl.ItemsPanel>
                                                                 <ItemsPanelTemplate>
                                                                     <WrapPanel Orientation="Horizontal"/>
@@ -393,9 +453,9 @@
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate>
                                                                     <Button Content="{Binding}"
-                                                                        Style="{StaticResource ChoiceButton}"
-                                                                        Command="{Binding DataContext.SelectChoiceGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                        IsEnabled="{Binding DataContext.AreChoiceGroupsEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                                            Style="{StaticResource ChoiceButton}"
+                                                                            Command="{Binding DataContext.SelectChoiceGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            IsEnabled="{Binding DataContext.AreChoiceGroupsEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                                                         <Button.CommandParameter>
                                                                             <MultiBinding Converter="{StaticResource ChoiceGroupCommandParameterConverter}">
                                                                                 <Binding RelativeSource="{RelativeSource AncestorType=ItemsControl}" Path="Tag"/>

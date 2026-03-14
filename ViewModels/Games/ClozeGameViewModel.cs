@@ -282,11 +282,11 @@ namespace ScriptureTyping.ViewModels.Games
             }
 
             Days.Clear();
-            Days.Add(ALL_DAY_TEXT);
             for (int d = 1; d <= VerseCatalog.MAX_DAY; d++)
             {
                 Days.Add($"{d}일차");
             }
+            Days.Add(ALL_DAY_TEXT);
 
             DifficultyOptions.Clear();
             DifficultyOptions.Add(DIFFICULTY_EASY);
@@ -311,7 +311,7 @@ namespace ScriptureTyping.ViewModels.Games
             }
 
             SelectedCourse = Courses.FirstOrDefault();
-            SelectedDay = ALL_DAY_TEXT;
+            SelectedDay = Days.FirstOrDefault();
 
             SamuelRank1InputText = string.Empty;
             QuestionText = "상단에서 과정/일차/모드를 선택 후 [적용]을 누르세요.";

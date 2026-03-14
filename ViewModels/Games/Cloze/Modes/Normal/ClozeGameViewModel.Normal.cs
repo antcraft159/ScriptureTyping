@@ -204,7 +204,7 @@ namespace ScriptureTyping.ViewModels.Games
         /// <summary>
         /// 목적:
         /// ChoiceGroups에서 선택이 들어오면 해당 그룹에 선택값을 반영한다.
-        /// 모든 그룹이 선택되면 정답 판정을 수행한다.
+        /// 모든 그룹이 하나씩 선택되면 정답 여부와 무관하게 바로 다음 문제로 넘긴다.
         /// </summary>
         private void ExecuteSelectChoiceGroup(object? parameter)
         {
@@ -234,12 +234,18 @@ namespace ScriptureTyping.ViewModels.Games
                 return;
             }
 
-            EvaluateChoiceGroupsSelection();
+            _isCorrect = true;
+            FeedbackText = "선택 완료!";
+            StopTimer();
+            RaiseUiComputed();
+            ScheduleAutoNext();
         }
 
         /// <summary>
         /// 목적:
-        /// ChoiceGroups에 담긴 다중 빈칸 선택 결과를 정답과 비교한다.
+        /// 기존 정답 비교 로직.
+        /// 현재 ChoiceGroups 자동 진행 방식에서는 사용되지 않지만,
+        /// 다른 흐름과의 호환을 위해 유지한다.
         /// </summary>
         private void EvaluateChoiceGroupsSelection()
         {
@@ -305,7 +311,7 @@ namespace ScriptureTyping.ViewModels.Games
 
             if (ChoiceGroups.Count > 0)
             {
-                return $"각 빈칸의 정답을 모두 고르세요. (기회 {_tryLeft}회)";
+                return $"각 빈칸을 하나씩 선택하세요. 모두 선택하면 자동으로 다음 문제로 넘어갑니다.";
             }
 
             if (_current.IsDualBlank)

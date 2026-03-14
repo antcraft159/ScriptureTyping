@@ -16,8 +16,13 @@ namespace ScriptureTyping.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            object group = values.Length > 0 ? values[0] : Binding.DoNothing;
-            object choice = values.Length > 1 ? values[1] : Binding.DoNothing;
+            if (values == null || values.Length < 2)
+            {
+                return Array.Empty<object>();
+            }
+
+            object group = values[0];
+            object choice = values[1];
 
             if (group is not ClozeChoiceGroupItem)
             {

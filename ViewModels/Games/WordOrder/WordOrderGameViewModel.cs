@@ -1216,6 +1216,7 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
                 var x when x == WordOrderDifficulty.Normal => "어절 순서를 바르게 맞춰보세요.",
                 var x when x == WordOrderDifficulty.Hard => "더 세밀한 순서까지 정확히 맞춰보세요.",
                 var x when x == WordOrderDifficulty.VeryHard => "방해 조각에 주의하면서 순서를 맞춰보세요.",
+                var x when x == WordOrderDifficulty.SamuelRank1 => "사무엘 1등 단계입니다. 매우 어려움 규칙에 더해 후치사만 바뀐 방해 조각이 추가됩니다.",
                 _ => "조각을 순서대로 눌러 문장을 완성하세요."
             };
         }
@@ -1228,6 +1229,7 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
                 var x when x == WordOrderDifficulty.Normal => "정답입니다!",
                 var x when x == WordOrderDifficulty.Hard => "정답입니다!",
                 var x when x == WordOrderDifficulty.VeryHard => "정답입니다! 방해 조각 없이 정확히 맞췄습니다.",
+                var x when x == WordOrderDifficulty.SamuelRank1 => "정답입니다! 후치사 방해 조각까지 정확히 구분했습니다.",
                 _ => "정답입니다!"
             };
         }
@@ -1239,7 +1241,17 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
         {
             if (containsDistractor)
             {
+                if (string.Equals(question.Difficulty, WordOrderDifficulty.SamuelRank1, StringComparison.Ordinal))
+                {
+                    return "오답입니다. 후치사만 바뀐 방해 조각이 포함되어 있습니다.";
+                }
+
                 return "오답입니다. 방해 조각이 포함되어 있습니다.";
+            }
+
+            if (string.Equals(question.Difficulty, WordOrderDifficulty.SamuelRank1, StringComparison.Ordinal))
+            {
+                return "오답입니다. 비슷한 후치사 조각까지 다시 구분해 보세요.";
             }
 
             return "오답입니다. 조각 순서를 다시 확인하세요.";

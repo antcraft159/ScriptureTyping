@@ -5,21 +5,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Normal
+namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.SamuelRank1
 {
     /// <summary>
     /// 목적:
-    /// 보통 단계용 문제를 생성한다.
+    /// SamuelRank1 난이도용 WordOrderQuestion을 생성한다.
     ///
     /// 규칙:
-    /// - 기본은 공백 기준 어절 분리
-    /// - 조각 수가 너무 적으면 PieceBuilder 정책을 따른다
-    /// - 방해 조각은 PieceBuilder 정책에 따라 추가할 수 있다
+    /// - 정답 조각과 보기 조각 생성은 PieceBuilder에 위임한다.
+    /// - 모드에서 전달한 힌트/타이머/첫 조각 고정 설정을 그대로 문제 객체에 반영한다.
     /// </summary>
-    public sealed class NormalQuestionGenerator : IWordOrderQuestionGenerator
+    public sealed class SamuelRank1QuestionGenerator : IWordOrderQuestionGenerator
     {
-        public string Difficulty => WordOrderDifficulty.Normal;
+        /// <summary>
+        /// 목적:
+        /// 현재 문제 생성기가 담당하는 난이도를 나타낸다.
+        /// </summary>
+        public string Difficulty => WordOrderDifficulty.SamuelRank1;
 
+        /// <summary>
+        /// 목적:
+        /// SamuelRank1 규칙에 맞는 문제를 생성한다.
+        /// </summary>
+        /// <param name="verse">문제 원본 말씀</param>
+        /// <param name="sourceVerses">전체 말씀 소스</param>
+        /// <param name="pieceBuilder">조각 생성기</param>
+        /// <param name="hintCount">허용 힌트 수</param>
+        /// <param name="useTimer">타이머 사용 여부</param>
+        /// <param name="timeLimitSeconds">제한 시간(초)</param>
+        /// <param name="isFirstPieceFixed">첫 조각 고정 여부</param>
+        /// <returns>생성된 순서 맞추기 문제</returns>
         public WordOrderQuestion Generate(
             Verse verse,
             IReadOnlyList<Verse> sourceVerses,
@@ -48,10 +63,7 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Normal
 
             if (correctSequence.Count == 0)
             {
-                correctSequence = new List<string>
-                {
-                    (verse.Text ?? string.Empty).Trim()
-                };
+                throw new InvalidOperationException("말씀 본문을 조각으로 분리할 수 없습니다.");
             }
 
             IReadOnlyList<WordOrderPieceItem> pieces = pieceBuilder.BuildPieces(

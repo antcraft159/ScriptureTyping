@@ -14,7 +14,7 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Hard
     /// 규칙:
     /// - 정답 순서는 공백 기준 어절 단위
     /// - 첫 조각 고정 없음
-    /// - 타이머 사용
+    /// - 타이머 사용 여부는 모드 설정을 따른다
     /// - 방해 조각 포함 가능
     /// </summary>
     public sealed class HardQuestionGenerator : IWordOrderQuestionGenerator
@@ -28,7 +28,11 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Hard
         public WordOrderQuestion Generate(
             Verse verse,
             IReadOnlyList<Verse> sourceVerses,
-            IWordOrderPieceBuilder pieceBuilder)
+            IWordOrderPieceBuilder pieceBuilder,
+            int hintCount,
+            bool useTimer,
+            int timeLimitSeconds,
+            bool isFirstPieceFixed)
         {
             if (verse is null)
             {
@@ -49,7 +53,10 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Hard
 
             if (correctSequence.Count == 0)
             {
-                throw new InvalidOperationException("Hard 문제를 만들 수 없습니다. 정답 조각이 없습니다.");
+                correctSequence = new List<string>
+                {
+                    (verse.Text ?? string.Empty).Trim()
+                };
             }
 
             IReadOnlyList<WordOrderPieceItem> pieces = pieceBuilder.BuildPieces(
@@ -64,10 +71,10 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Hard
                 VerseText = verse.Text ?? string.Empty,
                 CorrectSequence = correctSequence.ToList(),
                 Pieces = pieces.ToList(),
-                HintCount = 1,
-                UseTimer = true,
-                TimeLimitSeconds = 45,
-                IsFirstPieceFixed = false
+                HintCount = hintCount,
+                UseTimer = useTimer,
+                TimeLimitSeconds = timeLimitSeconds,
+                IsFirstPieceFixed = isFirstPieceFixed
             };
         }
     }

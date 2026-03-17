@@ -114,9 +114,13 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Hard
             }
 
             return QuestionGenerator.Generate(
-                verse,
-                sourceVerses,
-                PieceBuilder);
+        verse,
+        sourceVerses,
+        PieceBuilder,
+        HintCount,
+        UseTimer,
+        TimeLimitSeconds,
+        IsFirstPieceFixed);
         }
 
         public bool IsAnswerCorrect(WordOrderQuestion question, IReadOnlyList<WordOrderPieceItem> answerPieces)

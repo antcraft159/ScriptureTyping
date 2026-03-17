@@ -20,6 +20,7 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
         public const string Normal = "보통";
         public const string Hard = "어려움";
         public const string VeryHard = "매우 어려움";
+        public const string SamuelRank1 = "사무엘 1등";
 
         /// <summary>
         /// UI 표시 및 난이도 순회에 사용하는 전체 난이도 목록
@@ -29,7 +30,8 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
             Easy,
             Normal,
             Hard,
-            VeryHard
+            VeryHard,
+            SamuelRank1
         };
     }
 }

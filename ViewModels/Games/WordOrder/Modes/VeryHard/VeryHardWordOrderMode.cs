@@ -40,22 +40,22 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.VeryHard
         public string Difficulty => WordOrderDifficulty.VeryHard;
 
         /// <summary>
-        /// IWordOrderMode 요구 멤버
+        /// 문제 생성기
         /// </summary>
         public IWordOrderQuestionGenerator QuestionGenerator { get; }
 
         /// <summary>
-        /// IWordOrderMode 요구 멤버
+        /// 채점 정책
         /// </summary>
         public IWordOrderScoringPolicy ScoringPolicy { get; }
 
         /// <summary>
-        /// IWordOrderMode 요구 멤버
+        /// 힌트 정책
         /// </summary>
         public IWordOrderHintPolicy HintPolicy { get; }
 
         /// <summary>
-        /// IWordOrderMode 요구 멤버
+        /// 조각 생성기
         /// </summary>
         public IWordOrderPieceBuilder PieceBuilder { get; }
 
@@ -94,7 +94,14 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.VeryHard
 
         public WordOrderQuestion CreateQuestion(Verse verse, IReadOnlyList<Verse> sourceVerses)
         {
-            return QuestionGenerator.Generate(verse, sourceVerses, PieceBuilder);
+            return QuestionGenerator.Generate(
+                verse,
+                sourceVerses,
+                PieceBuilder,
+                HintCount,
+                UseTimer,
+                TimeLimitSeconds,
+                IsFirstPieceFixed);
         }
 
         public bool IsAnswerCorrect(WordOrderQuestion question, IReadOnlyList<WordOrderPieceItem> answerPieces)

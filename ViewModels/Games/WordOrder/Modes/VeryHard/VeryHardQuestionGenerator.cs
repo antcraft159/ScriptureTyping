@@ -18,7 +18,11 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.VeryHard
         public WordOrderQuestion Generate(
             Verse verse,
             IReadOnlyList<Verse> sourceVerses,
-            IWordOrderPieceBuilder pieceBuilder)
+            IWordOrderPieceBuilder pieceBuilder,
+            int hintCount,
+            bool useTimer,
+            int timeLimitSeconds,
+            bool isFirstPieceFixed)
         {
             if (verse is null)
             {

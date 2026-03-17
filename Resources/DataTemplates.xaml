@@ -48,10 +48,6 @@
         <gv:WordOrderGame/>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type gvm:SpeedTypingGameViewModel}">
-        <gv:SpeedTypingGame/>
-    </DataTemplate>
-
     <DataTemplate DataType="{x:Type gvm:MistakeHuntGameViewModel}">
         <gv:MistakeHuntGame/>
     </DataTemplate>

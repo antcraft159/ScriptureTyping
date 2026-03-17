@@ -1107,7 +1107,7 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
             return _currentQuestion is not null
                 && !IsAnswered
                 && RemainingSubmitCount > 0
-                && AnswerPieces.Count == _currentQuestion.CorrectSequence.Count;
+                && AnswerPieces.Count > 0;
         }
 
         private bool CanUseHint()

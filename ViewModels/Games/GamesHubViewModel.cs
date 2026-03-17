@@ -1,4 +1,5 @@
 ﻿using ScriptureTyping.Commands;
+using ScriptureTyping.ViewModels.Games;
 using System.Collections.ObjectModel;
 
 namespace ScriptureTyping.ViewModels.Games
@@ -21,12 +22,6 @@ namespace ScriptureTyping.ViewModels.Games
                 startCommand: new RelayCommand(
                     _ => host.NavigateTo(
                         new ScriptureTyping.ViewModels.Games.WordOrder.WordOrderGameViewModel(host)))
-            ));
-
-            Games.Add(new GameCardViewModel(
-                title: "스피드 타이핑",
-                description: "제한 시간 내 정확도/속도로 점수 획득.",
-                startCommand: new RelayCommand(_ => host.NavigateTo(new SpeedTypingGameViewModel(host)))
             ));
 
             Games.Add(new GameCardViewModel(

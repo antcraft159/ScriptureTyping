@@ -3,6 +3,7 @@
                     xmlns:vm="clr-namespace:ScriptureTyping.ViewModels"
                     xmlns:v="clr-namespace:ScriptureTyping.Views"
                     xmlns:gvm="clr-namespace:ScriptureTyping.ViewModels.Games"
+                    xmlns:gvmWordOrder="clr-namespace:ScriptureTyping.ViewModels.Games.WordOrder"
                     xmlns:gv="clr-namespace:ScriptureTyping.Views.Games">
 
     <!-- 오른쪽 화면: CourseSelect -->
@@ -43,7 +44,7 @@
         <gv:ClozeGame/>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type gvm:WordOrderGameViewModel}">
+    <DataTemplate DataType="{x:Type gvmWordOrder:WordOrderGameViewModel}">
         <gv:WordOrderGame/>
     </DataTemplate>
 

@@ -43,32 +43,9 @@
             </Setter>
         </Style>
 
-        <Style x:Key="TopComboItem" TargetType="ComboBoxItem">
-            <Setter Property="Foreground" Value="Black"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="6,4"/>
-            <Style.Triggers>
-                <Trigger Property="IsHighlighted" Value="True">
-                    <Setter Property="Background" Value="#DDEAFE"/>
-                    <Setter Property="Foreground" Value="Black"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="#777777"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
         <Style x:Key="TopCombo" TargetType="ComboBox">
             <Setter Property="Height" Value="32"/>
             <Setter Property="MinWidth" Value="110"/>
-            <Setter Property="Foreground" Value="Black"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#A3A3A3"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="6,2"/>
-            <Setter Property="ItemContainerStyle" Value="{StaticResource TopComboItem}"/>
         </Style>
 
         <Style x:Key="DifficultyListBox" TargetType="ListBox">
@@ -201,18 +178,18 @@
                                 <ComboBox Grid.Column="0"
                                           Style="{StaticResource TopCombo}"
                                           ItemsSource="{Binding Courses}"
-                                          SelectedItem="{Binding SelectedCourse, Mode=TwoWay}"/>
+                                          SelectedItem="{Binding SelectedCourse, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                                 <ComboBox Grid.Column="2"
                                           Style="{StaticResource TopCombo}"
                                           ItemsSource="{Binding Days}"
-                                          SelectedItem="{Binding SelectedDay, Mode=TwoWay}"/>
+                                          SelectedItem="{Binding SelectedDay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                                 <ListBox Grid.Column="4"
                                          Style="{StaticResource DifficultyListBox}"
                                          ItemContainerStyle="{StaticResource DifficultyListBoxItem}"
                                          ItemsSource="{Binding DifficultyOptions}"
-                                         SelectedItem="{Binding SelectedDifficulty, Mode=TwoWay}"
+                                         SelectedItem="{Binding SelectedDifficulty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          SelectionMode="Single"
                                          HorizontalAlignment="Left"
                                          VerticalAlignment="Center"
@@ -282,25 +259,32 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="14"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Grid.Column="0"
-                                           Text="{Binding DifficultyText}"
+                                           Text="{Binding QuestionProgressText}"
                                            Foreground="{StaticResource Brush.Text2}"
                                            FontSize="12"/>
 
                                 <TextBlock Grid.Column="2"
-                                           Text="{Binding HintText}"
+                                           Text="{Binding DifficultyText}"
                                            Foreground="{StaticResource Brush.Text2}"
                                            FontSize="12"/>
 
                                 <TextBlock Grid.Column="4"
-                                           Text="{Binding TryText}"
+                                           Text="{Binding HintText}"
                                            Foreground="{StaticResource Brush.Text2}"
                                            FontSize="12"/>
 
                                 <TextBlock Grid.Column="6"
+                                           Text="{Binding TryText}"
+                                           Foreground="{StaticResource Brush.Text2}"
+                                           FontSize="12"/>
+
+                                <TextBlock Grid.Column="8"
                                            Text="{Binding TimerText}"
                                            Foreground="{StaticResource Brush.Text2}"
                                            FontSize="12"
@@ -309,12 +293,14 @@
 
                             <Border Grid.Row="2"
                                     Style="{StaticResource PanelBorder}">
-                                <TextBlock Text="{Binding QuestionText}"
-                                           TextWrapping="Wrap"
-                                           Foreground="{StaticResource Brush.Text}"
-                                           FontSize="20"
-                                           FontWeight="SemiBold"
-                                           LineHeight="26"/>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding QuestionText}"
+                                               TextWrapping="Wrap"
+                                               Foreground="{StaticResource Brush.Text}"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               LineHeight="26"/>
+                                </StackPanel>
                             </Border>
 
                             <Border Grid.Row="4"
@@ -325,6 +311,7 @@
                                                Foreground="{StaticResource Brush.Text}"
                                                FontSize="15"
                                                FontWeight="SemiBold"/>
+
                                     <TextBlock Text="{Binding GuideText}"
                                                Margin="0,8,0,0"
                                                TextWrapping="Wrap"

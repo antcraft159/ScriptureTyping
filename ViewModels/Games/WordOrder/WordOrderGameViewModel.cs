@@ -1,7 +1,7 @@
 ﻿using ScriptureTyping.Commands;
 using ScriptureTyping.Data;
 using ScriptureTyping.Services;
-using ScriptureTyping.ViewModels.Games.WordOrder;
+using ScriptureTyping.ViewModels.Games.WordOrder.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,9 +9,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using System.Windows.Threading;
 
-namespace ScriptureTyping.ViewModels.Games
+namespace ScriptureTyping.ViewModels.Games.WordOrder
 {
     /// <summary>
     /// 목적:
@@ -28,7 +27,7 @@ namespace ScriptureTyping.ViewModels.Games
     /// - 다음 문제 이동
     /// - 타이머 관리
     /// </summary>
-    public sealed class WordOrderGameViewModel : BaseViewModel, INotifyPropertyChanged
+    public sealed partial class WordOrderGameViewModel : BaseViewModel, INotifyPropertyChanged
     {
         private const string DEFAULT_TITLE = "순서 맞추기";
         private const string ALL_DAY_TEXT = "전일차";
@@ -37,7 +36,7 @@ namespace ScriptureTyping.ViewModels.Games
         private readonly MainWindowViewModel? _host;
         private readonly SelectionContext _ctx;
         private readonly WordOrderQuestionFactory _questionFactory;
-        private readonly DispatcherTimer _timer;
+        private readonly WordOrderTimerController _timerController;
 
         private readonly List<Verse> _sourceVerses = new();
         private readonly List<WordOrderQuestion> _questions = new();
@@ -47,7 +46,7 @@ namespace ScriptureTyping.ViewModels.Games
         private string _title = DEFAULT_TITLE;
         private string _referenceText = string.Empty;
         private string _feedbackText = "과정/일차 말씀을 불러온 뒤 게임을 시작하세요.";
-        private string _selectedDifficulty = WordOrderDifficultyRules.Easy;
+        private string _selectedDifficulty = WordOrderDifficulty.Easy;
         private string _questionProgressText = string.Empty;
         private string _timerText = string.Empty;
         private string _slotGuideText = string.Empty;
@@ -87,8 +86,12 @@ namespace ScriptureTyping.ViewModels.Games
             _host = host;
             _ctx = selectionContext ?? throw new ArgumentNullException(nameof(selectionContext));
             _questionFactory = new WordOrderQuestionFactory();
+            _timerController = new WordOrderTimerController();
 
-            DifficultyOptions = new ObservableCollection<string>(WordOrderDifficultyRules.AllDifficulties);
+            _timerController.Tick += OnTimerTick;
+            _timerController.TimeExpired += OnTimeExpired;
+
+            DifficultyOptions = new ObservableCollection<string>(WordOrderDifficulty.All);
 
             Courses = new ObservableCollection<string>();
             Days = new ObservableCollection<string>();
@@ -106,12 +109,6 @@ namespace ScriptureTyping.ViewModels.Games
             HintCommand = new RelayCommand(_ => UseHint(), _ => CanUseHint());
             NextQuestionCommand = new RelayCommand(_ => MoveNextQuestion(), _ => CanMoveNextQuestion());
             StartGameCommand = new RelayCommand(_ => StartGame(), _ => CanStartGame());
-
-            _timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(1)
-            };
-            _timer.Tick += OnTimerTick;
 
             InitSelectionUi();
             ApplySelectionFromContextOrDefault();
@@ -282,7 +279,7 @@ namespace ScriptureTyping.ViewModels.Games
             set
             {
                 string nextValue = string.IsNullOrWhiteSpace(value)
-                    ? WordOrderDifficultyRules.Easy
+                    ? WordOrderDifficulty.Easy
                     : value;
 
                 if (string.Equals(_selectedDifficulty, nextValue, StringComparison.Ordinal))
@@ -560,7 +557,7 @@ namespace ScriptureTyping.ViewModels.Games
 
         private void ApplySelectionFromContextOrDefault()
         {
-            SelectedDifficulty = WordOrderDifficultyRules.Easy;
+            SelectedDifficulty = WordOrderDifficulty.Easy;
 
             if (_ctx.HasSelection)
             {
@@ -732,9 +729,11 @@ namespace ScriptureTyping.ViewModels.Games
             UseTimer = _currentQuestion.UseTimer;
             RemainingSeconds = _currentQuestion.TimeLimitSeconds;
 
+            _timerController.Configure(RemainingSeconds);
+
             Title = DEFAULT_TITLE;
             ReferenceText = _currentQuestion.ReferenceText;
-            FeedbackText = WordOrderDifficultyRules.GetInitialGuideText(_currentQuestion.Difficulty);
+            FeedbackText = GetInitialGuideText(_currentQuestion.Difficulty);
             ApplyFixedPiecesIfNeeded(_currentQuestion);
 
             UpdateStatusTexts();
@@ -742,7 +741,7 @@ namespace ScriptureTyping.ViewModels.Games
             if (UseTimer && RemainingSeconds > 0)
             {
                 UpdateTimerText();
-                _timer.Start();
+                _timerController.Start();
             }
             else
             {
@@ -898,11 +897,11 @@ namespace ScriptureTyping.ViewModels.Games
 
             if (IsCorrect)
             {
-                FeedbackText = WordOrderDifficultyRules.GetCorrectFeedbackText(_currentQuestion.Difficulty);
+                FeedbackText = GetCorrectFeedbackText(_currentQuestion.Difficulty);
             }
             else
             {
-                FeedbackText = WordOrderDifficultyRules.GetWrongFeedbackText(
+                FeedbackText = GetWrongFeedbackText(
                     _currentQuestion,
                     AnswerPieces,
                     containsDistractor);
@@ -1014,51 +1013,50 @@ namespace ScriptureTyping.ViewModels.Games
             NotifyPropertyChanged(nameof(SelectedPieces));
         }
 
-        private void OnTimerTick(object? sender, EventArgs e)
+        private void OnTimerTick(int remainingSeconds)
         {
             if (!UseTimer)
             {
                 return;
             }
 
-            RemainingSeconds--;
+            RemainingSeconds = remainingSeconds;
+            UpdateTimerText();
+        }
 
-            if (RemainingSeconds <= 0)
+        private void OnTimeExpired()
+        {
+            if (!UseTimer)
             {
-                RemainingSeconds = 0;
-                UpdateTimerText();
-                StopTimer();
-
-                if (!IsAnswered)
-                {
-                    IsAnswered = true;
-                    IsCorrect = false;
-                    RemainingSubmitCount = 0;
-
-                    if (_currentQuestion is not null)
-                    {
-                        FeedbackText = $"시간 종료! 정답: {string.Join(" / ", _currentQuestion.CorrectSequence)}";
-                    }
-                    else
-                    {
-                        FeedbackText = "시간 종료!";
-                    }
-
-                    UpdateCommandStates();
-                }
-
                 return;
             }
 
+            RemainingSeconds = 0;
             UpdateTimerText();
+            StopTimer();
+
+            if (!IsAnswered)
+            {
+                IsAnswered = true;
+                IsCorrect = false;
+                RemainingSubmitCount = 0;
+
+                if (_currentQuestion is not null)
+                {
+                    FeedbackText = $"시간 종료! 정답: {string.Join(" / ", _currentQuestion.CorrectSequence)}";
+                }
+                else
+                {
+                    FeedbackText = "시간 종료!";
+                }
+
+                UpdateCommandStates();
+            }
         }
 
         private void StopTimer()
         {
-            if (_timer.IsEnabled)
-            {
-                _timer.Stop();
-            }
+            _timerController.Stop();
         }
 
         private void UpdateStatusTexts()
@@ -1208,6 +1206,43 @@ namespace ScriptureTyping.ViewModels.Games
             NotifyPropertyChanged(nameof(GuideText));
             NotifyPropertyChanged(nameof(QuestionText));
             UpdateCommandStates();
+        }
+
+        private static string GetInitialGuideText(string difficulty)
+        {
+            return difficulty switch
+            {
+                var x when x == WordOrderDifficulty.Easy => "조각을 순서대로 눌러 문장을 완성하세요.",
+                var x when x == WordOrderDifficulty.Normal => "어절 순서를 바르게 맞춰보세요.",
+                var x when x == WordOrderDifficulty.Hard => "더 세밀한 순서까지 정확히 맞춰보세요.",
+                var x when x == WordOrderDifficulty.VeryHard => "방해 조각에 주의하면서 순서를 맞춰보세요.",
+                _ => "조각을 순서대로 눌러 문장을 완성하세요."
+            };
+        }
+
+        private static string GetCorrectFeedbackText(string difficulty)
+        {
+            return difficulty switch
+            {
+                var x when x == WordOrderDifficulty.Easy => "정답입니다!",
+                var x when x == WordOrderDifficulty.Normal => "정답입니다!",
+                var x when x == WordOrderDifficulty.Hard => "정답입니다!",
+                var x when x == WordOrderDifficulty.VeryHard => "정답입니다! 방해 조각 없이 정확히 맞췄습니다.",
+                _ => "정답입니다!"
+            };
+        }
+
+        private static string GetWrongFeedbackText(
+            WordOrderQuestion question,
+            IReadOnlyList<WordOrderPieceItem> answerPieces,
+            bool containsDistractor)
+        {
+            if (containsDistractor)
+            {
+                return "오답입니다. 방해 조각이 포함되어 있습니다.";
+            }
+
+            return "오답입니다. 조각 순서를 다시 확인하세요.";
         }
     }
 }

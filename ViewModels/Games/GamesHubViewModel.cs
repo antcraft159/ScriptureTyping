@@ -18,7 +18,9 @@ namespace ScriptureTyping.ViewModels.Games
             Games.Add(new GameCardViewModel(
                 title: "순서 맞추기",
                 description: "단어/구절 조각이 섞여있다. 올바른 순서를 맞춘다.",
-                startCommand: new RelayCommand(_ => host.NavigateTo(new WordOrderGameViewModel(host)))
+                startCommand: new RelayCommand(
+                    _ => host.NavigateTo(
+                        new ScriptureTyping.ViewModels.Games.WordOrder.WordOrderGameViewModel(host)))
             ));
 
             Games.Add(new GameCardViewModel(

@@ -9,13 +9,7 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Easy
 {
     /// <summary>
     /// 목적:
-    /// 쉬움 난이도용 WordOrderQuestion을 생성한다.
-    ///
-    /// 특징:
-    /// - 첫 조각 고정
-    /// - 방해 조각 없음
-    /// - 힌트 2회
-    /// - 타이머 없음
+    /// 쉬움 단계용 문제를 생성한다.
     /// </summary>
     public sealed class EasyQuestionGenerator : IWordOrderQuestionGenerator
     {
@@ -24,7 +18,11 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Easy
         public WordOrderQuestion Generate(
             Verse verse,
             IReadOnlyList<Verse> sourceVerses,
-            IWordOrderPieceBuilder pieceBuilder)
+            IWordOrderPieceBuilder pieceBuilder,
+            int hintCount,
+            bool useTimer,
+            int timeLimitSeconds,
+            bool isFirstPieceFixed)
         {
             if (verse is null)
             {
@@ -42,19 +40,31 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Easy
             }
 
             IReadOnlyList<string> correctSequence = pieceBuilder.BuildCorrectSequence(verse);
-            IReadOnlyList<WordOrderPieceItem> pieces =
-                pieceBuilder.BuildPieces(verse, sourceVerses, correctSequence);
+
+            if (correctSequence.Count == 0)
+            {
+                correctSequence = new List<string>
+                {
+                    (verse.Text ?? string.Empty).Trim()
+                };
+            }
+
+            IReadOnlyList<WordOrderPieceItem> pieces = pieceBuilder.BuildPieces(
+                verse,
+                sourceVerses,
+                correctSequence);
 
             return new WordOrderQuestion
             {
-                ReferenceText = verse.Ref,
-                Difficulty = WordOrderDifficulty.Easy,
+                Difficulty = Difficulty,
+                ReferenceText = verse.Ref ?? string.Empty,
+                VerseText = verse.Text ?? string.Empty,
                 CorrectSequence = correctSequence.ToList(),
                 Pieces = pieces.ToList(),
-                HintCount = 2,
-                UseTimer = false,
-                TimeLimitSeconds = 0,
-                IsFirstPieceFixed = true
+                HintCount = hintCount,
+                UseTimer = useTimer,
+                TimeLimitSeconds = timeLimitSeconds,
+                IsFirstPieceFixed = isFirstPieceFixed
             };
         }
     }

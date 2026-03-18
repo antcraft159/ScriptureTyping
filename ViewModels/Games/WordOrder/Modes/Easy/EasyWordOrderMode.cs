@@ -71,7 +71,14 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder.Modes.Easy
 
         public WordOrderQuestion CreateQuestion(Verse verse, IReadOnlyList<Verse> sourceVerses)
         {
-            return _questionGenerator.Generate(verse, sourceVerses, _pieceBuilder);
+            return QuestionGenerator.Generate(
+                verse,
+                sourceVerses,
+                PieceBuilder,
+                HintCount,
+                UseTimer,
+                TimeLimitSeconds,
+                IsFirstPieceFixed);
         }
 
         public bool IsAnswerCorrect(WordOrderQuestion question, IReadOnlyList<WordOrderPieceItem> answerPieces)

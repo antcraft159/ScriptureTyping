@@ -311,12 +311,6 @@
                                                Foreground="{StaticResource Brush.Text}"
                                                FontSize="15"
                                                FontWeight="SemiBold"/>
-
-                                    <TextBlock Text="{Binding GuideText}"
-                                               Margin="0,8,0,0"
-                                               TextWrapping="Wrap"
-                                               Foreground="{StaticResource Brush.Text2}"
-                                               FontSize="13"/>
                                 </StackPanel>
                             </Border>
 

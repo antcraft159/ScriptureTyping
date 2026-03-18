@@ -1,8 +1,10 @@
 ﻿// 파일명: ViewModels/Games/WordOrder/WordOrderModeFactory.cs
 using ScriptureTyping.ViewModels.Games.WordOrder.Contracts;
+using ScriptureTyping.ViewModels.Games.WordOrder.Models;
 using ScriptureTyping.ViewModels.Games.WordOrder.Modes.Easy;
 using ScriptureTyping.ViewModels.Games.WordOrder.Modes.Hard;
 using ScriptureTyping.ViewModels.Games.WordOrder.Modes.Normal;
+using ScriptureTyping.ViewModels.Games.WordOrder.Modes.SamuelRank1;
 using ScriptureTyping.ViewModels.Games.WordOrder.Modes.VeryHard;
 using System;
 
@@ -43,6 +45,7 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
                 WordOrderDifficulty.Normal => new NormalWordOrderMode(),
                 WordOrderDifficulty.Hard => new HardWordOrderMode(),
                 WordOrderDifficulty.VeryHard => new VeryHardWordOrderMode(),
+                WordOrderDifficulty.SamuelRank1 => new SamuelRank1WordOrderMode(),
                 _ => new EasyWordOrderMode()
             };
         }

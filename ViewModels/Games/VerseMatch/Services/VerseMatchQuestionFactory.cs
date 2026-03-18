@@ -13,6 +13,8 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
     /// </summary>
     public sealed class VerseMatchQuestionFactory
     {
+        private const string SAMUEL_RANK_1_DIFFICULTY = "사무엘 1등";
+
         private readonly Random _random;
 
         public VerseMatchQuestionFactory()
@@ -74,10 +76,15 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
                     break;
                 }
 
-                List<VerseMatchCardItem> cards = BuildRealCards(chunk, previewLength);
+                List<VerseMatchCardItem> cards = BuildRealCards(
+                    verses: chunk,
+                    difficulty: difficulty,
+                    previewLength: previewLength);
+
                 List<VerseMatchCardItem> fakeCards = BuildFakeCards(
                     sourceVerses: usableVerses,
                     currentChunk: chunk,
+                    difficulty: difficulty,
                     previewLength: previewLength,
                     fakeCardCount: fakeCardCount);
 
@@ -106,8 +113,9 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
         /// 목적:
         /// 진짜 장절 카드와 본문 카드 목록을 생성한다.
         /// </summary>
-        private static List<VerseMatchCardItem> BuildRealCards(
+        private List<VerseMatchCardItem> BuildRealCards(
             IReadOnlyList<Verse> verses,
+            string difficulty,
             int previewLength)
         {
             List<VerseMatchCardItem> cards = new List<VerseMatchCardItem>();
@@ -127,7 +135,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
 
                 cards.Add(new VerseMatchCardItem(
                     pairKey: pairKey,
-                    displayText: BuildPreviewText(verseText, previewLength),
+                    displayText: BuildPreviewText(verseText, previewLength, difficulty),
                     fullText: verseText,
                     cardType: VerseMatchCardType.VerseText,
                     isFakeCard: false));
@@ -143,6 +151,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
         private List<VerseMatchCardItem> BuildFakeCards(
             IReadOnlyList<Verse> sourceVerses,
             IReadOnlyList<Verse> currentChunk,
+            string difficulty,
             int previewLength,
             int fakeCardCount)
         {
@@ -186,7 +195,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
 
                 string displayText = makeReferenceCard
                     ? reference
-                    : BuildPreviewText(verseText, previewLength);
+                    : BuildPreviewText(verseText, previewLength, difficulty);
 
                 VerseMatchCardType cardType = makeReferenceCard
                     ? VerseMatchCardType.Reference
@@ -220,8 +229,41 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
         /// <summary>
         /// 목적:
         /// 카드에 표시할 본문 미리보기 문자열을 생성한다.
+        /// 규칙:
+        /// - 일반 난이도는 앞부분부터 잘라서 표시
+        /// - 사무엘 1등은 본문 중간 어절에서 랜덤 시작하여 표시
         /// </summary>
-        private static string BuildPreviewText(string text, int maxLength)
+        private string BuildPreviewText(string text, int maxLength, string difficulty)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return string.Empty;
+            }
+
+            string normalized = text.Trim();
+
+            if (string.Equals(difficulty, SAMUEL_RANK_1_DIFFICULTY, StringComparison.Ordinal))
+            {
+                return BuildSamuelRankPreviewText(normalized, maxLength);
+            }
+
+            if (normalized.Length <= maxLength)
+            {
+                return normalized;
+            }
+
+            return normalized.Substring(0, maxLength) + "...";
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 사무엘 1등 난이도에서 본문 중간 어절부터 시작하는 미리보기 문자열을 생성한다.
+        /// 주의:
+        /// - 첫 어절 고정 시작을 피한다.
+        /// - 너무 짧은 본문은 전체 또는 앞부분을 그대로 반환한다.
+        /// - 적용 버튼을 다시 누르면 문제를 새로 만들면서 시작 위치도 다시 달라진다.
+        /// </summary>
+        private string BuildSamuelRankPreviewText(string text, int maxLength)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -235,7 +277,43 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
                 return normalized;
             }
 
-            return normalized.Substring(0, maxLength) + "...";
+            string[] words = normalized
+                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (words.Length <= 1)
+            {
+                return normalized.Length <= maxLength
+                    ? normalized
+                    : normalized.Substring(0, maxLength) + "...";
+            }
+
+            int maxStartIndexExclusive = Math.Max(1, words.Length - 1);
+
+            int startIndex;
+            if (words.Length <= 3)
+            {
+                startIndex = 0;
+            }
+            else
+            {
+                startIndex = _random.Next(1, maxStartIndexExclusive);
+            }
+
+            string preview = string.Join(" ", words.Skip(startIndex));
+
+            if (preview.Length > maxLength)
+            {
+                preview = preview.Substring(0, maxLength) + "...";
+            }
+
+            if (string.IsNullOrWhiteSpace(preview))
+            {
+                preview = normalized.Length <= maxLength
+                    ? normalized
+                    : normalized.Substring(0, maxLength) + "...";
+            }
+
+            return preview;
         }
 
         /// <summary>

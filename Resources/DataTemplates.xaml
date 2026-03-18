@@ -4,7 +4,9 @@
                     xmlns:v="clr-namespace:ScriptureTyping.Views"
                     xmlns:gvm="clr-namespace:ScriptureTyping.ViewModels.Games"
                     xmlns:gvmWordOrder="clr-namespace:ScriptureTyping.ViewModels.Games.WordOrder"
-                    xmlns:gv="clr-namespace:ScriptureTyping.Views.Games">
+                    xmlns:gvmVerseMatch="clr-namespace:ScriptureTyping.ViewModels.Games.VerseMatch"
+                    xmlns:gv="clr-namespace:ScriptureTyping.Views.Games"
+                    xmlns:gvVerseMatch="clr-namespace:ScriptureTyping.Views.Games.VerseMatch">
 
     <!-- 오른쪽 화면: CourseSelect -->
     <DataTemplate DataType="{x:Type vm:CourseSelectViewModel}">
@@ -39,7 +41,7 @@
         <gv:GamesHub/>
     </DataTemplate>
 
-    <!-- 게임 5개 -->
+    <!-- 게임 -->
     <DataTemplate DataType="{x:Type gvm:ClozeGameViewModel}">
         <gv:ClozeGame/>
     </DataTemplate>
@@ -54,6 +56,10 @@
 
     <DataTemplate DataType="{x:Type gvm:InitialsRecallGameViewModel}">
         <gv:InitialsRecallGame/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type gvmVerseMatch:VerseMatchGameViewModel}">
+        <gvVerseMatch:VerseMatchGame/>
     </DataTemplate>
 
 </ResourceDictionary>

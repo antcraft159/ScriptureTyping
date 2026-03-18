@@ -1,5 +1,6 @@
 ﻿using ScriptureTyping.Commands;
 using ScriptureTyping.ViewModels.Games;
+using ScriptureTyping.ViewModels.Games.VerseMatch;
 using System.Collections.ObjectModel;
 
 namespace ScriptureTyping.ViewModels.Games
@@ -22,6 +23,14 @@ namespace ScriptureTyping.ViewModels.Games
                 startCommand: new RelayCommand(
                     _ => host.NavigateTo(
                         new ScriptureTyping.ViewModels.Games.WordOrder.WordOrderGameViewModel(host)))
+            ));
+
+            Games.Add(new GameCardViewModel(
+                title: "장절 맞추기",
+                description: "장절 카드와 본문 카드를 짝지어 맞춘다.",
+                startCommand: new RelayCommand(
+                    _ => host.NavigateTo(
+                        new ScriptureTyping.ViewModels.Games.VerseMatch.VerseMatchGameViewModel(host)))
             ));
 
             Games.Add(new GameCardViewModel(

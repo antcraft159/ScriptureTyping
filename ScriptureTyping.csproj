@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <Folder Include="Resources\" />
-    <Folder Include="ViewModels\Games\VerseMatch\" />
     <Folder Include="Views\Games\Cloze\Styles\" />
   </ItemGroup>
 

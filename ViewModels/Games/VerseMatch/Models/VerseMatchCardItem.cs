@@ -1,62 +1,103 @@
-﻿using System;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
 {
     /// <summary>
     /// 목적:
-    /// 구절 짝 맞추기 게임에서 카드 1장의 상태를 표현한다.
+    /// VerseMatch 게임 카드 1장을 나타낸다.
     ///
-    /// 역할:
-    /// - 화면에 표시할 텍스트 보관
-    /// - 장절 카드인지 본문 카드인지 구분
-    /// - 어떤 카드와 짝인지 식별
-    /// - 선택/매치 상태 관리
+    /// 호환성:
+    /// - 기존 코드에서 사용하던 CardId, Reset, Select, Unselect, MarkMatched 지원
+    /// - 생성자 named argument로 displayText / fullText 둘 다 지원
+    /// - VerseText / FullText / DisplayText 동시 지원
     /// </summary>
-    public sealed class VerseMatchCardItem : BaseViewModel
+    public sealed class VerseMatchCardItem : INotifyPropertyChanged
     {
         private bool _isSelected;
         private bool _isMatched;
+        private string _displayText = string.Empty;
 
         /// <summary>
         /// 목적:
-        /// 카드 고유 식별자
+        /// 카드 식별자이다.
+        /// 기존 코드 호환용이다.
         /// </summary>
-        public Guid CardId { get; } = Guid.NewGuid();
+        public int CardId { get; set; }
 
         /// <summary>
         /// 목적:
-        /// 짝을 이루는 카드끼리 공유하는 키
+        /// 같은 PairKey를 가진 Reference 카드와 VerseText 카드가 한 쌍이다.
         /// </summary>
         public string PairKey { get; }
 
         /// <summary>
         /// 목적:
-        /// 화면에 표시할 카드 텍스트
-        /// </summary>
-        public string DisplayText { get; }
-
-        /// <summary>
-        /// 목적:
-        /// 원본 전체 텍스트
-        /// - 장절 카드면 장절 전체
-        /// - 본문 카드면 본문 전체
-        /// </summary>
-        public string FullText { get; }
-
-        /// <summary>
-        /// 목적:
-        /// 카드 종류
+        /// 카드 종류를 나타낸다.
         /// </summary>
         public VerseMatchCardType CardType { get; }
 
         /// <summary>
         /// 목적:
-        /// 현재 선택 상태
+        /// 화면에 표시할 텍스트이다.
+        /// </summary>
+        public string DisplayText
+        {
+            get => _displayText;
+            private set
+            {
+                if (_displayText == value)
+                {
+                    return;
+                }
+
+                _displayText = value ?? string.Empty;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(VerseText));
+                OnPropertyChanged(nameof(FullText));
+            }
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 기존 코드 호환용 본문 텍스트 별칭이다.
+        /// </summary>
+        public string VerseText => DisplayText;
+
+        /// <summary>
+        /// 목적:
+        /// 기존 코드 호환용 전체 텍스트 별칭이다.
+        /// </summary>
+        public string FullText => DisplayText;
+
+        /// <summary>
+        /// 목적:
+        /// 현재 카드가 장절 카드인지 여부를 나타낸다.
+        /// </summary>
+        public bool IsReferenceCard => CardType == VerseMatchCardType.Reference;
+
+        /// <summary>
+        /// 목적:
+        /// 현재 카드가 본문 카드인지 여부를 나타낸다.
+        /// </summary>
+        public bool IsContentCard =>
+            CardType == VerseMatchCardType.Content ||
+            CardType == VerseMatchCardType.VerseText;
+
+        /// <summary>
+        /// 목적:
+        /// 카드 상단 라벨 텍스트를 제공한다.
+        /// </summary>
+        public string CardLabelText => IsReferenceCard ? "장절" : "본문";
+
+        /// <summary>
+        /// 목적:
+        /// 현재 카드가 선택되었는지 여부를 나타낸다.
         /// </summary>
         public bool IsSelected
         {
             get => _isSelected;
-            set
+            private set
             {
                 if (_isSelected == value)
                 {
@@ -70,12 +111,12 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
 
         /// <summary>
         /// 목적:
-        /// 현재 매칭 완료 상태
+        /// 현재 카드가 매칭 완료되었는지 여부를 나타낸다.
         /// </summary>
         public bool IsMatched
         {
             get => _isMatched;
-            set
+            private set
             {
                 if (_isMatched == value)
                 {
@@ -89,20 +130,24 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
 
         /// <summary>
         /// 목적:
-        /// 선택 가능한 카드인지 간단히 판단한다.
+        /// VerseMatchCardItem을 생성한다.
+        ///
+        /// 주의:
+        /// - displayText named argument 지원
+        /// - fullText named argument 지원
+        /// - 둘 다 들어오면 displayText를 우선 사용
         /// </summary>
-        public bool CanSelect => !IsMatched;
-
         public VerseMatchCardItem(
             string pairKey,
-            string displayText,
-            string fullText,
-            VerseMatchCardType cardType)
+            VerseMatchCardType cardType,
+            string displayText = "",
+            string fullText = "",
+            int cardId = 0)
         {
-            PairKey = pairKey ?? throw new ArgumentNullException(nameof(pairKey));
-            DisplayText = displayText ?? string.Empty;
-            FullText = fullText ?? string.Empty;
+            PairKey = pairKey ?? string.Empty;
             CardType = cardType;
+            CardId = cardId;
+            DisplayText = string.IsNullOrWhiteSpace(displayText) ? (fullText ?? string.Empty) : displayText;
         }
 
         /// <summary>
@@ -111,27 +156,36 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
         /// </summary>
         public void Select()
         {
+            if (IsMatched)
+            {
+                return;
+            }
+
             IsSelected = true;
         }
 
         /// <summary>
         /// 목적:
-        /// 카드 선택 상태를 해제한다.
+        /// 카드 선택을 해제한다.
         /// </summary>
         public void Unselect()
         {
+            if (IsMatched)
+            {
+                return;
+            }
+
             IsSelected = false;
         }
 
         /// <summary>
         /// 목적:
-        /// 이 카드가 정답 매칭 완료 상태가 되도록 표시한다.
+        /// 카드를 매칭 완료 상태로 만든다.
         /// </summary>
         public void MarkMatched()
         {
             IsMatched = true;
             IsSelected = false;
-            OnPropertyChanged(nameof(CanSelect));
         }
 
         /// <summary>
@@ -142,17 +196,13 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
         {
             IsSelected = false;
             IsMatched = false;
-            OnPropertyChanged(nameof(CanSelect));
         }
-    }
 
-    /// <summary>
-    /// 목적:
-    /// 카드 종류를 구분한다.
-    /// </summary>
-    public enum VerseMatchCardType
-    {
-        Reference = 0,
-        VerseText = 1
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

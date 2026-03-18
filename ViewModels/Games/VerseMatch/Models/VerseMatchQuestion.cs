@@ -19,7 +19,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
 
         /// <summary>
         /// 목적:
-        /// 현재 문제에 포함된 짝 개수
+        /// 현재 문제에 포함된 진짜 짝 개수
         /// </summary>
         public int PairCount { get; init; }
 
@@ -49,7 +49,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
 
         /// <summary>
         /// 목적:
-        /// 아직 매칭되지 않은 카드 쌍 수를 계산한다.
+        /// 아직 매칭되지 않은 진짜 카드 쌍 수를 계산한다.
         /// </summary>
         public int GetRemainingPairCount()
         {
@@ -59,6 +59,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
             }
 
             return Cards
+                .Where(x => !x.IsFakeCard)
                 .Where(x => !x.IsMatched)
                 .Select(x => x.PairKey)
                 .Distinct(StringComparer.Ordinal)
@@ -67,11 +68,21 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
 
         /// <summary>
         /// 목적:
-        /// 모든 카드 쌍을 맞췄는지 확인한다.
+        /// 모든 진짜 카드 쌍을 맞췄는지 확인한다.
+        /// 가짜 카드는 완료 조건에 포함하지 않는다.
         /// </summary>
         public bool IsCompleted()
         {
-            return Cards.Count > 0 && Cards.All(x => x.IsMatched);
+            List<VerseMatchCardItem> realCards = Cards
+                .Where(x => !x.IsFakeCard)
+                .ToList();
+
+            if (realCards.Count == 0)
+            {
+                return false;
+            }
+
+            return realCards.All(x => x.IsMatched);
         }
     }
 }

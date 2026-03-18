@@ -43,6 +43,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         private string _selectedDay = DEFAULT_DAY;
         private string _selectedDifficulty = DEFAULT_DIFFICULTY;
         private string _feedbackText = "카드를 눌러 장절과 본문을 서로 짝지어 맞추세요.";
+        private string _completionMessage = string.Empty;
         private string _questionProgressText = string.Empty;
         private string _timerText = string.Empty;
         private string _pairStatusText = string.Empty;
@@ -244,6 +245,21 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
                 }
 
                 _feedbackText = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public string CompletionMessage
+        {
+            get => _completionMessage;
+            private set
+            {
+                if (_completionMessage == value)
+                {
+                    return;
+                }
+
+                _completionMessage = value;
                 NotifyPropertyChanged();
             }
         }
@@ -572,6 +588,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             RemainingSeconds = 0;
             IsBusy = false;
             IsGameFinished = false;
+            CompletionMessage = string.Empty;
 
             IReadOnlyList<VerseMatchQuestion> questions = _questionFactory.CreateQuestions(
                 _sourceVerses,
@@ -585,6 +602,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
                 QuestionProgressText = string.Empty;
                 PairStatusText = string.Empty;
                 TimerText = string.Empty;
+                CompletionMessage = string.Empty;
                 NotifyPropertyChanged(nameof(IsTimerVisible));
                 NotifyPropertyChanged(nameof(CanGoNext));
                 return;
@@ -618,6 +636,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
 
             _selectedCards.Clear();
             Cards.Clear();
+            CompletionMessage = string.Empty;
 
             _currentQuestionIndex = index;
             _currentQuestion = _questions[index];
@@ -693,7 +712,15 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             else
             {
                 WrongCount += 1;
-                FeedbackText = "오답입니다. 다시 확인해 보세요.";
+
+                if (first.IsFakeCard || second.IsFakeCard)
+                {
+                    FeedbackText = "가짜 카드가 섞여 있습니다. 다시 확인해 보세요.";
+                }
+                else
+                {
+                    FeedbackText = "오답입니다. 다시 확인해 보세요.";
+                }
 
                 await Task.Delay(800);
 
@@ -719,6 +746,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         /// <summary>
         /// 목적:
         /// 두 카드가 같은 짝인지 검사한다.
+        /// 가짜 카드가 포함되면 무조건 오답이다.
         /// </summary>
         private static bool IsPairMatched(VerseMatchCardItem first, VerseMatchCardItem second)
         {
@@ -728,6 +756,11 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             }
 
             if (first.CardId == second.CardId)
+            {
+                return false;
+            }
+
+            if (first.IsFakeCard || second.IsFakeCard)
             {
                 return false;
             }
@@ -769,6 +802,10 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             StopTimer();
 
             IsGameFinished = true;
+            _selectedCards.Clear();
+            Cards.Clear();
+
+            CompletionMessage = $"게임 완료!\n최종 점수 {Score}점 / 오답 {WrongCount}회";
             FeedbackText = $"게임 완료! 최종 점수 {Score}점 / 오답 {WrongCount}회";
             QuestionProgressText = $"{_questions.Count} / {_questions.Count}";
             PairStatusText = "모든 문제 완료";

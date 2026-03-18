@@ -28,6 +28,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
         /// <summary>
         /// 목적:
         /// 같은 PairKey를 가진 Reference 카드와 VerseText 카드가 한 쌍이다.
+        /// 가짜 카드는 항상 고유 PairKey를 가진다.
         /// </summary>
         public string PairKey { get; }
 
@@ -36,6 +37,12 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
         /// 카드 종류를 나타낸다.
         /// </summary>
         public VerseMatchCardType CardType { get; }
+
+        /// <summary>
+        /// 목적:
+        /// 현재 카드가 가짜 카드인지 여부를 나타낸다.
+        /// </summary>
+        public bool IsFakeCard { get; }
 
         /// <summary>
         /// 목적:
@@ -142,11 +149,13 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Models
             VerseMatchCardType cardType,
             string displayText = "",
             string fullText = "",
-            int cardId = 0)
+            int cardId = 0,
+            bool isFakeCard = false)
         {
             PairKey = pairKey ?? string.Empty;
             CardType = cardType;
             CardId = cardId;
+            IsFakeCard = isFakeCard;
             DisplayText = string.IsNullOrWhiteSpace(displayText) ? (fullText ?? string.Empty) : displayText;
         }
 

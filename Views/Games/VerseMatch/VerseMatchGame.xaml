@@ -360,23 +360,6 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Row="4"
-                                Style="{StaticResource PanelBorder}">
-                            <StackPanel>
-                                <TextBlock Text="플레이 방법"
-                                           Foreground="{StaticResource Brush.Text}"
-                                           FontSize="16"
-                                           FontWeight="SemiBold"/>
-
-                                <TextBlock Margin="0,10,0,0"
-                                           Text="카드 두 장을 눌러 장절 카드와 본문 카드의 올바른 짝을 맞추세요."
-                                           TextWrapping="Wrap"
-                                           Foreground="{StaticResource Brush.Text2}"
-                                           FontSize="14"
-                                           LineHeight="22"/>
-                            </StackPanel>
-                        </Border>
-
                         <Border Grid.Row="6"
                                 Style="{StaticResource PanelBorder}">
                             <Grid>
@@ -392,56 +375,104 @@
                                            FontSize="16"
                                            FontWeight="SemiBold"/>
 
-                                <ScrollViewer Grid.Row="2"
-                                              VerticalScrollBarVisibility="Auto"
-                                              HorizontalScrollBarVisibility="Disabled">
-                                    <ItemsControl ItemsSource="{Binding Cards}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel Orientation="Horizontal"/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
+                                <Grid Grid.Row="2">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
+                                        <ScrollViewer.Style>
+                                            <Style TargetType="ScrollViewer">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsGameFinished}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ScrollViewer.Style>
 
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Style="{StaticResource CardButtonStyle}"
-                                                        Command="{Binding DataContext.SelectCardCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}"
-                                                        IsEnabled="{Binding DataContext.CanSelectCard, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                                                    <Grid>
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="Auto"/>
-                                                            <RowDefinition Height="8"/>
-                                                            <RowDefinition Height="*"/>
-                                                        </Grid.RowDefinitions>
+                                        <ItemsControl ItemsSource="{Binding Cards}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
 
-                                                        <Border Grid.Row="0"
-                                                                Background="#0F172A"
-                                                                CornerRadius="6"
-                                                                Padding="8,4"
-                                                                HorizontalAlignment="Left">
-                                                            <TextBlock Text="{Binding CardLabelText}"
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Style="{StaticResource CardButtonStyle}"
+                                                            Command="{Binding DataContext.SelectCardCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            IsEnabled="{Binding DataContext.CanSelectCard, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="8"/>
+                                                                <RowDefinition Height="*"/>
+                                                            </Grid.RowDefinitions>
+
+                                                            <Border Grid.Row="0"
+                                                                    Background="#0F172A"
+                                                                    CornerRadius="6"
+                                                                    Padding="8,4"
+                                                                    HorizontalAlignment="Left">
+                                                                <TextBlock Text="{Binding CardLabelText}"
+                                                                           Foreground="White"
+                                                                           FontSize="11"
+                                                                           FontWeight="SemiBold"/>
+                                                            </Border>
+
+                                                            <TextBlock Grid.Row="2"
+                                                                       Text="{Binding DisplayText}"
+                                                                       TextWrapping="Wrap"
+                                                                       TextAlignment="Center"
+                                                                       VerticalAlignment="Center"
+                                                                       HorizontalAlignment="Center"
                                                                        Foreground="White"
-                                                                       FontSize="11"
-                                                                       FontWeight="SemiBold"/>
-                                                        </Border>
+                                                                       FontSize="16"
+                                                                       FontWeight="SemiBold"
+                                                                       LineHeight="22"/>
+                                                        </Grid>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
 
-                                                        <TextBlock Grid.Row="2"
-                                                                   Text="{Binding DisplayText}"
-                                                                   TextWrapping="Wrap"
-                                                                   TextAlignment="Center"
-                                                                   VerticalAlignment="Center"
-                                                                   HorizontalAlignment="Center"
-                                                                   Foreground="White"
-                                                                   FontSize="16"
-                                                                   FontWeight="SemiBold"
-                                                                   LineHeight="22"/>
-                                                    </Grid>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
+                                    <Border Background="Transparent"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Stretch">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsGameFinished}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+
+                                        <Grid>
+                                            <StackPanel HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center">
+                                                <TextBlock Text="게임 완료"
+                                                           Foreground="{StaticResource Brush.Text}"
+                                                           FontSize="28"
+                                                           FontWeight="Bold"
+                                                           HorizontalAlignment="Center"
+                                                           TextAlignment="Center"/>
+
+                                                <TextBlock Margin="0,16,0,0"
+                                                           Text="{Binding CompletionMessage}"
+                                                           Foreground="{StaticResource Brush.Text2}"
+                                                           FontSize="20"
+                                                           FontWeight="SemiBold"
+                                                           TextAlignment="Center"
+                                                           HorizontalAlignment="Center"
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
                             </Grid>
                         </Border>
 

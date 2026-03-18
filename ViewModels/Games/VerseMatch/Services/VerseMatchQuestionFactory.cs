@@ -51,6 +51,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
 
             int pairCount = GetPairCount(difficulty);
             int previewLength = GetPreviewLength(difficulty);
+            int fakeCardCount = GetFakeCardCount(difficulty);
             bool useTimer = UseTimer(difficulty);
             int timeLimitSeconds = GetTimeLimitSeconds(difficulty);
 
@@ -73,7 +74,15 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
                     break;
                 }
 
-                List<VerseMatchCardItem> cards = BuildCards(chunk, previewLength);
+                List<VerseMatchCardItem> cards = BuildRealCards(chunk, previewLength);
+                List<VerseMatchCardItem> fakeCards = BuildFakeCards(
+                    sourceVerses: usableVerses,
+                    currentChunk: chunk,
+                    previewLength: previewLength,
+                    fakeCardCount: fakeCardCount);
+
+                cards.AddRange(fakeCards);
+                AssignCardIds(cards);
                 VerseMatchShuffleHelper.Shuffle(cards, _random);
 
                 questions.Add(new VerseMatchQuestion
@@ -95,14 +104,13 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
 
         /// <summary>
         /// 목적:
-        /// 장절 카드와 본문 카드 목록을 생성한다.
+        /// 진짜 장절 카드와 본문 카드 목록을 생성한다.
         /// </summary>
-        private static List<VerseMatchCardItem> BuildCards(
-    IReadOnlyList<Verse> verses,
-    int previewLength)
+        private static List<VerseMatchCardItem> BuildRealCards(
+            IReadOnlyList<Verse> verses,
+            int previewLength)
         {
             List<VerseMatchCardItem> cards = new List<VerseMatchCardItem>();
-            int cardIdSeed = 1;
 
             foreach (Verse verse in verses)
             {
@@ -115,17 +123,98 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
                     displayText: reference,
                     fullText: reference,
                     cardType: VerseMatchCardType.Reference,
-                    cardId: cardIdSeed++));
+                    isFakeCard: false));
 
                 cards.Add(new VerseMatchCardItem(
                     pairKey: pairKey,
                     displayText: BuildPreviewText(verseText, previewLength),
                     fullText: verseText,
                     cardType: VerseMatchCardType.VerseText,
-                    cardId: cardIdSeed++));
+                    isFakeCard: false));
             }
 
             return cards;
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 난이도별 가짜 카드를 생성한다.
+        /// </summary>
+        private List<VerseMatchCardItem> BuildFakeCards(
+            IReadOnlyList<Verse> sourceVerses,
+            IReadOnlyList<Verse> currentChunk,
+            int previewLength,
+            int fakeCardCount)
+        {
+            List<VerseMatchCardItem> fakeCards = new List<VerseMatchCardItem>();
+
+            if (fakeCardCount <= 0)
+            {
+                return fakeCards;
+            }
+
+            List<Verse> candidatePool = sourceVerses
+                .Where(x => x is not null)
+                .Where(x => !string.IsNullOrWhiteSpace(x.Ref))
+                .Where(x => !string.IsNullOrWhiteSpace(x.Text))
+                .Where(x => !currentChunk.Any(y =>
+                    string.Equals(y.Ref, x.Ref, StringComparison.Ordinal) &&
+                    string.Equals(y.Text, x.Text, StringComparison.Ordinal)))
+                .ToList();
+
+            if (candidatePool.Count == 0)
+            {
+                candidatePool = sourceVerses
+                    .Where(x => x is not null)
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Ref))
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Text))
+                    .ToList();
+            }
+
+            if (candidatePool.Count == 0)
+            {
+                return fakeCards;
+            }
+
+            for (int i = 0; i < fakeCardCount; i++)
+            {
+                Verse verse = candidatePool[_random.Next(candidatePool.Count)];
+                bool makeReferenceCard = _random.Next(2) == 0;
+
+                string reference = verse.Ref?.Trim() ?? string.Empty;
+                string verseText = verse.Text?.Trim() ?? string.Empty;
+
+                string displayText = makeReferenceCard
+                    ? reference
+                    : BuildPreviewText(verseText, previewLength);
+
+                VerseMatchCardType cardType = makeReferenceCard
+                    ? VerseMatchCardType.Reference
+                    : VerseMatchCardType.VerseText;
+
+                string fakePairKey = $"__FAKE__|{Guid.NewGuid():N}";
+
+                fakeCards.Add(new VerseMatchCardItem(
+                    pairKey: fakePairKey,
+                    displayText: displayText,
+                    fullText: makeReferenceCard ? reference : verseText,
+                    cardType: cardType,
+                    isFakeCard: true));
+            }
+
+            return fakeCards;
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 카드 목록에 고유 CardId를 다시 부여한다.
+        /// </summary>
+        private static void AssignCardIds(IReadOnlyList<VerseMatchCardItem> cards)
+        {
+            for (int i = 0; i < cards.Count; i++)
+            {
+                cards[i].CardId = i + 1;
+            }
         }
 
         /// <summary>
@@ -149,6 +238,10 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
             return normalized.Substring(0, maxLength) + "...";
         }
 
+        /// <summary>
+        /// 목적:
+        /// 난이도별 실제 짝 개수를 반환한다.
+        /// </summary>
         public int GetPairCount(string difficulty)
         {
             return difficulty switch
@@ -162,6 +255,10 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
             };
         }
 
+        /// <summary>
+        /// 목적:
+        /// 난이도별 본문 미리보기 길이를 반환한다.
+        /// </summary>
         public int GetPreviewLength(string difficulty)
         {
             return difficulty switch
@@ -175,6 +272,27 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
             };
         }
 
+        /// <summary>
+        /// 목적:
+        /// 난이도별 가짜 카드 개수를 반환한다.
+        /// </summary>
+        public int GetFakeCardCount(string difficulty)
+        {
+            return difficulty switch
+            {
+                "쉬움" => 0,
+                "보통" => 0,
+                "어려움" => 3,
+                "매우 어려움" => 5,
+                "사무엘 1등" => 7,
+                _ => 0
+            };
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 난이도별 타이머 사용 여부를 반환한다.
+        /// </summary>
         public bool UseTimer(string difficulty)
         {
             return difficulty switch
@@ -185,12 +303,16 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch.Services
             };
         }
 
+        /// <summary>
+        /// 목적:
+        /// 난이도별 제한 시간을 반환한다.
+        /// </summary>
         public int GetTimeLimitSeconds(string difficulty)
         {
             return difficulty switch
             {
-                "매우 어려움" => 45,
-                "사무엘 1등" => 40,
+                "매우 어려움" => 60,
+                "사무엘 1등" => 100,
                 _ => 0
             };
         }

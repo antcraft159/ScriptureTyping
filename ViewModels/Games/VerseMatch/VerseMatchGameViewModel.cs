@@ -1,8 +1,8 @@
 ﻿using ScriptureTyping.Commands;
 using ScriptureTyping.Data;
 using ScriptureTyping.Services;
+using ScriptureTyping.ViewModels.Games.VerseMatch.Contracts;
 using ScriptureTyping.ViewModels.Games.VerseMatch.Models;
-using ScriptureTyping.ViewModels.Games.VerseMatch.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,7 +11,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Threading;
 
 namespace ScriptureTyping.ViewModels.Games.VerseMatch
 {
@@ -22,7 +21,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
     public sealed class VerseMatchGameViewModel : BaseViewModel, INotifyPropertyChanged
     {
         private const string DEFAULT_TITLE = "구절 짝 맞추기";
-        private const string DEFAULT_DIFFICULTY = "보통";
         private const string DEFAULT_COURSE = "1과정";
         private const string DEFAULT_DAY = "1일차";
         private const string ALL_DAY_TEXT = "전일차";
@@ -30,7 +28,9 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         private readonly MainWindowViewModel? _host;
         private readonly SelectionContext _selectionContext;
         private readonly VerseMatchQuestionFactory _questionFactory;
-        private readonly DispatcherTimer _timer;
+        private readonly VerseMatchModeFactory _modeFactory;
+        private readonly VerseMatchSelectionService _selectionService;
+        private readonly VerseMatchTimerController _timerController;
 
         private readonly List<Verse> _sourceVerses = new();
         private readonly List<VerseMatchQuestion> _questions = new();
@@ -41,7 +41,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         private string _title = DEFAULT_TITLE;
         private string _selectedCourse = DEFAULT_COURSE;
         private string _selectedDay = DEFAULT_DAY;
-        private string _selectedDifficulty = DEFAULT_DIFFICULTY;
+        private string _selectedDifficulty = VerseMatchDifficulty.Normal;
         private string _feedbackText = "카드를 눌러 장절과 본문을 서로 짝지어 맞추세요.";
         private string _completionMessage = string.Empty;
         private string _questionProgressText = string.Empty;
@@ -86,6 +86,12 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             _host = host;
             _selectionContext = selectionContext ?? throw new ArgumentNullException(nameof(selectionContext));
             _questionFactory = new VerseMatchQuestionFactory();
+            _modeFactory = new VerseMatchModeFactory();
+            _selectionService = new VerseMatchSelectionService();
+            _timerController = new VerseMatchTimerController();
+
+            _timerController.SecondElapsed += OnTimerSecondElapsed;
+            _timerController.Expired += OnTimerExpired;
 
             Courses = new ObservableCollection<string>
             {
@@ -106,11 +112,11 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
 
             DifficultyOptions = new ObservableCollection<string>
             {
-                "쉬움",
-                "보통",
-                "어려움",
-                "매우 어려움",
-                "사무엘 1등"
+                VerseMatchDifficulty.Easy,
+                VerseMatchDifficulty.Normal,
+                VerseMatchDifficulty.Hard,
+                VerseMatchDifficulty.VeryHard,
+                VerseMatchDifficulty.SamuelRank1
             };
 
             Cards = new ObservableCollection<VerseMatchCardItem>();
@@ -122,12 +128,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             NextQuestionCommand = new RelayCommand(_ => MoveNextQuestion(), _ => CanMoveNextQuestion());
             SelectCardCommand = new RelayCommand(OnSelectCard, _ => CanSelectCard);
             ApplySelectionCommand = new RelayCommand(_ => ApplySelection(), _ => true);
-
-            _timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(1)
-            };
-            _timer.Tick += OnTimerTick;
 
             LoadSourceVerses();
             StartGame();
@@ -205,7 +205,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             set
             {
                 string nextValue = string.IsNullOrWhiteSpace(value)
-                    ? DEFAULT_DIFFICULTY
+                    ? VerseMatchDifficulty.Normal
                     : value;
 
                 if (_selectedDifficulty == nextValue)
@@ -351,6 +351,8 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
 
                 _remainingSeconds = value;
                 NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(CanSelectCard));
+                NotifyPropertyChanged(nameof(CanGoNext));
             }
         }
 
@@ -420,8 +422,17 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         }
 
         public bool IsTimerVisible => _currentQuestion is not null && _currentQuestion.UseTimer;
-        public bool CanSelectCard => !IsBusy && !IsGameFinished;
+        public bool CanSelectCard => !IsBusy && !IsGameFinished && !IsCurrentQuestionTimeExpired;
         public bool CanGoNext => CanMoveNextQuestion();
+
+        /// <summary>
+        /// 목적:
+        /// 현재 문제가 시간 초과 상태인지 판단한다.
+        /// </summary>
+        private bool IsCurrentQuestionTimeExpired =>
+            _currentQuestion is not null &&
+            _currentQuestion.UseTimer &&
+            RemainingSeconds == 0;
 
         /// <summary>
         /// 목적:
@@ -446,7 +457,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
 
             if (!DifficultyOptions.Contains(SelectedDifficulty))
             {
-                SelectedDifficulty = DEFAULT_DIFFICULTY;
+                SelectedDifficulty = VerseMatchDifficulty.Normal;
             }
 
             ClearSelectionError();
@@ -503,70 +514,11 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         {
             _sourceVerses.Clear();
 
-            int courseNo = ParseCourseNo(SelectedCourse);
-            int dayIndex = ParseDayIndex(SelectedDay);
+            IReadOnlyList<Verse> verses = _selectionService.GetSourceVerses(
+                SelectedCourse,
+                SelectedDay);
 
-            IReadOnlyList<Verse> selectedVerses = dayIndex == 0
-                ? BuildAllDayVerseList(courseNo)
-                : VerseCatalog.GetAccumulated(courseNo, dayIndex);
-
-            foreach (Verse verse in selectedVerses)
-            {
-                if (verse is null)
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(verse.Ref) || string.IsNullOrWhiteSpace(verse.Text))
-                {
-                    continue;
-                }
-
-                _sourceVerses.Add(verse);
-            }
-
-            if (_sourceVerses.Count > 0)
-            {
-                return;
-            }
-
-            IReadOnlyList<Verse> fallback = VerseCatalog.GetAccumulated(1, 1);
-
-            foreach (Verse verse in fallback)
-            {
-                if (verse is null)
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(verse.Ref) || string.IsNullOrWhiteSpace(verse.Text))
-                {
-                    continue;
-                }
-
-                _sourceVerses.Add(verse);
-            }
-        }
-
-        /// <summary>
-        /// 목적:
-        /// 전일차 선택 시 전체 구절 목록을 만든다.
-        /// </summary>
-        private static IReadOnlyList<Verse> BuildAllDayVerseList(int courseNo)
-        {
-            List<Verse> all = new List<Verse>();
-
-            for (int day = 1; day <= VerseCatalog.MAX_DAY; day++)
-            {
-                IReadOnlyList<Verse> verses = VerseCatalog.GetAccumulated(courseNo, day);
-                all.AddRange(verses);
-            }
-
-            return all
-                .Where(x => x is not null)
-                .GroupBy(x => x.Ref)
-                .Select(g => g.First())
-                .ToList();
+            _sourceVerses.AddRange(verses);
         }
 
         /// <summary>
@@ -590,9 +542,11 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             IsGameFinished = false;
             CompletionMessage = string.Empty;
 
+            IVerseMatchMode mode = _modeFactory.Create(SelectedDifficulty);
+
             IReadOnlyList<VerseMatchQuestion> questions = _questionFactory.CreateQuestions(
                 _sourceVerses,
-                SelectedDifficulty);
+                mode);
 
             _questions.AddRange(questions);
 
@@ -652,8 +606,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
 
             if (_currentQuestion.UseTimer)
             {
-                UpdateTimerText();
-                _timer.Start();
+                _timerController.Start(RemainingSeconds);
             }
             else
             {
@@ -662,6 +615,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
 
             NotifyPropertyChanged(nameof(IsTimerVisible));
             NotifyPropertyChanged(nameof(CanGoNext));
+            NotifyPropertyChanged(nameof(CanSelectCard));
         }
 
         /// <summary>
@@ -670,7 +624,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         /// </summary>
         private async void OnSelectCard(object? parameter)
         {
-            if (IsBusy || IsGameFinished || _currentQuestion is null)
+            if (IsBusy || IsGameFinished || IsCurrentQuestionTimeExpired || _currentQuestion is null)
             {
                 return;
             }
@@ -813,31 +767,26 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
 
             NotifyPropertyChanged(nameof(IsTimerVisible));
             NotifyPropertyChanged(nameof(CanGoNext));
+            NotifyPropertyChanged(nameof(CanSelectCard));
         }
 
         /// <summary>
         /// 목적:
-        /// 타이머 Tick 처리
+        /// 타이머가 1초 감소했을 때 남은 시간을 반영한다.
         /// </summary>
-        private void OnTimerTick(object? sender, EventArgs e)
+        /// <param name="remainingSeconds">현재 남은 시간</param>
+        private void OnTimerSecondElapsed(int remainingSeconds)
         {
-            if (_currentQuestion is null || !_currentQuestion.UseTimer)
-            {
-                return;
-            }
+            RemainingSeconds = remainingSeconds;
+            UpdateTimerText();
+        }
 
-            if (RemainingSeconds > 0)
-            {
-                RemainingSeconds--;
-                UpdateTimerText();
-            }
-
-            if (RemainingSeconds > 0)
-            {
-                return;
-            }
-
-            StopTimer();
+        /// <summary>
+        /// 목적:
+        /// 타이머 만료 시 시간 초과 처리를 수행한다.
+        /// </summary>
+        private void OnTimerExpired()
+        {
             HandleTimeExpired();
         }
 
@@ -863,6 +812,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             FeedbackText = "시간 종료! 다음 문제로 넘어가세요.";
 
             NotifyPropertyChanged(nameof(CanGoNext));
+            NotifyPropertyChanged(nameof(CanSelectCard));
         }
 
         /// <summary>
@@ -920,7 +870,7 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         /// </summary>
         private void StopTimer()
         {
-            _timer.Stop();
+            _timerController.Stop();
         }
 
         /// <summary>
@@ -944,41 +894,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         private void ClearSelectionError()
         {
             SelectionError = string.Empty;
-        }
-
-        /// <summary>
-        /// 목적:
-        /// "1과정" 같은 텍스트에서 숫자만 파싱한다.
-        /// </summary>
-        private static int ParseCourseNo(string? courseText)
-        {
-            if (string.IsNullOrWhiteSpace(courseText))
-            {
-                return 1;
-            }
-
-            string digits = new string(courseText.Where(char.IsDigit).ToArray());
-            return int.TryParse(digits, out int number) ? number : 1;
-        }
-
-        /// <summary>
-        /// 목적:
-        /// "전일차" 또는 "3일차" 텍스트를 day index로 변환한다.
-        /// </summary>
-        private static int ParseDayIndex(string? dayText)
-        {
-            if (string.IsNullOrWhiteSpace(dayText))
-            {
-                return 1;
-            }
-
-            if (string.Equals(dayText, ALL_DAY_TEXT, StringComparison.Ordinal))
-            {
-                return 0;
-            }
-
-            string digits = new string(dayText.Where(char.IsDigit).ToArray());
-            return int.TryParse(digits, out int day) ? day : 1;
         }
     }
 }

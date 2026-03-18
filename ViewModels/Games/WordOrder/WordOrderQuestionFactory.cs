@@ -1,8 +1,13 @@
 ﻿using ScriptureTyping.Data;
+using ScriptureTyping.ViewModels.Games.WordOrder.Contracts;
 using ScriptureTyping.ViewModels.Games.WordOrder.Models;
+using ScriptureTyping.ViewModels.Games.WordOrder.Modes.Easy;
+using ScriptureTyping.ViewModels.Games.WordOrder.Modes.Hard;
+using ScriptureTyping.ViewModels.Games.WordOrder.Modes.Normal;
+using ScriptureTyping.ViewModels.Games.WordOrder.Modes.SamuelRank1;
+using ScriptureTyping.ViewModels.Games.WordOrder.Modes.VeryHard;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ScriptureTyping.ViewModels.Games.WordOrder
 {
@@ -11,10 +16,9 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
     /// Verse와 난이도에 따라 순서 맞추기 문제를 생성한다.
     ///
     /// 역할:
-    /// - 난이도별 규칙 반환
-    /// - 정답 조각 분리
-    /// - 보기 조각 목록 생성
-    /// - 방해 조각 추가
+    /// - 난이도별 모드 반환
+    /// - 모드가 가진 규칙/조각 생성기/채점 정책을 통해 문제 생성
+    /// - ViewModel이 모드 내부 구현을 직접 알지 않아도 되도록 중간 진입점 역할 수행
     /// </summary>
     public sealed class WordOrderQuestionFactory
     {
@@ -24,45 +28,14 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
         /// </summary>
         public WordOrderRuleSet GetRules(string difficulty)
         {
-            if (string.Equals(difficulty, WordOrderDifficulty.VeryHard, StringComparison.Ordinal))
-            {
-                return new WordOrderRuleSet(
-                    maxSubmitCount: 2,
-                    hintCount: 1,
-                    useTimer: true,
-                    timeLimitSeconds: 30,
-                    isFirstPieceFixed: false,
-                    distractorCount: 2);
-            }
-
-            if (string.Equals(difficulty, WordOrderDifficulty.Hard, StringComparison.Ordinal))
-            {
-                return new WordOrderRuleSet(
-                    maxSubmitCount: 2,
-                    hintCount: 1,
-                    useTimer: false,
-                    timeLimitSeconds: 0,
-                    isFirstPieceFixed: false,
-                    distractorCount: 0);
-            }
-
-            if (string.Equals(difficulty, WordOrderDifficulty.Normal, StringComparison.Ordinal))
-            {
-                return new WordOrderRuleSet(
-                    maxSubmitCount: 2,
-                    hintCount: 2,
-                    useTimer: false,
-                    timeLimitSeconds: 0,
-                    isFirstPieceFixed: false,
-                    distractorCount: 0);
-            }
+            IWordOrderMode mode = GetMode(difficulty);
 
             return new WordOrderRuleSet(
-                maxSubmitCount: 3,
-                hintCount: 3,
-                useTimer: false,
-                timeLimitSeconds: 0,
-                isFirstPieceFixed: true,
+                maxSubmitCount: mode.MaxSubmitCount,
+                hintCount: mode.HintCount,
+                useTimer: mode.UseTimer,
+                timeLimitSeconds: mode.TimeLimitSeconds,
+                isFirstPieceFixed: mode.IsFirstPieceFixed,
                 distractorCount: 0);
         }
 
@@ -80,144 +53,42 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
                 throw new ArgumentNullException(nameof(verse));
             }
 
-            WordOrderRuleSet rules = GetRules(difficulty);
-
-            List<string> correctSequence = SplitText(verse.Text, difficulty);
-
-            List<WordOrderPieceItem> pieces = correctSequence
-                .Select(text => new WordOrderPieceItem(text, isDistractor: false))
-                .ToList();
-
-            if (rules.DistractorCount > 0 && sourceVerses is not null)
+            if (sourceVerses is null)
             {
-                IEnumerable<string> distractors = BuildDistractors(
-                    currentVerse: verse,
-                    sourceVerses: sourceVerses,
-                    correctSequence: correctSequence,
-                    distractorCount: rules.DistractorCount,
-                    difficulty: difficulty);
-
-                foreach (string distractor in distractors)
-                {
-                    pieces.Add(new WordOrderPieceItem(distractor, isDistractor: true));
-                }
+                throw new ArgumentNullException(nameof(sourceVerses));
             }
 
-            Shuffle(pieces);
-
-            return new WordOrderQuestion
-            {
-                Difficulty = difficulty,
-                ReferenceText = verse.Ref ?? string.Empty,
-                VerseText = verse.Text ?? string.Empty,
-                CorrectSequence = correctSequence,
-                Pieces = pieces,
-                HintCount = rules.HintCount,
-                UseTimer = rules.UseTimer,
-                TimeLimitSeconds = rules.TimeLimitSeconds,
-                IsFirstPieceFixed = rules.IsFirstPieceFixed
-            };
+            IWordOrderMode mode = GetMode(difficulty);
+            return mode.CreateQuestion(verse, sourceVerses);
         }
 
         /// <summary>
         /// 목적:
-        /// 난이도에 맞게 말씀을 조각으로 분리한다.
+        /// 난이도 문자열에 맞는 모드 객체를 반환한다.
         /// </summary>
-        private static List<string> SplitText(string text, string difficulty)
+        private static IWordOrderMode GetMode(string difficulty)
         {
-            List<string> words = (text ?? string.Empty)
-                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                .ToList();
-
-            if (words.Count == 0)
+            if (string.Equals(difficulty, WordOrderDifficulty.SamuelRank1, StringComparison.Ordinal))
             {
-                return new List<string>();
+                return new SamuelRank1WordOrderMode();
             }
 
-            if (string.Equals(difficulty, WordOrderDifficulty.Easy, StringComparison.Ordinal))
+            if (string.Equals(difficulty, WordOrderDifficulty.VeryHard, StringComparison.Ordinal))
             {
-                return BuildEasyChunks(words);
+                return new VeryHardWordOrderMode();
             }
 
-            return words;
-        }
-
-        /// <summary>
-        /// 목적:
-        /// 쉬움 난이도에서 큰 단위 조각을 만든다.
-        /// </summary>
-        private static List<string> BuildEasyChunks(List<string> words)
-        {
-            List<string> chunks = new();
-            int index = 0;
-
-            while (index < words.Count)
+            if (string.Equals(difficulty, WordOrderDifficulty.Hard, StringComparison.Ordinal))
             {
-                int remain = words.Count - index;
-                int take = remain >= 3 ? 2 : 1;
-
-                chunks.Add(string.Join(" ", words.Skip(index).Take(take)));
-                index += take;
+                return new HardWordOrderMode();
             }
 
-            return chunks;
-        }
-
-        /// <summary>
-        /// 목적:
-        /// 다른 말씀에서 방해 조각을 추출한다.
-        /// </summary>
-        private static IEnumerable<string> BuildDistractors(
-            Verse currentVerse,
-            IReadOnlyList<Verse> sourceVerses,
-            IReadOnlyList<string> correctSequence,
-            int distractorCount,
-            string difficulty)
-        {
-            List<string> pool = new();
-
-            foreach (Verse verse in sourceVerses)
+            if (string.Equals(difficulty, WordOrderDifficulty.Normal, StringComparison.Ordinal))
             {
-                if (verse is null)
-                {
-                    continue;
-                }
-
-                if (ReferenceEquals(verse, currentVerse))
-                {
-                    continue;
-                }
-
-                List<string> pieces = SplitText(verse.Text, difficulty);
-
-                foreach (string piece in pieces)
-                {
-                    if (!correctSequence.Contains(piece))
-                    {
-                        pool.Add(piece);
-                    }
-                }
+                return new NormalWordOrderMode();
             }
 
-            return pool
-                .Distinct()
-                .Take(distractorCount)
-                .ToList();
-        }
-
-        /// <summary>
-        /// 목적:
-        /// 보기 조각 순서를 섞는다.
-        /// </summary>
-        private static void Shuffle(List<WordOrderPieceItem> pieces)
-        {
-            Random random = new();
-
-            for (int i = pieces.Count - 1; i > 0; i--)
-            {
-                int j = random.Next(i + 1);
-                (pieces[i], pieces[j]) = (pieces[j], pieces[i]);
-            }
+            return new EasyWordOrderMode();
         }
     }
 
@@ -248,6 +119,11 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
         public bool UseTimer { get; }
         public int TimeLimitSeconds { get; }
         public bool IsFirstPieceFixed { get; }
+
+        /// <summary>
+        /// 기존 구조 호환용 유지 값
+        /// 현재 실제 방해 조각 생성은 각 모드의 PieceBuilder가 담당한다.
+        /// </summary>
         public int DistractorCount { get; }
     }
 }

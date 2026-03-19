@@ -12,22 +12,22 @@ namespace ScriptureTyping.ViewModels.Games
         public GamesHubViewModel(MainWindowViewModel host)
         {
             Games.Add(new GameCardViewModel(
-                title: "구절 빈칸 채우기",
-                description: "구절의 일부가 ____로 비어있다. 입력해서 완성한다.",
+                title: "빈칸 폭격전",
+                description: "사라진 말씀 조각을 찾아라. 빈칸을 채우며 정답을 완성하는 스피드 암송 배틀",
                 startCommand: new RelayCommand(_ => host.NavigateTo(new ClozeGameViewModel(host)))
             ));
 
             Games.Add(new GameCardViewModel(
-                title: "순서 맞추기",
-                description: "단어/구절 조각이 섞여있다. 올바른 순서를 맞춘다.",
+                title: "말씀 순서 챌린지",
+                description: "뒤섞인 말씀 조각을 순서대로 맞춰라. 흐트러진 문장을 바르게 정렬하는 퍼즐 챌린지",
                 startCommand: new RelayCommand(
                     _ => host.NavigateTo(
                         new ScriptureTyping.ViewModels.Games.WordOrder.WordOrderGameViewModel(host)))
             ));
 
             Games.Add(new GameCardViewModel(
-                title: "장절 맞추기",
-                description: "장절 카드와 본문 카드를 짝지어 맞춘다.",
+                title: "짝꿍 카드 대작전",
+                description: "장절 카드와 본문 카드를 기억해서 연결하라. 진짜 짝꿍을 찾아내는 두뇌 매칭 게임",
                 startCommand: new RelayCommand(
                     _ => host.NavigateTo(
                         new ScriptureTyping.ViewModels.Games.VerseMatch.VerseMatchGameViewModel(host)))

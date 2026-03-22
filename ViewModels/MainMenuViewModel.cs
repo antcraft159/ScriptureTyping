@@ -1,4 +1,5 @@
 ﻿using ScriptureTyping.Commands;
+using ScriptureTyping.ViewModels.RecitingMusic;
 using System;
 using System.Windows.Input;
 
@@ -25,7 +26,7 @@ namespace ScriptureTyping.ViewModels
             GamesCommand = new RelayCommand(_ => _host.NavigateToGamesHub(), _ => true);
 
             RecordsCommand = new RelayCommand(
-                _ => _host.NavigateToContent(new PlaceholderViewModel("기록/통계", "Progress/Stats 화면으로 연결하면 됨.")),
+                _ => _host.NavigateToContent(new RecitingMusicViewModel()),
                 _ => true);
 
             SettingsCommand = new RelayCommand(

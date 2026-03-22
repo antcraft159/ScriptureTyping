@@ -6,7 +6,9 @@
                     xmlns:gvmWordOrder="clr-namespace:ScriptureTyping.ViewModels.Games.WordOrder"
                     xmlns:gvmVerseMatch="clr-namespace:ScriptureTyping.ViewModels.Games.VerseMatch"
                     xmlns:gv="clr-namespace:ScriptureTyping.Views.Games"
-                    xmlns:gvVerseMatch="clr-namespace:ScriptureTyping.Views.Games.VerseMatch">
+                    xmlns:gvVerseMatch="clr-namespace:ScriptureTyping.Views.Games.VerseMatch"
+                    xmlns:vmRecitingMusic="clr-namespace:ScriptureTyping.ViewModels.RecitingMusic"
+                    xmlns:vRecitingMusic="clr-namespace:ScriptureTyping.Views.RecitingMusic">
 
     <!-- 오른쪽 화면: CourseSelect -->
     <DataTemplate DataType="{x:Type vm:CourseSelectViewModel}">
@@ -34,6 +36,11 @@
                 </StackPanel>
             </Border>
         </Grid>
+    </DataTemplate>
+
+    <!-- 암송 음악 -->
+    <DataTemplate DataType="{x:Type vmRecitingMusic:RecitingMusicViewModel}">
+        <vRecitingMusic:RecitingMusicView/>
     </DataTemplate>
 
     <!-- 게임 허브 -->

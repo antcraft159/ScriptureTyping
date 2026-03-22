@@ -9,6 +9,79 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\1_Thessalonian5_23.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\1_Timothy6_16.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\2_Peter1_20-21.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\2_Timothy3_16-17.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Ecclesiastes3_11.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Hebrews3_4.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\I Thessalonian5_23.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\I Timothy6_16.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\II Peter1_20-21.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\II Timothy3_16-17.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\isaiah34_16.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Job19_26.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Job26_7.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Job38_31.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\John5_39.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Romans10_17.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Romans1_19.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Romans1_20.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Romans2_25.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\데살로니가전서 5장 23절.mp3" />
+    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\제목_ 이사야 34장 16절.mp3" />
+    <None Remove="RecitingData\RecitingMusic\reciting_music.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Ecclesiastes3_11.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Hebrews3_4.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Job19_26.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Job26_7.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Job38_31.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\John5_39.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Romans10_17.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Romans1_19.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Romans1_20.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Romans2_25.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RecitingData\RecitingMusic\reciting_music.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\1_Timothy6_16.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\2_Peter1_20-21.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\2_Timothy3_16-17.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Resources\" />
     <Folder Include="Views\Games\Cloze\Styles\" />
   </ItemGroup>

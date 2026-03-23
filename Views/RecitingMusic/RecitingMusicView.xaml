@@ -3,7 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d">
+             xmlns:converters="clr-namespace:ScriptureTyping.Converters"
+             mc:Ignorable="d"
+             Unloaded="RecitingMusicView_Unloaded">
+
+    <UserControl.Resources>
+        <converters:SecondsToTimeTextConverter x:Key="SecondsToTimeTextConverter"/>
+    </UserControl.Resources>
 
     <Grid Margin="{StaticResource Layout.MenuSafeMargin}">
         <Grid Margin="24"
@@ -25,7 +31,6 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- 제목 -->
                     <StackPanel Grid.Row="0"
                                 Margin="0,0,0,16">
                         <TextBlock FontSize="28"
@@ -48,7 +53,6 @@
                         </TextBlock>
                     </StackPanel>
 
-                    <!-- 요약 카드 -->
                     <Grid Grid.Row="1"
                           Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
@@ -114,7 +118,7 @@
                                 BorderBrush="#2A2E36"
                                 BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="준비됨"
+                                <TextBlock Text="가능"
                                            Foreground="#9CA3AF"
                                            FontSize="13"/>
                                 <TextBlock Foreground="White"
@@ -137,7 +141,7 @@
                                 BorderBrush="#2A2E36"
                                 BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="완료"
+                                <TextBlock Text="불가능"
                                            Foreground="#9CA3AF"
                                            FontSize="13"/>
                                 <TextBlock Foreground="White"
@@ -145,7 +149,7 @@
                                            FontWeight="SemiBold"
                                            Margin="0,8,0,0">
                                     <TextBlock.Text>
-                                        <Binding Path="CompletedCount"
+                                        <Binding Path="UnavailableCount"
                                                  FallbackValue="0"
                                                  TargetNullValue="0"/>
                                     </TextBlock.Text>
@@ -154,7 +158,6 @@
                         </Border>
                     </Grid>
 
-                    <!-- 필터 -->
                     <Border Grid.Row="2"
                             Margin="0,0,0,16"
                             CornerRadius="16"
@@ -223,7 +226,6 @@
                         </Grid>
                     </Border>
 
-                    <!-- 본문 -->
                     <Grid Grid.Row="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1.6*"/>
@@ -231,7 +233,6 @@
                             <ColumnDefinition Width="1.4*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- 목록 -->
                         <Border Grid.Column="0"
                                 CornerRadius="16"
                                 Padding="16"
@@ -261,6 +262,7 @@
                                           GridLinesVisibility="Horizontal"
                                           IsReadOnly="True"
                                           SelectionMode="Single"
+                                          SelectionUnit="FullRow"
                                           RowHeaderWidth="0"
                                           Background="#17191E"
                                           Foreground="White"
@@ -276,6 +278,24 @@
                                             <Setter Property="Foreground" Value="White"/>
                                             <Setter Property="VerticalAlignment" Value="Center"/>
                                             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        </Style>
+
+                                        <Style x:Key="StatusTextStyle" TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Status}" Value="가능">
+                                                    <Setter Property="Foreground" Value="#22C55E"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="불가능">
+                                                    <Setter Property="Foreground" Value="#EF4444"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="완료">
+                                                    <Setter Property="Foreground" Value="#60A5FA"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
                                         </Style>
                                     </DataGrid.Resources>
 
@@ -296,15 +316,83 @@
                                             <Setter Property="Background" Value="Transparent"/>
                                             <Setter Property="BorderThickness" Value="0"/>
                                             <Setter Property="Padding" Value="8,6"/>
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                </Trigger>
+                                            </Style.Triggers>
                                         </Style>
                                     </DataGrid.CellStyle>
 
                                     <DataGrid.RowStyle>
                                         <Style TargetType="DataGridRow">
-                                            <Setter Property="BorderBrush" Value="#2A2E36"/>
-                                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
                                             <Setter Property="Foreground" Value="White"/>
                                             <Setter Property="Background" Value="#17191E"/>
+                                            <Setter Property="BorderBrush" Value="#2A2E36"/>
+                                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                            <Setter Property="Margin" Value="0,1,0,1"/>
+                                            <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="DataGridRow">
+                                                        <Border x:Name="RowBorder"
+                                                                Margin="{TemplateBinding Margin}"
+                                                                Background="{TemplateBinding Background}"
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                SnapsToDevicePixels="True">
+                                                            <SelectiveScrollingGrid>
+                                                                <SelectiveScrollingGrid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </SelectiveScrollingGrid.ColumnDefinitions>
+
+                                                                <SelectiveScrollingGrid.RowDefinitions>
+                                                                    <RowDefinition Height="*"/>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                </SelectiveScrollingGrid.RowDefinitions>
+
+                                                                <DataGridCellsPresenter Grid.Column="1"
+                                                                                        ItemsPanel="{TemplateBinding ItemsPanel}"
+                                                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+
+                                                                <DataGridDetailsPresenter Grid.Row="1"
+                                                                                          Grid.Column="1"
+                                                                                          Visibility="{TemplateBinding DetailsVisibility}"/>
+                                                            </SelectiveScrollingGrid>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+
+                                            <Style.Triggers>
+                                                <Trigger Property="AlternationIndex" Value="1">
+                                                    <Setter Property="Background" Value="#1D2027"/>
+                                                </Trigger>
+
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="#11263A"/>
+                                                    <Setter Property="BorderBrush" Value="#38BDF8"/>
+                                                    <Setter Property="BorderThickness" Value="2"/>
+                                                </Trigger>
+
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#1A2230"/>
+                                                </Trigger>
+
+                                                <MultiTrigger>
+                                                    <MultiTrigger.Conditions>
+                                                        <Condition Property="IsSelected" Value="True"/>
+                                                        <Condition Property="IsMouseOver" Value="True"/>
+                                                    </MultiTrigger.Conditions>
+                                                    <Setter Property="Background" Value="#15314A"/>
+                                                    <Setter Property="BorderBrush" Value="#38BDF8"/>
+                                                    <Setter Property="BorderThickness" Value="2"/>
+                                                </MultiTrigger>
+                                            </Style.Triggers>
                                         </Style>
                                     </DataGrid.RowStyle>
 
@@ -341,19 +429,20 @@
                                             </DataGridTextColumn.Binding>
                                         </DataGridTextColumn>
 
-                                        <DataGridTextColumn Header="상태"
-                                                            Width="100"
-                                                            ElementStyle="{StaticResource DisplayTextStyle}">
-                                            <DataGridTextColumn.Binding>
-                                                <Binding Path="Status" Mode="OneWay"/>
-                                            </DataGridTextColumn.Binding>
-                                        </DataGridTextColumn>
+                                        <DataGridTemplateColumn Header="상태"
+                                                                Width="100">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Status}"
+                                                               Style="{StaticResource StatusTextStyle}"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
                         </Border>
 
-                        <!-- 상세 / 가사 -->
                         <Border Grid.Column="2"
                                 CornerRadius="16"
                                 Padding="16"
@@ -383,9 +472,14 @@
                                            FontSize="18"
                                            FontWeight="SemiBold"/>
 
-                                <!-- 재생 버튼 -->
                                 <StackPanel Grid.Row="4"
                                             Orientation="Horizontal">
+                                    <Button Width="70"
+                                            Height="36"
+                                            Margin="0,0,8,0"
+                                            Content="-10"
+                                            Click="SeekBackwardButton_Click"/>
+
                                     <Button Width="90"
                                             Height="36"
                                             Margin="0,0,8,0"
@@ -394,11 +488,16 @@
 
                                     <Button Width="90"
                                             Height="36"
+                                            Margin="0,0,8,0"
                                             Content="정지"
                                             Command="{Binding StopPlaybackCommand}"/>
+
+                                    <Button Width="70"
+                                            Height="36"
+                                            Content="+10"
+                                            Click="SeekForwardButton_Click"/>
                                 </StackPanel>
 
-                                <!-- 재생 진행 표시 -->
                                 <Grid Grid.Row="6">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -424,23 +523,57 @@
                                                    Text="{Binding TotalDurationText}"/>
                                     </Grid>
 
-                                    <Slider Grid.Row="2"
-                                            Height="24"
-                                            Minimum="0"
-                                            Maximum="{Binding PlaybackProgressMaximum, Mode=OneWay}"
-                                            Value="{Binding SeekBarValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            IsMoveToPointEnabled="True"
-                                            AutoToolTipPlacement="TopLeft"
-                                            AutoToolTipPrecision="0"
-                                            PreviewMouseLeftButtonDown="PlaybackSlider_PreviewMouseLeftButtonDown"
-                                            PreviewMouseLeftButtonUp="PlaybackSlider_PreviewMouseLeftButtonUp"/>
+                                    <Grid Grid.Row="2"
+                                          x:Name="PlaybackSliderHost">
+                                        <Slider x:Name="PlaybackSlider"
+                                                Height="24"
+                                                Minimum="0"
+                                                Maximum="{Binding PlaybackProgressMaximum, Mode=OneWay}"
+                                                Value="{Binding SeekBarValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                IsMoveToPointEnabled="True"
+                                                ValueChanged="PlaybackSlider_ValueChanged"
+                                                PreviewMouseLeftButtonDown="PlaybackSlider_PreviewMouseLeftButtonDown"
+                                                PreviewMouseLeftButtonUp="PlaybackSlider_PreviewMouseLeftButtonUp"
+                                                LostMouseCapture="PlaybackSlider_LostMouseCapture"/>
+
+                                        <Popup x:Name="PlaybackSeekPopup"
+                                               Placement="Relative"
+                                               PlacementTarget="{Binding ElementName=PlaybackSliderHost}"
+                                               AllowsTransparency="True"
+                                               StaysOpen="True"
+                                               Focusable="False"
+                                               IsHitTestVisible="False">
+                                            <Border Background="#F3F4F6"
+                                                    BorderBrush="#9CA3AF"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="10,4">
+                                                <TextBlock Foreground="#4B5563"
+                                                           FontSize="12"
+                                                           Text="{Binding ElementName=PlaybackSlider,
+                                                                          Path=Value,
+                                                                          Converter={StaticResource SecondsToTimeTextConverter}}"/>
+                                            </Border>
+                                        </Popup>
+                                    </Grid>
                                 </Grid>
 
-                                <!-- 재생 상태 -->
                                 <TextBlock Grid.Row="8"
-                                           Foreground="#9CA3AF"
                                            FontSize="13"
                                            TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#9CA3AF"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding PlaybackStatusText}" Value="재생 가능">
+                                                    <Setter Property="Foreground" Value="#22C55E"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding PlaybackStatusText}" Value="불가능">
+                                                    <Setter Property="Foreground" Value="#EF4444"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
                                     <TextBlock.Text>
                                         <Binding Path="PlaybackStatusText"
                                                  FallbackValue="곡을 선택하세요."/>
@@ -460,21 +593,21 @@
                                         CornerRadius="12"
                                         Padding="14">
                                     <TextBox Background="Transparent"
-                                        BorderThickness="0"
-                                        Foreground="White"
-                                        FontSize="20"
-                                        FontWeight="SemiBold"
-                                        TextWrapping="Wrap"
-                                        AcceptsReturn="True"
-                                        IsReadOnly="True"
-                                        VerticalScrollBarVisibility="Auto"
-                                        HorizontalScrollBarVisibility="Disabled"
-                                        CaretBrush="Transparent">
+                                             BorderThickness="0"
+                                             Foreground="White"
+                                             FontSize="20"
+                                             FontWeight="SemiBold"
+                                             TextWrapping="Wrap"
+                                             AcceptsReturn="True"
+                                             IsReadOnly="True"
+                                             VerticalScrollBarVisibility="Auto"
+                                             HorizontalScrollBarVisibility="Disabled"
+                                             CaretBrush="Transparent">
                                         <TextBox.Text>
                                             <Binding Path="SelectedItem.LyricsPreview"
-                                                Mode="OneWay"
-                                                TargetNullValue="선택한 음악의 가사가 여기에 표시됩니다."
-                                                FallbackValue="선택한 음악의 가사가 여기에 표시됩니다."/>
+                                                     Mode="OneWay"
+                                                     TargetNullValue="선택한 음악의 가사가 여기에 표시됩니다."
+                                                     FallbackValue="선택한 음악의 가사가 여기에 표시됩니다."/>
                                         </TextBox.Text>
                                     </TextBox>
                                 </Border>

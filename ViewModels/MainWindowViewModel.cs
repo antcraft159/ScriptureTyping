@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ScriptureTyping.ViewModels.Games;
+using ScriptureTyping.ViewModels.RecitingMusic;
 
 namespace ScriptureTyping.ViewModels
 {
@@ -11,14 +12,17 @@ namespace ScriptureTyping.ViewModels
 
         public string Title { get; } = "2026 상반기 사무엘학교";
 
-        // TopBar/StatusBar 바인딩용 (XAML에서 쓰고 있으니 존재해야 함)
         private string _statusMessage = string.Empty;
         public string StatusMessage
         {
             get => _statusMessage;
             set
             {
-                if (Equals(_statusMessage, value)) return;
+                if (Equals(_statusMessage, value))
+                {
+                    return;
+                }
+
                 _statusMessage = value;
                 OnPropertyChanged();
             }
@@ -30,22 +34,28 @@ namespace ScriptureTyping.ViewModels
             get => _footerRight;
             set
             {
-                if (Equals(_footerRight, value)) return;
+                if (Equals(_footerRight, value))
+                {
+                    return;
+                }
+
                 _footerRight = value;
                 OnPropertyChanged();
             }
         }
 
-        // 항상 고정 메뉴 VM
         public MainMenuViewModel MenuViewModel { get; }
 
-        // 오른쪽 화면만 바뀌는 VM
         public object? CurrentContentViewModel
         {
             get => _currentContentViewModel;
-            set
+            private set
             {
-                if (Equals(_currentContentViewModel, value)) return;
+                if (ReferenceEquals(_currentContentViewModel, value))
+                {
+                    return;
+                }
+
                 _currentContentViewModel = value;
                 OnPropertyChanged();
             }
@@ -53,26 +63,28 @@ namespace ScriptureTyping.ViewModels
 
         public MainWindowViewModel()
         {
-            // 메뉴가 화면을 바꾸려면 MainWindowVM의 네비게이션을 호출해야 하니까
-            //    host(this)를 넘겨서 메서드 호출 방식으로 통일한다.
             MenuViewModel = new MainMenuViewModel(this, ExitApp);
 
             CurrentContentViewModel = null;
 
-            StatusMessage = "준비됨";
+            StatusMessage = "가능";
             FooterRight = "v0.1";
         }
 
         /// <summary>
-        /// 목적: 외부에서 오른쪽 콘텐츠 VM을 교체하는 공용 메서드.
+        /// 목적:
+        /// 외부에서 오른쪽 콘텐츠 VM을 교체한다.
+        /// 화면 전환 전에 현재 화면이 암송 동요 화면이면 재생 중인 오디오를 정지한다.
         /// </summary>
         public void NavigateToContent(object vm)
         {
+            StopCurrentContentIfNeeded();
             CurrentContentViewModel = vm;
         }
 
         /// <summary>
-        /// 목적: (호환) 다른 VM에서 NavigateTo(...) 형태로 호출해도 되도록 제공한다.
+        /// 목적:
+        /// (호환) 다른 VM에서 NavigateTo(...) 형태로 호출해도 동작하도록 제공한다.
         /// </summary>
         public void NavigateTo(object vm)
         {
@@ -80,7 +92,8 @@ namespace ScriptureTyping.ViewModels
         }
 
         /// <summary>
-        /// 목적: (호환) 다른 VM에서 NavigateToContent(...)가 아니라 NavigateTo(...)를 쓰지 않아도 되게 제공한다.
+        /// 목적:
+        /// (호환) 다른 VM에서 NavigateToContentViewModel(...) 형태로 호출해도 동작하도록 제공한다.
         /// </summary>
         public void NavigateToContentViewModel(object vm)
         {
@@ -88,7 +101,8 @@ namespace ScriptureTyping.ViewModels
         }
 
         /// <summary>
-        /// 목적: 게임 허브로 이동
+        /// 목적:
+        /// 게임 허브로 이동한다.
         /// </summary>
         public void NavigateToGamesHub()
         {
@@ -96,13 +110,24 @@ namespace ScriptureTyping.ViewModels
         }
 
         /// <summary>
-        /// 목적: 학습(코스 선택) 화면으로 이동
+        /// 목적:
+        /// 학습(코스 선택) 화면으로 이동한다.
         /// </summary>
         public void NavigateToCourseSelect()
         {
-            // CourseSelectViewModel 생성자가 Action<object?> 또는 Action<object> 형태를 요구하는 구조라면
-            // 아래처럼 "NavigateToContent"로 연결해 주면 된다.
             NavigateToContent(new CourseSelectViewModel(o => NavigateToContent(o!)));
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 현재 화면이 암송 동요 화면이면 재생 중인 노래를 정지한다.
+        /// </summary>
+        private void StopCurrentContentIfNeeded()
+        {
+            if (CurrentContentViewModel is RecitingMusicViewModel recitingMusicViewModel)
+            {
+                recitingMusicViewModel.StopPlaybackOnLeaveView();
+            }
         }
 
         private void ExitApp()
@@ -113,6 +138,8 @@ namespace ScriptureTyping.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

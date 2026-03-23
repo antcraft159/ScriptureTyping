@@ -65,6 +65,11 @@ namespace ScriptureTyping.Services
                         continue;
                     }
 
+                    bool hasMp3File = HasMp3File(
+                        rawItem.Course ?? string.Empty,
+                        rawItem.Day ?? string.Empty,
+                        rawItem.Mp3FileName ?? string.Empty);
+
                     RecitingMusicItemViewModel item = new RecitingMusicItemViewModel(
                         number: rawItem.Number,
                         course: rawItem.Course ?? string.Empty,
@@ -72,8 +77,9 @@ namespace ScriptureTyping.Services
                         reference: rawItem.Reference ?? string.Empty,
                         originalVerse: rawItem.OriginalVerse ?? string.Empty,
                         lyricsPreview: rawItem.LyricsPreview ?? string.Empty,
-                        status: rawItem.Status ?? string.Empty,
-                        mp3FileName: rawItem.Mp3FileName ?? string.Empty);
+                        rawStatus: rawItem.Status ?? string.Empty,
+                        mp3FileName: rawItem.Mp3FileName ?? string.Empty,
+                        hasMp3File: hasMp3File);
 
                     items.Add(item);
                 }
@@ -84,6 +90,97 @@ namespace ScriptureTyping.Services
             {
                 return new List<RecitingMusicItemViewModel>();
             }
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 해당 항목의 MP3 파일이 실제로 존재하는지 확인한다.
+        /// </summary>
+        private static bool HasMp3File(string course, string day, string mp3FileName)
+        {
+            string fullPath = ResolveMp3FullPath(course, day, mp3FileName);
+            return !string.IsNullOrWhiteSpace(fullPath);
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 실행 폴더 기준 경로와 프로젝트 루트 기준 경로를 순서대로 검사하여 MP3 전체 경로를 찾는다.
+        /// </summary>
+        private static string ResolveMp3FullPath(string course, string day, string mp3FileName)
+        {
+            if (string.IsNullOrWhiteSpace(mp3FileName))
+            {
+                return string.Empty;
+            }
+
+            string courseFolder = ConvertCourseToFolderName(course);
+            string dayFolder = ConvertDayToFolderName(day);
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+            string outputPath = Path.Combine(
+                baseDirectory,
+                "Assets",
+                "Audio",
+                "RecitingMusic",
+                courseFolder,
+                dayFolder,
+                mp3FileName);
+
+            if (File.Exists(outputPath))
+            {
+                return outputPath;
+            }
+
+            string projectRootPath = Path.GetFullPath(Path.Combine(
+                baseDirectory,
+                @"..\..\..",
+                "Assets",
+                "Audio",
+                "RecitingMusic",
+                courseFolder,
+                dayFolder,
+                mp3FileName));
+
+            if (File.Exists(projectRootPath))
+            {
+                return projectRootPath;
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 과정명을 실제 폴더명으로 변환한다.
+        /// </summary>
+        private static string ConvertCourseToFolderName(string course)
+        {
+            return course switch
+            {
+                "1과정" => "Course01",
+                "2과정" => "Course02",
+                "3과정" => "Course03",
+                "4과정" => "Course04",
+                _ => string.Empty
+            };
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 일차명을 실제 폴더명으로 변환한다.
+        /// </summary>
+        private static string ConvertDayToFolderName(string day)
+        {
+            return day switch
+            {
+                "1일차" => "Day01",
+                "2일차" => "Day02",
+                "3일차" => "Day03",
+                "4일차" => "Day04",
+                "5일차" => "Day05",
+                "6일차" => "Day06",
+                _ => string.Empty
+            };
         }
 
         /// <summary>

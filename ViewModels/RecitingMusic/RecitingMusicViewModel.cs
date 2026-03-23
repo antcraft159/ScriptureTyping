@@ -18,6 +18,12 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
     /// </summary>
     public sealed class RecitingMusicViewModel : INotifyPropertyChanged
     {
+        private const string STATUS_NO_DATA = "동요 데이터가 없습니다.";
+        private const string STATUS_SELECT_SONG = "곡을 선택하세요.";
+        private const string STATUS_SELECT_FIRST = "먼저 곡을 선택하세요.";
+        private const string STATUS_PLAYABLE = "재생 가능";
+        private const string STATUS_UNAVAILABLE = "불가능";
+
         private readonly ObservableCollection<RecitingMusicItemViewModel> _allItems;
         private readonly AudioPlaybackService _audioPlaybackService;
         private readonly RecitingMusicDataService _recitingMusicDataService;
@@ -28,7 +34,7 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
         private string _currentFilterText = string.Empty;
         private RecitingMusicItemViewModel? _selectedItem;
         private string _currentMp3FullPath = string.Empty;
-        private string _playbackStatusText = "곡을 선택하세요.";
+        private string _playbackStatusText = STATUS_SELECT_SONG;
         private bool _isPlaying;
 
         private string _currentTimeText = "00:00";
@@ -226,7 +232,10 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
         public int FilteredCount => FilteredItems.Count;
 
         public int ReadyCount => FilteredItems.Count(item =>
-            string.Equals(item.Status, "준비됨", StringComparison.Ordinal));
+            string.Equals(item.Status, "가능", StringComparison.Ordinal));
+
+        public int UnavailableCount => FilteredItems.Count(item =>
+            string.Equals(item.Status, "불가능", StringComparison.Ordinal));
 
         public int CompletedCount => FilteredItems.Count(item =>
             string.Equals(item.Status, "완료", StringComparison.Ordinal));
@@ -272,7 +281,7 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
 
             if (_allItems.Count == 0)
             {
-                PlaybackStatusText = "동요 데이터가 없습니다.";
+                PlaybackStatusText = STATUS_NO_DATA;
             }
         }
 
@@ -410,17 +419,8 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
             if (SelectedItem == null)
             {
                 CurrentMp3FullPath = string.Empty;
-
-                if (_allItems.Count == 0)
-                {
-                    PlaybackStatusText = "동요 데이터가 없습니다.";
-                }
-                else
-                {
-                    PlaybackStatusText = "곡을 선택하세요.";
-                }
-
                 IsPlaying = false;
+                UpdatePlaybackAvailabilityStatus();
                 return;
             }
 
@@ -429,34 +429,58 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
                 SelectedItem.Day,
                 SelectedItem.Mp3FileName);
 
-            if (string.IsNullOrWhiteSpace(CurrentMp3FullPath))
+            IsPlaying = false;
+            UpdatePlaybackAvailabilityStatus();
+        }
+
+        private void UpdatePlaybackAvailabilityStatus()
+        {
+            if (SelectedItem == null)
             {
-                PlaybackStatusText = "MP3 파일을 찾을 수 없습니다.";
-                IsPlaying = false;
+                if (_allItems.Count == 0)
+                {
+                    PlaybackStatusText = STATUS_NO_DATA;
+                }
+                else
+                {
+                    PlaybackStatusText = STATUS_SELECT_SONG;
+                }
+
                 return;
             }
 
-            PlaybackStatusText = "재생 가능";
-            IsPlaying = false;
+            if (string.IsNullOrWhiteSpace(CurrentMp3FullPath))
+            {
+                PlaybackStatusText = STATUS_UNAVAILABLE;
+                return;
+            }
+
+            if (!File.Exists(CurrentMp3FullPath))
+            {
+                PlaybackStatusText = STATUS_UNAVAILABLE;
+                return;
+            }
+
+            PlaybackStatusText = STATUS_PLAYABLE;
         }
 
         private void PlaySelectedItem()
         {
             if (SelectedItem == null)
             {
-                PlaybackStatusText = "먼저 곡을 선택하세요.";
+                PlaybackStatusText = STATUS_SELECT_FIRST;
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(CurrentMp3FullPath))
             {
-                PlaybackStatusText = "MP3 파일을 찾을 수 없습니다.";
+                PlaybackStatusText = STATUS_UNAVAILABLE;
                 return;
             }
 
             if (!File.Exists(CurrentMp3FullPath))
             {
-                PlaybackStatusText = $"파일 없음: {CurrentMp3FullPath}";
+                PlaybackStatusText = STATUS_UNAVAILABLE;
                 return;
             }
 
@@ -481,17 +505,18 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
             _audioPlaybackService.Stop();
             StopPlaybackTimer();
             ResetPlaybackProgress();
-
-            if (SelectedItem == null)
-            {
-                PlaybackStatusText = "정지됨";
-            }
-            else
-            {
-                PlaybackStatusText = $"정지됨: {SelectedItem.Reference}";
-            }
-
             IsPlaying = false;
+
+            UpdatePlaybackAvailabilityStatus();
+        }
+
+        /// <summary>
+        /// 목적:
+        /// 다른 화면으로 이동하거나 View가 내려갈 때 현재 재생 중인 곡을 정지한다.
+        /// </summary>
+        public void StopPlaybackOnLeaveView()
+        {
+            StopPlayback();
         }
 
         public void BeginSeekDrag()
@@ -584,14 +609,7 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
             if (!IsPlaying)
             {
                 StopPlaybackTimer();
-
-                if (SelectedItem != null &&
-                    !string.IsNullOrWhiteSpace(CurrentMp3FullPath) &&
-                    File.Exists(CurrentMp3FullPath) &&
-                    !PlaybackStatusText.StartsWith("정지됨", StringComparison.Ordinal))
-                {
-                    PlaybackStatusText = "재생 완료 또는 정지됨";
-                }
+                UpdatePlaybackAvailabilityStatus();
             }
         }
 
@@ -645,7 +663,9 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
             {
                 "1과정" => "Course01",
                 "2과정" => "Course02",
-                _ => "Course01"
+                "3과정" => "Course03",
+                "4과정" => "Course04",
+                _ => string.Empty
             };
         }
 
@@ -656,7 +676,10 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
                 "1일차" => "Day01",
                 "2일차" => "Day02",
                 "3일차" => "Day03",
-                _ => "Day01"
+                "4일차" => "Day04",
+                "5일차" => "Day05",
+                "6일차" => "Day06",
+                _ => string.Empty
             };
         }
 
@@ -665,6 +688,7 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
             OnPropertyChanged(nameof(TotalCount));
             OnPropertyChanged(nameof(FilteredCount));
             OnPropertyChanged(nameof(ReadyCount));
+            OnPropertyChanged(nameof(UnavailableCount));
             OnPropertyChanged(nameof(CompletedCount));
         }
 

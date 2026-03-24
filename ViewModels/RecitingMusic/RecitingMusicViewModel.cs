@@ -18,7 +18,7 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
     /// </summary>
     public sealed class RecitingMusicViewModel : INotifyPropertyChanged
     {
-        private const string STATUS_NO_DATA = "동요 데이터가 없습니다.";
+        private const string STATUS_NO_DATA = "노래 데이터가 없습니다.";
         private const string STATUS_SELECT_SONG = "곡을 선택하세요.";
         private const string STATUS_SELECT_FIRST = "먼저 곡을 선택하세요.";
         private const string STATUS_PLAYABLE = "재생 가능";
@@ -296,7 +296,8 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
                 .Select(item => item.Course)
                 .Where(course => !string.IsNullOrWhiteSpace(course))
                 .Distinct()
-                .OrderBy(course => course, StringComparer.Ordinal)
+                .OrderBy(course => GetCourseSortOrder(course))
+                .ThenBy(course => course, StringComparer.Ordinal)
                 .ToList();
 
             foreach (string course in courseList)
@@ -318,7 +319,8 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
                 .Select(item => item.Day)
                 .Where(day => !string.IsNullOrWhiteSpace(day))
                 .Distinct()
-                .OrderBy(day => day, StringComparer.Ordinal)
+                .OrderBy(day => GetDaySortOrder(day))
+                .ThenBy(day => day, StringComparer.Ordinal)
                 .ToList();
 
             foreach (string day in dayList)
@@ -353,6 +355,9 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
         {
             List<RecitingMusicItemViewModel> matchedItems = _allItems
                 .Where(item => IsCourseMatched(item) && IsDayMatched(item))
+                .OrderBy(item => GetDaySortOrder(item.Day))
+                .ThenBy(item => GetCourseSortOrder(item.Course))
+                .ThenBy(item => item.Number)
                 .ToList();
 
             FilteredItems.Clear();
@@ -384,7 +389,15 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
                 return true;
             }
 
-            return string.Equals(item.Course, SelectedCourse, StringComparison.Ordinal);
+            int selectedCourseNumber = ParseDisplayNumber(SelectedCourse);
+            int itemCourseNumber = ParseDisplayNumber(item.Course);
+
+            if (selectedCourseNumber <= 0 || itemCourseNumber <= 0)
+            {
+                return string.Equals(item.Course, SelectedCourse, StringComparison.Ordinal);
+            }
+
+            return itemCourseNumber <= selectedCourseNumber;
         }
 
         private bool IsDayMatched(RecitingMusicItemViewModel item)
@@ -395,7 +408,15 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
                 return true;
             }
 
-            return string.Equals(item.Day, SelectedDay, StringComparison.Ordinal);
+            int selectedDayNumber = ParseDisplayNumber(SelectedDay);
+            int itemDayNumber = ParseDisplayNumber(item.Day);
+
+            if (selectedDayNumber <= 0 || itemDayNumber <= 0)
+            {
+                return string.Equals(item.Day, SelectedDay, StringComparison.Ordinal);
+            }
+
+            return itemDayNumber == selectedDayNumber;
         }
 
         private string BuildCurrentFilterText()
@@ -681,6 +702,35 @@ namespace ScriptureTyping.ViewModels.RecitingMusic
                 "6일차" => "Day06",
                 _ => string.Empty
             };
+        }
+
+        private static int ParseDisplayNumber(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return -1;
+            }
+
+            string digits = new string(text.Where(char.IsDigit).ToArray());
+
+            if (int.TryParse(digits, out int number))
+            {
+                return number;
+            }
+
+            return -1;
+        }
+
+        private static int GetCourseSortOrder(string? course)
+        {
+            int number = ParseDisplayNumber(course);
+            return number > 0 ? number : int.MaxValue;
+        }
+
+        private static int GetDaySortOrder(string? day)
+        {
+            int number = ParseDisplayNumber(day);
+            return number > 0 ? number : int.MaxValue;
         }
 
         private void NotifySummaryPropertiesChanged()

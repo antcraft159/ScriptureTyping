@@ -14,7 +14,7 @@
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
             <Setter Property="Background" Value="#3B82F6"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -60,8 +60,8 @@
         <Style x:Key="DifficultyListBoxItem" TargetType="ListBoxItem">
             <Setter Property="Margin" Value="0,0,8,0"/>
             <Setter Property="Padding" Value="0"/>
-            <Setter Property="Background" Value="#334155"/>
-            <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface2}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -96,8 +96,8 @@
         </Style>
 
         <Style x:Key="PanelBorder" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource Brush.Surface}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="14"/>
@@ -108,7 +108,9 @@
             <Setter Property="Height" Value="110"/>
             <Setter Property="Margin" Value="8"/>
             <Setter Property="Padding" Value="12"/>
-            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface2}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Stretch"/>
             <Setter Property="Template">
@@ -116,37 +118,41 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bd"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="{StaticResource Brush.Border}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </Border>
+
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.94"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.95"/>
                             </Trigger>
+
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.86"/>
                             </Trigger>
+
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.55"/>
                             </Trigger>
 
-                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#2563EB"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#60A5FA"/>
+                            <DataTrigger Binding="{Binding IsReferenceCard}" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
                             </DataTrigger>
 
-                            <DataTrigger Binding="{Binding IsMatched}" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#14532D"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#22C55E"/>
+                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                <Setter Property="Background" Value="#2563EB"/>
+                                <Setter Property="BorderBrush" Value="#60A5FA"/>
                                 <Setter Property="Foreground" Value="White"/>
                             </DataTrigger>
 
-                            <DataTrigger Binding="{Binding IsReferenceCard}" Value="True">
-                                <Setter Property="Background" Value="#334155"/>
+                            <DataTrigger Binding="{Binding IsMatched}" Value="True">
+                                <Setter Property="Background" Value="#16A34A"/>
+                                <Setter Property="BorderBrush" Value="#22C55E"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </DataTrigger>
 
                             <MultiDataTrigger>
@@ -154,8 +160,9 @@
                                     <Condition Binding="{Binding IsReferenceCard}" Value="True"/>
                                     <Condition Binding="{Binding IsSelected}" Value="True"/>
                                 </MultiDataTrigger.Conditions>
-                                <Setter TargetName="Bd" Property="Background" Value="#2563EB"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#60A5FA"/>
+                                <Setter Property="Background" Value="#2563EB"/>
+                                <Setter Property="BorderBrush" Value="#60A5FA"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </MultiDataTrigger>
 
                             <MultiDataTrigger>
@@ -163,8 +170,9 @@
                                     <Condition Binding="{Binding IsReferenceCard}" Value="True"/>
                                     <Condition Binding="{Binding IsMatched}" Value="True"/>
                                 </MultiDataTrigger.Conditions>
-                                <Setter TargetName="Bd" Property="Background" Value="#14532D"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#22C55E"/>
+                                <Setter Property="Background" Value="#16A34A"/>
+                                <Setter Property="BorderBrush" Value="#22C55E"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </MultiDataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -204,7 +212,7 @@
                     <TextBlock Text="{Binding Title}"
                                FontSize="22"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource Brush.Text}"/>
+                               Foreground="{DynamicResource Brush.Text}"/>
 
                     <Grid Margin="0,10,0,0">
                         <Grid.ColumnDefinitions>
@@ -278,15 +286,15 @@
 
             <!-- 본문 카드 -->
             <Border Grid.Row="2"
-                    Background="{StaticResource Brush.Surface}"
-                    BorderBrush="{StaticResource Brush.Border}"
+                    Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}"
                     BorderThickness="1"
                     CornerRadius="10"
                     Padding="18"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch">
 
-                <Border Background="{StaticResource Brush.Bg}"
+                <Border Background="{DynamicResource Brush.Bg}"
                         CornerRadius="8"
                         Padding="14">
 
@@ -317,27 +325,27 @@
 
                             <TextBlock Grid.Column="0"
                                        Text="{Binding QuestionProgressText}"
-                                       Foreground="{StaticResource Brush.Text2}"
+                                       Foreground="{DynamicResource Brush.Text2}"
                                        FontSize="12"/>
 
                             <TextBlock Grid.Column="2"
                                        Text="{Binding PairStatusText}"
-                                       Foreground="{StaticResource Brush.Text2}"
+                                       Foreground="{DynamicResource Brush.Text2}"
                                        FontSize="12"/>
 
                             <TextBlock Grid.Column="4"
                                        Text="{Binding ScoreText}"
-                                       Foreground="{StaticResource Brush.Text2}"
+                                       Foreground="{DynamicResource Brush.Text2}"
                                        FontSize="12"/>
 
                             <TextBlock Grid.Column="6"
                                        Text="{Binding WrongCountText}"
-                                       Foreground="{StaticResource Brush.Text2}"
+                                       Foreground="{DynamicResource Brush.Text2}"
                                        FontSize="12"/>
 
                             <TextBlock Grid.Column="7"
                                        Text="{Binding TimerText}"
-                                       Foreground="{StaticResource Brush.Text2}"
+                                       Foreground="{DynamicResource Brush.Text2}"
                                        FontSize="12"
                                        HorizontalAlignment="Right"
                                        Visibility="{Binding IsTimerVisible, Converter={StaticResource BoolToVis}}"/>
@@ -347,14 +355,14 @@
                                 Style="{StaticResource PanelBorder}">
                             <StackPanel>
                                 <TextBlock Text="게임 설명"
-                                           Foreground="{StaticResource Brush.Text}"
+                                           Foreground="{DynamicResource Brush.Text}"
                                            FontSize="16"
                                            FontWeight="SemiBold"/>
 
                                 <TextBlock Margin="0,10,0,0"
                                            Text="{Binding FeedbackText}"
                                            TextWrapping="Wrap"
-                                           Foreground="{StaticResource Brush.Text2}"
+                                           Foreground="{DynamicResource Brush.Text2}"
                                            FontSize="14"
                                            LineHeight="22"/>
                             </StackPanel>
@@ -371,7 +379,7 @@
 
                                 <TextBlock Grid.Row="0"
                                            Text="카드 목록"
-                                           Foreground="{StaticResource Brush.Text}"
+                                           Foreground="{DynamicResource Brush.Text}"
                                            FontSize="16"
                                            FontWeight="SemiBold"/>
 
@@ -410,12 +418,14 @@
                                                             </Grid.RowDefinitions>
 
                                                             <Border Grid.Row="0"
-                                                                    Background="#0F172A"
+                                                                    Background="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Background}"
+                                                                    BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=BorderBrush}"
+                                                                    BorderThickness="1"
                                                                     CornerRadius="6"
                                                                     Padding="8,4"
                                                                     HorizontalAlignment="Left">
                                                                 <TextBlock Text="{Binding CardLabelText}"
-                                                                           Foreground="White"
+                                                                           Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
                                                                            FontSize="11"
                                                                            FontWeight="SemiBold"/>
                                                             </Border>
@@ -426,7 +436,7 @@
                                                                        TextAlignment="Center"
                                                                        VerticalAlignment="Center"
                                                                        HorizontalAlignment="Center"
-                                                                       Foreground="White"
+                                                                       Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
                                                                        FontSize="16"
                                                                        FontWeight="SemiBold"
                                                                        LineHeight="22"/>
@@ -455,7 +465,7 @@
                                             <StackPanel HorizontalAlignment="Center"
                                                         VerticalAlignment="Center">
                                                 <TextBlock Text="게임 완료"
-                                                           Foreground="{StaticResource Brush.Text}"
+                                                           Foreground="{DynamicResource Brush.Text}"
                                                            FontSize="28"
                                                            FontWeight="Bold"
                                                            HorizontalAlignment="Center"
@@ -463,7 +473,7 @@
 
                                                 <TextBlock Margin="0,16,0,0"
                                                            Text="{Binding CompletionMessage}"
-                                                           Foreground="{StaticResource Brush.Text2}"
+                                                           Foreground="{DynamicResource Brush.Text2}"
                                                            FontSize="20"
                                                            FontWeight="SemiBold"
                                                            TextAlignment="Center"

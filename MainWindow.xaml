@@ -6,7 +6,7 @@
         Width="1500"
         Height="1000"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource Brush.Bg}">
+        Background="{DynamicResource Brush.Bg}">
 
     <Window.DataContext>
         <vm:MainWindowViewModel/>
@@ -21,11 +21,27 @@
 
         <!-- TopBar -->
         <Border Grid.Row="0"
-                Background="{StaticResource Brush.Surface}"
+                Background="{DynamicResource Brush.Surface}"
                 Padding="14,10">
-            <DockPanel>
+            <DockPanel LastChildFill="True">
+
+                <!-- 오른쪽 끝 버튼 -->
+                <Button DockPanel.Dock="Right"
+                        Width="110"
+                        Height="32"
+                        Margin="12,0,0,0"
+                        Content="테마 변경"
+                        Click="ThemeToggleButton_Click"
+                        Background="{DynamicResource Brush.Surface2}"
+                        Foreground="{DynamicResource Brush.Text}"
+                        BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        VerticalAlignment="Center"/>
+
+                <!-- 왼쪽 제목 -->
                 <TextBlock Text="{Binding Title}"
-                           Foreground="{StaticResource Brush.Text}"
+                           Foreground="{DynamicResource Brush.Text}"
                            FontSize="16"
                            FontWeight="SemiBold"
                            VerticalAlignment="Center"/>
@@ -34,7 +50,7 @@
 
         <!-- Main: 콘텐츠는 오른쪽으로 "손잡이 폭만큼"만 밀고, 메뉴는 오버레이 -->
         <Grid Grid.Row="1"
-              Background="{StaticResource Brush.Bg}"
+              Background="{DynamicResource Brush.Bg}"
               ClipToBounds="False">
 
             <!-- 화면 전환 콘텐츠: MENU 손잡이(피크) 폭만큼만 안전 여백 확보 -->
@@ -52,10 +68,10 @@
 
         <!-- StatusBar -->
         <Border Grid.Row="2"
-                Background="{StaticResource Brush.Surface}"
+                Background="{DynamicResource Brush.Surface}"
                 Padding="14,6">
             <TextBlock Text="{Binding FooterRight}"
-                       Foreground="{StaticResource Brush.Muted}"
+                       Foreground="{DynamicResource Brush.Muted}"
                        VerticalAlignment="Center"/>
         </Border>
     </Grid>

@@ -87,7 +87,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Resources\" />
+    <Folder Include="Resources\Themes\" />
     <Folder Include="Views\Games\Cloze\Styles\" />
   </ItemGroup>
 

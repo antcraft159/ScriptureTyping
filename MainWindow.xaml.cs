@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using ScriptureTyping.Services;
 
 namespace ScriptureTyping
 {
@@ -7,6 +8,11 @@ namespace ScriptureTyping
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            ThemeService.ToggleTheme();
         }
     }
 }

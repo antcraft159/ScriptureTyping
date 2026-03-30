@@ -5,13 +5,69 @@
              VerticalAlignment="Stretch"
              ClipToBounds="False">
 
+    <UserControl.Resources>
+        <Style x:Key="MenuButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface2}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="{DynamicResource Brush.Surface}"/>
+                                <Setter TargetName="ButtonBorder"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource Brush.Text2}"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="{DynamicResource Brush.Border}"/>
+                                <Setter TargetName="ButtonBorder"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource Brush.Text}"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.Muted}"/>
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Opacity"
+                                        Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Background="{x:Null}">
         <Border x:Name="SlidePanel"
                 Width="215"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Stretch"
-                Background="{StaticResource Brush.Surface}"
-                BorderBrush="{StaticResource Brush.Border}"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}"
                 BorderThickness="1"
                 CornerRadius="10"
                 Margin="24">
@@ -24,10 +80,9 @@
                 <EventTrigger RoutedEvent="MouseEnter">
                     <BeginStoryboard>
                         <Storyboard>
-                            <DoubleAnimation
-                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                To="0"
-                                Duration="0:0:0.18">
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                             To="0"
+                                             Duration="0:0:0.18">
                                 <DoubleAnimation.EasingFunction>
                                     <CubicEase EasingMode="EaseOut"/>
                                 </DoubleAnimation.EasingFunction>
@@ -39,10 +94,9 @@
                 <EventTrigger RoutedEvent="MouseLeave">
                     <BeginStoryboard>
                         <Storyboard>
-                            <DoubleAnimation
-                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                To="-200"
-                                Duration="0:0:0.18">
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                             To="-200"
+                                             Duration="0:0:0.18">
                                 <DoubleAnimation.EasingFunction>
                                     <CubicEase EasingMode="EaseIn"/>
                                 </DoubleAnimation.EasingFunction>
@@ -55,11 +109,9 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <!-- 손잡이 두께 -->
                     <ColumnDefinition Width="44"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- 메뉴 영역 -->
                 <Grid Grid.Column="0" Margin="18">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -68,32 +120,49 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Text="메인 메뉴"
-                               Foreground="{StaticResource Brush.Text}"
+                               Foreground="{DynamicResource Brush.Text}"
                                FontSize="18"
                                FontWeight="SemiBold"/>
 
                     <UniformGrid Grid.Row="2" Rows="5" Columns="1">
-                        <Button Content="학습 시작" MinHeight="44" Margin="0,0,0,10"
+                        <Button Content="학습 시작"
+                                MinHeight="44"
+                                Margin="0,0,0,10"
+                                Style="{StaticResource MenuButtonStyle}"
                                 Command="{Binding StartLearningCommand}"/>
-                        <Button Content="게임" MinHeight="44" Margin="0,0,0,10"
+
+                        <Button Content="게임"
+                                MinHeight="44"
+                                Margin="0,0,0,10"
+                                Style="{StaticResource MenuButtonStyle}"
                                 Command="{Binding GamesCommand}"/>
-                        <Button Content="암송을 즐겁게" MinHeight="44" Margin="0,0,0,10"
+
+                        <Button Content="암송을 즐겁게"
+                                MinHeight="44"
+                                Margin="0,0,0,10"
+                                Style="{StaticResource MenuButtonStyle}"
                                 Command="{Binding RecordsCommand}"/>
-                        <Button Content="설정" MinHeight="44" Margin="0,0,0,10"
+
+                        <Button Content="설정"
+                                MinHeight="44"
+                                Margin="0,0,0,10"
+                                Style="{StaticResource MenuButtonStyle}"
                                 Command="{Binding SettingsCommand}"/>
-                        <Button Content="종료" MinHeight="44"
+
+                        <Button Content="종료"
+                                MinHeight="44"
+                                Style="{StaticResource MenuButtonStyle}"
                                 Command="{Binding ExitCommand}"/>
                     </UniformGrid>
                 </Grid>
 
-                <!-- 손잡이 -->
                 <Border Grid.Column="1"
-                        Background="{StaticResource Brush.Surface2}"
-                        BorderBrush="{StaticResource Brush.Border}"
+                        Background="{DynamicResource Brush.Surface2}"
+                        BorderBrush="{DynamicResource Brush.Border}"
                         BorderThickness="1,0,0,0">
                     <Grid>
                         <TextBlock Text="MENU"
-                                   Foreground="{StaticResource Brush.Text2}"
+                                   Foreground="{DynamicResource Brush.Text2}"
                                    FontWeight="SemiBold"
                                    FontSize="11"
                                    RenderTransformOrigin="0.5,0.5"

@@ -11,9 +11,9 @@
         <converters:SecondsToTimeTextConverter x:Key="SecondsToTimeTextConverter"/>
 
         <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-            <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
-            <Setter Property="Background" Value="{StaticResource Brush.Surface}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -37,23 +37,23 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="ButtonBorder"
                                         Property="Background"
-                                        Value="{StaticResource Brush.Surface2}"/>
+                                        Value="{DynamicResource Brush.Surface2}"/>
                                 <Setter TargetName="ButtonBorder"
                                         Property="BorderBrush"
-                                        Value="{StaticResource Brush.Text2}"/>
+                                        Value="{DynamicResource Brush.Text2}"/>
                             </Trigger>
 
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="ButtonBorder"
                                         Property="Background"
-                                        Value="{StaticResource Brush.Border}"/>
+                                        Value="{DynamicResource Brush.Border}"/>
                                 <Setter TargetName="ButtonBorder"
                                         Property="BorderBrush"
-                                        Value="{StaticResource Brush.Text}"/>
+                                        Value="{DynamicResource Brush.Text}"/>
                             </Trigger>
 
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="{StaticResource Brush.Muted}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.Muted}"/>
                                 <Setter TargetName="ButtonBorder"
                                         Property="Opacity"
                                         Value="0.6"/>
@@ -67,17 +67,57 @@
         <Style x:Key="PrimaryButtonStyle"
                TargetType="Button"
                BasedOn="{StaticResource SecondaryButtonStyle}">
-            <Setter Property="Background" Value="{StaticResource Brush.Surface2}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Brush.Text2}"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface2}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Text2}"/>
+        </Style>
+
+        <Style x:Key="MetricCardStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface2}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="PanelCardStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface2}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="DisplayTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+
+        <Style x:Key="StatusTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="가능">
+                    <Setter Property="Foreground" Value="#22C55E"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="불가능">
+                    <Setter Property="Foreground" Value="#EF4444"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="완료">
+                    <Setter Property="Foreground" Value="#60A5FA"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
     </UserControl.Resources>
 
     <Grid Margin="{StaticResource Layout.MenuSafeMargin}">
         <Grid Margin="24"
-              Background="{StaticResource Brush.Bg}">
+              Background="{DynamicResource Brush.Bg}">
 
-            <Border Background="{StaticResource Brush.Surface}"
-                    BorderBrush="{StaticResource Brush.Border}"
+            <Border Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}"
                     BorderThickness="1"
                     CornerRadius="10"
                     Padding="14"
@@ -96,7 +136,7 @@
                                 Margin="0,0,0,16">
                         <TextBlock FontSize="28"
                                    FontWeight="Bold"
-                                   Foreground="{StaticResource Brush.Text}">
+                                   Foreground="{DynamicResource Brush.Text}">
                             <TextBlock.Text>
                                 <Binding Path="Title"
                                          FallbackValue="암송을 즐겁게"/>
@@ -104,7 +144,7 @@
                         </TextBlock>
 
                         <TextBlock Margin="0,8,0,0"
-                                   Foreground="{StaticResource Brush.Text2}"
+                                   Foreground="{DynamicResource Brush.Text2}"
                                    FontSize="14"
                                    TextWrapping="Wrap">
                             <TextBlock.Text>
@@ -126,17 +166,12 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0"
-                                CornerRadius="14"
-                                Padding="16"
-                                Background="#1B1D23"
-                                BorderBrush="#2A2E36"
-                                BorderThickness="1">
+                        <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}">
                             <StackPanel>
                                 <TextBlock Text="전체 곡 수"
-                                           Foreground="#9CA3AF"
+                                           Foreground="{DynamicResource Brush.Muted}"
                                            FontSize="13"/>
-                                <TextBlock Foreground="White"
+                                <TextBlock Foreground="{DynamicResource Brush.Text}"
                                            FontSize="28"
                                            FontWeight="SemiBold"
                                            Margin="0,8,0,0">
@@ -149,17 +184,12 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="2"
-                                CornerRadius="14"
-                                Padding="16"
-                                Background="#1B1D23"
-                                BorderBrush="#2A2E36"
-                                BorderThickness="1">
+                        <Border Grid.Column="2" Style="{StaticResource MetricCardStyle}">
                             <StackPanel>
                                 <TextBlock Text="현재 목록"
-                                           Foreground="#9CA3AF"
+                                           Foreground="{DynamicResource Brush.Muted}"
                                            FontSize="13"/>
-                                <TextBlock Foreground="White"
+                                <TextBlock Foreground="{DynamicResource Brush.Text}"
                                            FontSize="28"
                                            FontWeight="SemiBold"
                                            Margin="0,8,0,0">
@@ -172,17 +202,12 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="4"
-                                CornerRadius="14"
-                                Padding="16"
-                                Background="#1B1D23"
-                                BorderBrush="#2A2E36"
-                                BorderThickness="1">
+                        <Border Grid.Column="4" Style="{StaticResource MetricCardStyle}">
                             <StackPanel>
                                 <TextBlock Text="가능"
-                                           Foreground="#9CA3AF"
+                                           Foreground="{DynamicResource Brush.Muted}"
                                            FontSize="13"/>
-                                <TextBlock Foreground="White"
+                                <TextBlock Foreground="{DynamicResource Brush.Text}"
                                            FontSize="28"
                                            FontWeight="SemiBold"
                                            Margin="0,8,0,0">
@@ -195,17 +220,12 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="6"
-                                CornerRadius="14"
-                                Padding="16"
-                                Background="#1B1D23"
-                                BorderBrush="#2A2E36"
-                                BorderThickness="1">
+                        <Border Grid.Column="6" Style="{StaticResource MetricCardStyle}">
                             <StackPanel>
                                 <TextBlock Text="불가능"
-                                           Foreground="#9CA3AF"
+                                           Foreground="{DynamicResource Brush.Muted}"
                                            FontSize="13"/>
-                                <TextBlock Foreground="White"
+                                <TextBlock Foreground="{DynamicResource Brush.Text}"
                                            FontSize="28"
                                            FontWeight="SemiBold"
                                            Margin="0,8,0,0">
@@ -221,11 +241,7 @@
 
                     <Border Grid.Row="2"
                             Margin="0,0,0,16"
-                            CornerRadius="16"
-                            Padding="16"
-                            Background="#17191E"
-                            BorderBrush="#2A2E36"
-                            BorderThickness="1">
+                            Style="{StaticResource PanelCardStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -243,7 +259,7 @@
                             <TextBlock Grid.Column="0"
                                        VerticalAlignment="Center"
                                        Text="과정"
-                                       Foreground="{StaticResource Brush.Text}"
+                                       Foreground="{DynamicResource Brush.Text}"
                                        FontWeight="SemiBold"/>
 
                             <ComboBox Grid.Column="1"
@@ -255,7 +271,7 @@
                             <TextBlock Grid.Column="3"
                                        VerticalAlignment="Center"
                                        Text="일차"
-                                       Foreground="{StaticResource Brush.Text}"
+                                       Foreground="{DynamicResource Brush.Text}"
                                        FontWeight="SemiBold"/>
 
                             <ComboBox Grid.Column="4"
@@ -279,7 +295,7 @@
                             <TextBlock Grid.Column="9"
                                        Margin="16,0,0,0"
                                        VerticalAlignment="Center"
-                                       Foreground="{StaticResource Brush.Text2}"
+                                       Foreground="{DynamicResource Brush.Text2}"
                                        FontSize="13">
                                 <TextBlock.Text>
                                     <Binding Path="CurrentFilterText"
@@ -297,11 +313,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Border Grid.Column="0"
-                                CornerRadius="16"
-                                Padding="16"
-                                Background="#17191E"
-                                BorderBrush="#2A2E36"
-                                BorderThickness="1">
+                                Style="{StaticResource PanelCardStyle}">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -309,7 +321,7 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Text="노래 목록"
-                                           Foreground="White"
+                                           Foreground="{DynamicResource Brush.Text}"
                                            FontSize="18"
                                            FontWeight="SemiBold"
                                            Margin="0,0,0,12"/>
@@ -327,47 +339,22 @@
                                           SelectionMode="Single"
                                           SelectionUnit="FullRow"
                                           RowHeaderWidth="0"
-                                          Background="#17191E"
-                                          Foreground="White"
+                                          Background="{DynamicResource Brush.Surface2}"
+                                          Foreground="{DynamicResource Brush.Text}"
                                           FontSize="20"
                                           BorderThickness="0"
-                                          RowBackground="#17191E"
-                                          AlternatingRowBackground="#1D2027"
-                                          HorizontalGridLinesBrush="#2A2E36"
-                                          VerticalGridLinesBrush="#2A2E36">
-
-                                    <DataGrid.Resources>
-                                        <Style x:Key="DisplayTextStyle" TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="White"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                                        </Style>
-
-                                        <Style x:Key="StatusTextStyle" TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="White"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                            <Setter Property="FontWeight" Value="SemiBold"/>
-                                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Status}" Value="가능">
-                                                    <Setter Property="Foreground" Value="#22C55E"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="불가능">
-                                                    <Setter Property="Foreground" Value="#EF4444"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="완료">
-                                                    <Setter Property="Foreground" Value="#60A5FA"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGrid.Resources>
+                                          RowBackground="{DynamicResource Brush.Surface2}"
+                                          AlternatingRowBackground="{DynamicResource Brush.Surface}"
+                                          HorizontalGridLinesBrush="{DynamicResource Brush.Border}"
+                                          VerticalGridLinesBrush="{DynamicResource Brush.Border}"
+                                          AlternationCount="2">
 
                                     <DataGrid.ColumnHeaderStyle>
                                         <Style TargetType="DataGridColumnHeader">
-                                            <Setter Property="Background" Value="#20242C"/>
-                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
                                             <Setter Property="FontWeight" Value="SemiBold"/>
-                                            <Setter Property="BorderBrush" Value="#2A2E36"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
                                             <Setter Property="BorderThickness" Value="0,0,0,1"/>
                                             <Setter Property="Padding" Value="10,8"/>
                                         </Style>
@@ -375,7 +362,7 @@
 
                                     <DataGrid.CellStyle>
                                         <Style TargetType="DataGridCell">
-                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
                                             <Setter Property="Background" Value="Transparent"/>
                                             <Setter Property="BorderThickness" Value="0"/>
                                             <Setter Property="Padding" Value="8,6"/>
@@ -383,7 +370,7 @@
                                             <Style.Triggers>
                                                 <Trigger Property="IsSelected" Value="True">
                                                     <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
                                                     <Setter Property="BorderThickness" Value="0"/>
                                                 </Trigger>
                                             </Style.Triggers>
@@ -392,9 +379,9 @@
 
                                     <DataGrid.RowStyle>
                                         <Style TargetType="DataGridRow">
-                                            <Setter Property="Foreground" Value="White"/>
-                                            <Setter Property="Background" Value="#17191E"/>
-                                            <Setter Property="BorderBrush" Value="#2A2E36"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+                                            <Setter Property="Background" Value="{DynamicResource Brush.Surface2}"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
                                             <Setter Property="BorderThickness" Value="0,0,0,1"/>
                                             <Setter Property="Margin" Value="0,1,0,1"/>
                                             <Setter Property="SnapsToDevicePixels" Value="True"/>
@@ -433,17 +420,17 @@
 
                                             <Style.Triggers>
                                                 <Trigger Property="AlternationIndex" Value="1">
-                                                    <Setter Property="Background" Value="#1D2027"/>
+                                                    <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
                                                 </Trigger>
 
                                                 <Trigger Property="IsSelected" Value="True">
-                                                    <Setter Property="Background" Value="#11263A"/>
+                                                    <Setter Property="Background" Value="#DCEEFF"/>
                                                     <Setter Property="BorderBrush" Value="#38BDF8"/>
                                                     <Setter Property="BorderThickness" Value="2"/>
                                                 </Trigger>
 
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#1A2230"/>
+                                                    <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
                                                 </Trigger>
 
                                                 <MultiTrigger>
@@ -451,7 +438,7 @@
                                                         <Condition Property="IsSelected" Value="True"/>
                                                         <Condition Property="IsMouseOver" Value="True"/>
                                                     </MultiTrigger.Conditions>
-                                                    <Setter Property="Background" Value="#15314A"/>
+                                                    <Setter Property="Background" Value="#CFE8FF"/>
                                                     <Setter Property="BorderBrush" Value="#38BDF8"/>
                                                     <Setter Property="BorderThickness" Value="2"/>
                                                 </MultiTrigger>
@@ -507,11 +494,7 @@
                         </Border>
 
                         <Border Grid.Column="2"
-                                CornerRadius="16"
-                                Padding="16"
-                                Background="#17191E"
-                                BorderBrush="#2A2E36"
-                                BorderThickness="1">
+                                Style="{StaticResource PanelCardStyle}">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -531,7 +514,7 @@
 
                                 <TextBlock Grid.Row="0"
                                            Text="가사"
-                                           Foreground="White"
+                                           Foreground="{DynamicResource Brush.Text}"
                                            FontSize="18"
                                            FontWeight="SemiBold"/>
 
@@ -580,12 +563,12 @@
                                         </Grid.ColumnDefinitions>
 
                                         <TextBlock Grid.Column="0"
-                                                   Foreground="#9CA3AF"
+                                                   Foreground="{DynamicResource Brush.Muted}"
                                                    FontSize="12"
                                                    Text="{Binding CurrentTimeText}"/>
 
                                         <TextBlock Grid.Column="2"
-                                                   Foreground="#9CA3AF"
+                                                   Foreground="{DynamicResource Brush.Muted}"
                                                    FontSize="12"
                                                    Text="{Binding TotalDurationText}"/>
                                     </Grid>
@@ -610,12 +593,12 @@
                                                StaysOpen="True"
                                                Focusable="False"
                                                IsHitTestVisible="False">
-                                            <Border Background="#F3F4F6"
-                                                    BorderBrush="#9CA3AF"
+                                            <Border Background="{DynamicResource Brush.Surface}"
+                                                    BorderBrush="{DynamicResource Brush.Border}"
                                                     BorderThickness="1"
                                                     CornerRadius="4"
                                                     Padding="10,4">
-                                                <TextBlock Foreground="#4B5563"
+                                                <TextBlock Foreground="{DynamicResource Brush.Text2}"
                                                            FontSize="12"
                                                            Text="{Binding ElementName=PlaybackSlider,
                                                                           Path=Value,
@@ -630,7 +613,7 @@
                                            TextWrapping="Wrap">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="#9CA3AF"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource Brush.Muted}"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding PlaybackStatusText}" Value="재생 가능">
                                                     <Setter Property="Foreground" Value="#22C55E"/>
@@ -649,19 +632,19 @@
 
                                 <TextBlock Grid.Row="10"
                                            Text="가사"
-                                           Foreground="#9CA3AF"
+                                           Foreground="{DynamicResource Brush.Muted}"
                                            FontSize="13"
                                            FontWeight="SemiBold"/>
 
                                 <Border Grid.Row="12"
-                                        Background="#0F131A"
-                                        BorderBrush="#263041"
+                                        Background="{DynamicResource Brush.Surface}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
                                         BorderThickness="1"
                                         CornerRadius="12"
                                         Padding="14">
                                     <TextBox Background="Transparent"
                                              BorderThickness="0"
-                                             Foreground="White"
+                                             Foreground="{DynamicResource Brush.Text}"
                                              FontSize="20"
                                              FontWeight="SemiBold"
                                              TextWrapping="Wrap"

@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:ScriptureTyping.Views.Behaviors"
-             Background="{StaticResource Brush.Bg}"
+             Background="{DynamicResource Brush.Bg}"
              HorizontalAlignment="Stretch"
              VerticalAlignment="Stretch"
              ClipToBounds="False">
@@ -15,7 +15,7 @@
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
             <Setter Property="Background" Value="#3B82F6"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -46,7 +46,6 @@
         </Style>
     </UserControl.Resources>
 
-    <!--  바깥 ScrollViewer 제거 -->
     <Border Padding="24"
             Margin="{StaticResource Layout.MenuSafeMargin}"
             Background="Transparent">
@@ -62,8 +61,8 @@
 
             <!-- 상단 바 -->
             <Border Grid.Row="0"
-                    Background="{StaticResource Brush.Surface}"
-                    BorderBrush="{StaticResource Brush.Border}"
+                    Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}"
                     BorderThickness="1"
                     CornerRadius="10"
                     Padding="14"
@@ -81,7 +80,7 @@
 
                     <TextBlock Grid.Column="0"
                                Text="과정/일차"
-                               Foreground="{StaticResource Brush.Text2}"
+                               Foreground="{DynamicResource Brush.Text2}"
                                VerticalAlignment="Center"
                                Margin="0,0,10,0"/>
 
@@ -92,7 +91,7 @@
                                   MinWidth="70"/>
 
                         <TextBlock Text="선택"
-                                   Foreground="{StaticResource Brush.Text2}"
+                                   Foreground="{DynamicResource Brush.Text2}"
                                    VerticalAlignment="Center"
                                    Margin="10,0,28,0"
                                    IsHitTestVisible="False">
@@ -119,7 +118,7 @@
                                   MinWidth="70"/>
 
                         <TextBlock Text="선택"
-                                   Foreground="{StaticResource Brush.Text2}"
+                                   Foreground="{DynamicResource Brush.Text2}"
                                    VerticalAlignment="Center"
                                    Margin="10,0,28,0"
                                    IsHitTestVisible="False">
@@ -149,7 +148,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0"
-                                   Foreground="{StaticResource Brush.Text2}"
+                                   Foreground="{DynamicResource Brush.Text2}"
                                    TextWrapping="Wrap">
                             <Run Text="선택된 과정/일차: "/>
                             <Run Text="{Binding SelectedCourse}"/>
@@ -189,8 +188,8 @@
 
             <!-- 본문 -->
             <Border Grid.Row="2"
-                    Background="{StaticResource Brush.Surface}"
-                    BorderBrush="{StaticResource Brush.Border}"
+                    Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}"
                     BorderThickness="1"
                     CornerRadius="10"
                     Padding="18"
@@ -211,8 +210,8 @@
 
                     <!-- 구절 -->
                     <Border Grid.Row="0"
-                            Background="{StaticResource Brush.Bg}"
-                            BorderBrush="{StaticResource Brush.Border}"
+                            Background="{DynamicResource Brush.Bg}"
+                            BorderBrush="{DynamicResource Brush.Border}"
                             BorderThickness="1"
                             CornerRadius="8"
                             Padding="12">
@@ -224,12 +223,11 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="{Binding Typing.CurrentVerseRef}"
-                                           Foreground="{StaticResource Brush.Text2}"
+                                           Foreground="{DynamicResource Brush.Text2}"
                                            FontSize="20"
-                                           
                                            Margin="0,0,0,6"/>
                                 <TextBlock Text="{Binding Typing.CurrentVerseDisplayText}"
-                                           Foreground="{StaticResource Brush.Text}"
+                                           Foreground="{DynamicResource Brush.Text}"
                                            FontSize="20"
                                            TextWrapping="Wrap"
                                            LineHeight="24"/>
@@ -247,16 +245,16 @@
 
                     <!-- 입력 -->
                     <Border Grid.Row="2"
-                            Background="{StaticResource Brush.Bg}"
-                            BorderBrush="{StaticResource Brush.Border}"
+                            Background="{DynamicResource Brush.Bg}"
+                            BorderBrush="{DynamicResource Brush.Border}"
                             BorderThickness="1"
                             CornerRadius="8"
                             Padding="12">
                         <Grid>
                             <TextBox x:Name="TypingBox"
                                      Text="{Binding Typing.UserTypedText, UpdateSourceTrigger=PropertyChanged}"
-                                     Foreground="{StaticResource Brush.Text}"
-                                     CaretBrush="{StaticResource Brush.Text}"
+                                     Foreground="{DynamicResource Brush.Text}"
+                                     CaretBrush="{DynamicResource Brush.Text}"
                                      Background="Transparent"
                                      BorderThickness="0"
                                      FontSize="20"
@@ -268,7 +266,7 @@
                                      IsReadOnly="{Binding Typing.IsTypingLocked}"/>
 
                             <TextBlock Text="여기에 타이핑하세요…"
-                                       Foreground="{StaticResource Brush.Text2}"
+                                       Foreground="{DynamicResource Brush.Text2}"
                                        FontSize="20"
                                        IsHitTestVisible="False"
                                        Margin="8,6,0,0"
@@ -292,7 +290,7 @@
 
                     <TextBlock Grid.Row="3"
                                Text="{Binding Typing.CurrentMistakeCount, Mode=OneWay, StringFormat=오타 {0}개}"
-                               Foreground="{StaticResource Brush.Text2}"
+                               Foreground="{DynamicResource Brush.Text2}"
                                FontSize="13"
                                Margin="6,6,0,0"/>
 
@@ -307,8 +305,8 @@
 
                     <!-- 결과 패널 -->
                     <Border Grid.Row="7"
-                            Background="{StaticResource Brush.Bg}"
-                            BorderBrush="{StaticResource Brush.Border}"
+                            Background="{DynamicResource Brush.Bg}"
+                            BorderBrush="{DynamicResource Brush.Border}"
                             BorderThickness="1"
                             CornerRadius="10"
                             Padding="12"
@@ -324,14 +322,14 @@
 
                             <TextBlock Grid.Row="0"
                                        Text="결과"
-                                       Foreground="{StaticResource Brush.Text}"
+                                       Foreground="{DynamicResource Brush.Text}"
                                        FontSize="14"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,6"/>
 
                             <TextBlock Grid.Row="1"
                                        Text="{Binding Typing.StatsSummary}"
-                                       Foreground="{StaticResource Brush.Text2}"
+                                       Foreground="{DynamicResource Brush.Text2}"
                                        FontSize="13"
                                        Margin="0,0,0,10"/>
 
@@ -349,8 +347,11 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!-- 정답 -->
-                                <Border Grid.Row="0" Grid.Column="0"
-                                        Background="#0FFFFFFF"
+                                <Border Grid.Row="0"
+                                        Grid.Column="0"
+                                        Background="{DynamicResource Brush.Surface2}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="10">
                                     <Grid>
@@ -361,7 +362,7 @@
 
                                         <TextBlock Grid.Row="0"
                                                    Text="정답"
-                                                   Foreground="{StaticResource Brush.Text}"
+                                                   Foreground="{DynamicResource Brush.Text}"
                                                    FontWeight="SemiBold"
                                                    FontSize="20"
                                                    Margin="0,0,0,8"/>
@@ -375,13 +376,13 @@
                                                         <Border Padding="8"
                                                                 Margin="0,0,0,6"
                                                                 CornerRadius="6"
-                                                                Background="#0FFFFFFF">
+                                                                Background="{DynamicResource Brush.Surface}">
                                                             <StackPanel>
                                                                 <TextBlock Text="{Binding Ref}"
-                                                                           Foreground="{StaticResource Brush.Text2}"
+                                                                           Foreground="{DynamicResource Brush.Text2}"
                                                                            FontSize="12"/>
                                                                 <TextBlock Text="{Binding Expected}"
-                                                                           Foreground="{StaticResource Brush.Text}"
+                                                                           Foreground="{DynamicResource Brush.Text}"
                                                                            TextWrapping="Wrap"
                                                                            Margin="0,4,0,0"/>
                                                             </StackPanel>
@@ -394,8 +395,11 @@
                                 </Border>
 
                                 <!-- 오답 -->
-                                <Border Grid.Row="0" Grid.Column="2"
-                                        Background="#0FFFFFFF"
+                                <Border Grid.Row="0"
+                                        Grid.Column="2"
+                                        Background="{DynamicResource Brush.Surface2}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="10">
                                     <Grid>
@@ -406,7 +410,7 @@
 
                                         <TextBlock Grid.Row="0"
                                                    Text="오답"
-                                                   Foreground="{StaticResource Brush.Text}"
+                                                   Foreground="{DynamicResource Brush.Text}"
                                                    FontWeight="SemiBold"
                                                    FontSize="20"
                                                    Margin="0,0,0,8"/>
@@ -420,30 +424,32 @@
                                                         <Border Padding="8"
                                                                 Margin="0,0,0,6"
                                                                 CornerRadius="6"
-                                                                Background="#0FFFFFFF">
+                                                                Background="{DynamicResource Brush.Surface}">
                                                             <StackPanel>
                                                                 <TextBlock Text="{Binding Ref}"
-                                                                           Foreground="{StaticResource Brush.Text2}"
+                                                                           Foreground="{DynamicResource Brush.Text2}"
                                                                            FontSize="12"/>
 
                                                                 <TextBlock Text="{Binding Expected}"
-                                                                           Foreground="{StaticResource Brush.Text}"
+                                                                           Foreground="{DynamicResource Brush.Text}"
                                                                            TextWrapping="Wrap"
                                                                            Margin="0,4,0,0"/>
 
                                                                 <Border Margin="0,8,0,0"
                                                                         Padding="8"
                                                                         CornerRadius="6"
-                                                                        Background="#12000000">
+                                                                        Background="{DynamicResource Brush.Surface2}"
+                                                                        BorderBrush="{DynamicResource Brush.Border}"
+                                                                        BorderThickness="1">
                                                                     <StackPanel>
                                                                         <TextBlock FontSize="16"
-                                                                                   Foreground="{StaticResource Brush.Text}"
+                                                                                   Foreground="{DynamicResource Brush.Text}"
                                                                                    TextWrapping="Wrap"
                                                                                    FontFamily="D2Coding, Consolas"
                                                                                    behaviors:InlineTextBlockBehavior.InlinesSource="{Binding TypedDiffInlines}" />
 
                                                                         <TextBlock FontSize="14"
-                                                                                   Foreground="{StaticResource Brush.Text2}"
+                                                                                   Foreground="{DynamicResource Brush.Text2}"
                                                                                    TextWrapping="Wrap"
                                                                                    Margin="0,6,0,0"
                                                                                    FontFamily="D2Coding, Consolas"
@@ -452,7 +458,7 @@
                                                                 </Border>
 
                                                                 <TextBlock Text="{Binding MistakeCount, StringFormat=오타 {0}개}"
-                                                                           Foreground="{StaticResource Brush.Text2}"
+                                                                           Foreground="{DynamicResource Brush.Text2}"
                                                                            FontSize="12"
                                                                            Margin="0,6,0,0"/>
                                                             </StackPanel>
@@ -465,8 +471,11 @@
                                 </Border>
 
                                 <!-- 아래: 비율 + 점수 -->
-                                <Border Grid.Row="2" Grid.ColumnSpan="3"
-                                        Background="#0FFFFFFF"
+                                <Border Grid.Row="2"
+                                        Grid.ColumnSpan="3"
+                                        Background="{DynamicResource Brush.Surface2}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="12">
                                     <Grid>
@@ -484,28 +493,30 @@
 
                                         <StackPanel Grid.Row="0" Grid.Column="0">
                                             <TextBlock Text="{Binding Typing.CorrectRatePercent, StringFormat=정답 비율 {0}%}"
-                                                       Foreground="{StaticResource Brush.Text2}"
+                                                       Foreground="{DynamicResource Brush.Text2}"
                                                        FontSize="20"
                                                        Margin="0,0,0,6"/>
-                                            <!--  FIX: ProgressBar.Value는 TwoWay 성격이 섞여서 예외 날 수 있음 → OneWay로 고정 -->
-                                            <ProgressBar Minimum="0" Maximum="100" Height="10"
+                                            <ProgressBar Minimum="0"
+                                                         Maximum="100"
+                                                         Height="10"
                                                          Value="{Binding Typing.CorrectRatePercent, Mode=OneWay}"/>
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="0" Grid.Column="2">
                                             <TextBlock Text="{Binding Typing.WrongRatePercent, StringFormat=오답 비율 {0}%}"
-                                                       Foreground="{StaticResource Brush.Text2}"
+                                                       Foreground="{DynamicResource Brush.Text2}"
                                                        FontSize="20"
                                                        Margin="0,0,0,6"/>
-                                            <!--  FIX: 여기도 동일 -->
-                                            <ProgressBar Minimum="0" Maximum="100" Height="10"
+                                            <ProgressBar Minimum="0"
+                                                         Maximum="100"
+                                                         Height="10"
                                                          Value="{Binding Typing.WrongRatePercent, Mode=OneWay}"/>
                                         </StackPanel>
 
                                         <TextBlock Grid.Row="2"
                                                    Grid.ColumnSpan="3"
                                                    Text="{Binding Typing.ScoreOutOf100, StringFormat=점수: {0}점 / 100점}"
-                                                   Foreground="{StaticResource Brush.Text}"
+                                                   Foreground="{DynamicResource Brush.Text}"
                                                    FontWeight="SemiBold"
                                                    HorizontalAlignment="Center"
                                                    Margin="0,10,0,0"/>

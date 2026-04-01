@@ -14,5 +14,10 @@ namespace ScriptureTyping
         {
             ThemeService.ToggleTheme();
         }
+
+        private void MainMenu_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

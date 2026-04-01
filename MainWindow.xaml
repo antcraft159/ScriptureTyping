@@ -129,93 +129,62 @@
                                         CornerRadius="12"
                                         Background="{DynamicResource Brush.Surface2}"
                                         BorderBrush="{DynamicResource Brush.Border}"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Center"
                                         BorderThickness="1">
                                     <Grid>
                                         <Grid.RowDefinitions>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="12"/>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="12"/>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="12"/>
-                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="0*"/>
+                                            <RowDefinition Height="85.333"/>
+                                            <RowDefinition/>
                                         </Grid.RowDefinitions>
 
-                                        <Grid Grid.Row="0">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            
-                                            <TextBlock Grid.Column="2"
-                                                       Text="{Binding CurrentYearText}"
+                                        <!-- 년 / 월 / 일 한 줄 -->
+                                        <StackPanel
+                                                    Orientation="Horizontal"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center" Height="40" Width="160" Grid.Row="1">
+                                            <TextBlock Text="{Binding CurrentYearText}"
                                                        FontSize="30"
                                                        FontWeight="Bold"
                                                        Foreground="{DynamicResource Brush.Text}"
-                                                       VerticalAlignment="Center"
-                                                       HorizontalAlignment="Center"/>
-                                        </Grid>
-
-                                        <Grid Grid.Row="2">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBlock Grid.Column="2"
-                                                       Text="{Binding CurrentMonthText}"
-                                                       FontSize="30"
-                                                       FontWeight="Bold"
-                                                       Foreground="{DynamicResource Brush.Text}"
-                                                       VerticalAlignment="Center"
-                                                       HorizontalAlignment="Left"/>
-                                        </Grid>
-
-                                        <Grid Grid.Row="4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBlock Grid.Column="2"
-                                                       Text="{Binding CurrentDayText}"
-                                                       FontSize="30"
-                                                       FontWeight="Bold"
-                                                       Foreground="{DynamicResource Brush.Text}"
-                                                       VerticalAlignment="Center"
-                                                       HorizontalAlignment="Right"/>
-                                        </Grid>
-
-                                        <Grid Grid.Row="6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBlock Text="시간"
-                                                       FontSize="18"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource Brush.Muted}"
                                                        VerticalAlignment="Center"/>
 
-                                            <TextBlock Grid.Column="2"
-                                                       Text="{Binding CurrentClockText}"
+                                            <TextBlock Text=" "
                                                        FontSize="30"
                                                        FontWeight="Bold"
                                                        Foreground="{DynamicResource Brush.Text}"
-                                                       VerticalAlignment="Center"
-                                                       HorizontalAlignment="Right"/>
-                                        </Grid>
+                                                       VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="{Binding CurrentMonthText}"
+                                                       FontSize="30"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource Brush.Text}"
+                                                       VerticalAlignment="Center"/>
+
+                                            <TextBlock Text=" "
+                                                       FontSize="30"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource Brush.Text}"
+                                                       VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="{Binding CurrentDayText}"
+                                                       FontSize="30"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource Brush.Text}"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+
+                                        <!-- 시간 -->
+                                        <TextBlock Grid.Row="2"
+                                                   Text="{Binding CurrentClockText}"
+                                                   FontSize="45"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource Brush.Text}"
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Bottom" Height="70" Width="210" Margin="0,0,0,60"/>
                                     </Grid>
                                 </Border>
 
-                                <!-- 오른쪽 일정 정보 -->
+                                <!-- 일정 정보 -->
                                 <Border Grid.Column="2"
                                         Padding="18"
                                         CornerRadius="12"
@@ -223,21 +192,16 @@
                                         BorderBrush="{DynamicResource Brush.Border}"
                                         BorderThickness="1">
                                     <StackPanel>
-                                        <TextBlock Text="{Binding TodayScheduleText}"
-                                                   Foreground="{DynamicResource Brush.Text}"
-                                                   FontSize="18"
-                                                   Margin="0,0,0,14"
-                                                   TextWrapping="Wrap"/>
-
                                         <TextBlock Text="{Binding CurrentScheduleText}"
-                                                   Foreground="{DynamicResource Brush.Text}"
-                                                   FontSize="18"
+                                                   Foreground="LightSkyBlue"
+                                                   FontSize="35"
+                                                   FontWeight="DemiBold"
                                                    Margin="0,0,0,14"
                                                    TextWrapping="Wrap"/>
 
                                         <TextBlock Text="{Binding NextScheduleText}"
                                                    Foreground="{DynamicResource Brush.Text}"
-                                                   FontSize="18"
+                                                   FontSize="25"
                                                    TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
@@ -301,7 +265,8 @@
             <views:MainMenu DataContext="{Binding MenuViewModel}"
                             Panel.ZIndex="300"
                             HorizontalAlignment="Left"
-                            VerticalAlignment="Stretch"/>
+                            VerticalAlignment="Stretch"
+                            Loaded="MainMenu_Loaded"/>
         </Grid>
 
         <!-- StatusBar -->

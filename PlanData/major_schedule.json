@@ -7,16 +7,16 @@
       "dayIndex": 0,
       "weekday": "월",
       "startTime": "11:00",
-      "endTime": "21:00",
+      "endTime": "17:02",
       "title": "선발대 활동"
     },
     {
-      "date": "08-18",
+      "date": "04-01",
       "dateLabel": "8/18(월)",
       "dayLabel": "사전일정",
       "dayIndex": 0,
       "weekday": "월",
-      "startTime": "21:00",
+      "startTime": "17:02",
       "endTime": "24:00",
       "title": "자율학습"
     },

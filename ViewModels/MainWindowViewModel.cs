@@ -280,9 +280,7 @@ namespace ScriptureTyping.ViewModels
         private void UpdateScheduleInfo()
         {
             DateTime now = DateTime.Now;
-            var todaySchedules = _scheduleService.GetTodaySchedules(now);
             var currentSchedule = _scheduleService.GetCurrentSchedule(now);
-            var nextSchedule = _scheduleService.GetNextSchedule(now);
 
             CurrentYearText = now.ToString("yyyy");
             CurrentMonthText = now.ToString("MM");
@@ -290,33 +288,16 @@ namespace ScriptureTyping.ViewModels
             CurrentClockText = _scheduleService.FormatTime(now.TimeOfDay);
             CurrentTimeText = $"현재 시간: {CurrentClockText}";
 
-            if (todaySchedules.Count > 0)
-            {
-                var first = todaySchedules[0];
-                TodayScheduleText = $"오늘 일정: {first.DayLabel} / {first.DateLabel}";
-            }
-            else
-            {
-                TodayScheduleText = $"오늘 일정: {now:MM/dd} / 등록된 일정 없음";
-            }
-
             if (currentSchedule is null)
             {
                 CurrentScheduleText = "현재 일정: 현재 진행 중인 일정 없음";
             }
             else
             {
-                CurrentScheduleText = $"현재 일정: {_scheduleService.FormatRange(currentSchedule)}  {currentSchedule.Title}";
+                CurrentScheduleText = $"현재 일정: {_scheduleService.FormatRange(currentSchedule)}\n\n{currentSchedule.Title}";
             }
 
-            if (nextSchedule is null)
-            {
-                NextScheduleText = "다음 일정: 오늘 남은 일정 없음";
-            }
-            else
-            {
-                NextScheduleText = $"다음 일정: {_scheduleService.FormatRange(nextSchedule)}  {nextSchedule.Title}";
-            }
+            NextScheduleText = _scheduleService.BuildNextScheduleMessage(now);
         }
 
         private void StopCurrentContentIfNeeded()

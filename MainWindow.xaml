@@ -3,14 +3,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:ScriptureTyping.ViewModels"
         xmlns:views="clr-namespace:ScriptureTyping.Views"
-        Width="1500"
-        Height="1000"
+        Width="1200"
+        Height="800"
+        MinWidth="1200"
+        MinHeight="800"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource Brush.Bg}">
+        Background="{DynamicResource Brush.Bg}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
 
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -25,7 +33,6 @@
                 Padding="14,10">
             <DockPanel LastChildFill="True">
 
-                <!-- 오른쪽 끝 버튼 -->
                 <Button DockPanel.Dock="Right"
                         Width="110"
                         Height="32"
@@ -39,31 +46,249 @@
                         Cursor="Hand"
                         VerticalAlignment="Center"/>
 
-                <!-- 왼쪽 제목 -->
-                <TextBlock Text="{Binding Title}"
-                           Foreground="{DynamicResource Brush.Text}"
-                           FontSize="16"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Button Width="52"
+                            Height="32"
+                            Margin="0,0,10,0"
+                            Content="홈"
+                            Command="{Binding GoHomeCommand}"
+                            Background="{DynamicResource Brush.Surface2}"
+                            Foreground="{DynamicResource Brush.Text}"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            Cursor="Hand"
+                            VerticalAlignment="Center"/>
+
+                    <TextBlock Text="{Binding Title}"
+                               Foreground="{DynamicResource Brush.Text}"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
             </DockPanel>
         </Border>
 
-        <!-- Main: 콘텐츠는 오른쪽으로 "손잡이 폭만큼"만 밀고, 메뉴는 오버레이 -->
+        <!-- Main -->
         <Grid Grid.Row="1"
               Background="{DynamicResource Brush.Bg}"
-              ClipToBounds="False">
+              ClipToBounds="True">
 
-            <!-- 화면 전환 콘텐츠: MENU 손잡이(피크) 폭만큼만 안전 여백 확보 -->
             <ContentControl Content="{Binding CurrentContentViewModel}"
                             Margin="{StaticResource Layout.MenuPeekMargin}"
                             HorizontalContentAlignment="Stretch"
                             VerticalContentAlignment="Stretch"/>
 
-            <!-- 메뉴: 항상 위로 덮어서 -->
+            <!-- 홈 화면일 때만 보이는 메인 대시보드 -->
+            <Grid Margin="{StaticResource Layout.MenuSafeMargin}"
+                  Panel.ZIndex="100"
+                  Visibility="{Binding IsHomeVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.85*"/>
+                    <ColumnDefinition Width="24"/>
+                    <ColumnDefinition Width="1.25*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 실시간 일정 안내 -->
+                <Border Grid.Column="0"
+                        Margin="24,24,0,24"
+                        Padding="20"
+                        CornerRadius="16"
+                        Background="{DynamicResource Brush.Surface}"
+                        BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1"
+                        VerticalAlignment="Top">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="실시간 일정 안내"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+
+                        <Viewbox Grid.Row="2"
+                                 Stretch="Uniform"
+                                 StretchDirection="DownOnly"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Top">
+                            <Grid Width="940"
+                                  Height="320">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="290"/>
+                                    <ColumnDefinition Width="24"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 왼쪽 날짜/시간 -->
+                                <Border Grid.Column="0"
+                                        Padding="18"
+                                        CornerRadius="12"
+                                        Background="{DynamicResource Brush.Surface2}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1">
+                                    <Grid>
+                                        <StackPanel HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center">
+                                            <!-- 년 / 월 / 일 한 줄 -->
+                                            <StackPanel Orientation="Horizontal"
+                                                        HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding CurrentYearText}"
+                                                           FontSize="30"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource Brush.Text}"
+                                                           VerticalAlignment="Center"/>
+
+                                                <TextBlock Text=" "
+                                                           FontSize="30"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource Brush.Text}"
+                                                           VerticalAlignment="Center"/>
+
+                                                <TextBlock Text="{Binding CurrentMonthText}"
+                                                           FontSize="30"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource Brush.Text}"
+                                                           VerticalAlignment="Center"/>
+
+                                                <TextBlock Text=" "
+                                                           FontSize="30"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource Brush.Text}"
+                                                           VerticalAlignment="Center"/>
+
+                                                <TextBlock Text="{Binding CurrentDayText}"
+                                                           FontSize="30"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource Brush.Text}"
+                                                           VerticalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <!-- 시간 -->
+                                            <TextBlock Text="{Binding CurrentClockText}"
+                                                       FontSize="45"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource Brush.Text}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       TextAlignment="Center"
+                                                       TextWrapping="NoWrap"
+                                                       Width="250"
+                                                       Margin="0,28,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 일정 정보 -->
+                                <Border Grid.Column="2"
+                                        Padding="18"
+                                        CornerRadius="12"
+                                        Background="{DynamicResource Brush.Surface2}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding CurrentScheduleText}"
+                                                   Foreground="LightSkyBlue"
+                                                   FontSize="35"
+                                                   FontWeight="DemiBold"
+                                                   Margin="0,0,0,14"
+                                                   TextWrapping="Wrap"/>
+
+                                        <TextBlock Text="{Binding NextScheduleText}"
+                                                   Foreground="{DynamicResource Brush.Text}"
+                                                   FontSize="25"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Viewbox>
+                    </Grid>
+                </Border>
+
+                <!-- 주요일정 -->
+                <Border Grid.Column="2"
+                        Margin="0,24,24,24"
+                        Padding="20"
+                        CornerRadius="16"
+                        Background="{DynamicResource Brush.Surface}"
+                        BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1">
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="주요일정"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Brush.Text}"/>
+
+                        <Border Grid.Row="2"
+                                Background="{DynamicResource Brush.Bg}"
+                                BorderBrush="{DynamicResource Brush.Border}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                ClipToBounds="True">
+
+                            <Border x:Name="MainPlanViewport"
+                                    Background="Transparent"
+                                    PreviewMouseWheel="MainPlanViewport_PreviewMouseWheel"
+                                    MouseLeftButtonDown="MainPlanViewport_MouseLeftButtonDown"
+                                    MouseMove="MainPlanViewport_MouseMove"
+                                    MouseLeftButtonUp="MainPlanViewport_MouseLeftButtonUp"
+                                    MouseLeave="MainPlanViewport_MouseLeave"
+                                    MouseRightButtonUp="MainPlanViewport_MouseRightButtonUp"
+                                    Cursor="Hand">
+
+                                <Grid x:Name="MainPlanContent"
+                                      IsHitTestVisible="False"
+                                      RenderTransformOrigin="0,0">
+                                    <Grid.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform x:Name="MainPlanScaleTransform"
+                                                            ScaleX="1"
+                                                            ScaleY="1"/>
+                                            <TranslateTransform x:Name="MainPlanTranslateTransform"
+                                                                X="0"
+                                                                Y="0"/>
+                                        </TransformGroup>
+                                    </Grid.RenderTransform>
+
+                                    <Image Source="{Binding PlanImagePath}"
+                                           Stretch="Uniform"
+                                           StretchDirection="Both"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"
+                                           SnapsToDevicePixels="True"
+                                           UseLayoutRounding="True"/>
+
+                                    <TextBlock Text="{Binding PlanImageMessage}"
+                                               Foreground="{DynamicResource Brush.Muted}"
+                                               FontSize="16"
+                                               TextAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               Margin="12"/>
+                                </Grid>
+                            </Border>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+
             <views:MainMenu DataContext="{Binding MenuViewModel}"
                             Panel.ZIndex="300"
                             HorizontalAlignment="Left"
-                            VerticalAlignment="Stretch"/>
+                            VerticalAlignment="Stretch"
+                            Loaded="MainMenu_Loaded"/>
         </Grid>
 
         <!-- StatusBar -->

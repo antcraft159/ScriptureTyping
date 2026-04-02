@@ -280,13 +280,28 @@ namespace ScriptureTyping.ViewModels
         private void UpdateScheduleInfo()
         {
             DateTime now = DateTime.Now;
-            var currentSchedule = _scheduleService.GetCurrentSchedule(now);
 
             CurrentYearText = now.ToString("yyyy");
             CurrentMonthText = now.ToString("MM");
             CurrentDayText = now.ToString("dd");
             CurrentClockText = _scheduleService.FormatTime(now.TimeOfDay);
             CurrentTimeText = $"현재 시간: {CurrentClockText}";
+
+            if (_scheduleService.ShouldShowOpeningCountdown(now))
+            {
+                CurrentScheduleText = _scheduleService.BuildOpeningCountdownMessage(now);
+                NextScheduleText = _scheduleService.GetPreparationSecondaryMessage();
+                return;
+            }
+
+            if (_scheduleService.IsAllSchedulesFinished(now) || _scheduleService.IsBeforeFirstSchedule(now))
+            {
+                CurrentScheduleText = _scheduleService.GetFinishedPrimaryMessage();
+                NextScheduleText = _scheduleService.GetFinishedSecondaryMessage();
+                return;
+            }
+
+            var currentSchedule = _scheduleService.GetCurrentSchedule(now);
 
             if (currentSchedule is null)
             {

@@ -1,10 +1,12 @@
-﻿using System;
+﻿using ScriptureTyping.Data;
+using ScriptureTyping.Shared.Infrastructure;
+using ScriptureTyping.Shared.Models.Schedule;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using ScriptureTyping.PlanData;
 
 namespace ScriptureTyping.Services
 {
@@ -333,44 +335,27 @@ namespace ScriptureTyping.Services
                 return new List<ScheduleItem>();
             }
 
-            string json = File.ReadAllText(path);
-
-            JsonSerializerOptions options = new JsonSerializerOptions
+            try
             {
-                PropertyNameCaseInsensitive = true
-            };
+                string json = File.ReadAllText(path);
+                ScheduleRoot? root = JsonSerializer.Deserialize<ScheduleRoot>(json, JsonOptionsProvider.Default);
 
-            ScheduleRoot? root = JsonSerializer.Deserialize<ScheduleRoot>(json, options);
+                if (root?.OverallSchedule is null)
+                {
+                    return new List<ScheduleItem>();
+                }
 
-            if (root?.OverallSchedule is null)
+                return root.OverallSchedule.ToList();
+            }
+            catch
             {
                 return new List<ScheduleItem>();
             }
-
-            return root.OverallSchedule.ToList();
         }
 
         private static string ResolveScheduleJsonPath()
         {
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
-            string[] candidates =
-            {
-                Path.Combine(baseDirectory, "PlanData", "major_schedule.json"),
-                Path.GetFullPath(Path.Combine(baseDirectory, @"..\..\..\PlanData\major_schedule.json")),
-                Path.GetFullPath(Path.Combine(baseDirectory, @"..\..\..\..\PlanData\major_schedule.json")),
-                Path.Combine(Environment.CurrentDirectory, "PlanData", "major_schedule.json")
-            };
-
-            foreach (string candidate in candidates)
-            {
-                if (File.Exists(candidate))
-                {
-                    return candidate;
-                }
-            }
-
-            return string.Empty;
+            return DataFilePaths.GetMajorSchedulePath();
         }
 
         private static TimeSpan ParseTime(string timeText)

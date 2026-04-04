@@ -1,0 +1,762 @@
+{
+  "overallSchedule": [
+    {
+      "date": "2026-08-18",
+      "dateLabel": "8/18(월)",
+      "dayLabel": "사전일정",
+      "dayIndex": 0,
+      "weekday": "월",
+      "startTime": "11:00",
+      "endTime": "17:12",
+      "title": "선발대 활동"
+    },
+    {
+      "date": "2026-08-18",
+      "dateLabel": "8/18(월)",
+      "dayLabel": "사전일정",
+      "dayIndex": 0,
+      "weekday": "월",
+      "startTime": "17:12",
+      "endTime": "17:23",
+      "title": "자율학습"
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "07:00",
+      "endTime": "07:30",
+      "title": "기상 및 세면"
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "07:30",
+      "endTime": "08:00",
+      "title": "조별 QT"
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "title": "아침식사"
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "09:30",
+      "endTime": "10:00",
+      "title": "조장모임"
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "10:00",
+      "endTime": "11:00",
+      "title": "일일시험 / 찬양·특송",
+      "subItems": [
+        {
+          "title": "일일시험",
+          "durationMinutes": 50
+        },
+        {
+          "title": "찬양/특송",
+          "durationMinutes": 10
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "11:00",
+      "endTime": "12:30",
+      "title": "말씀1",
+      "durationMinutes": 90,
+      "campusSpeakers": {
+        "seoul": "신용철 목사",
+        "gwangju": "양상용 목사"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "12:30",
+      "endTime": "13:00",
+      "title": "오리엔테이션",
+      "durationMinutes": 30
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "13:00",
+      "endTime": "14:30",
+      "title": "조별식사"
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "14:30",
+      "endTime": "16:00",
+      "title": "1일차 맥잡기",
+      "durationMinutes": 90,
+      "campusSpeakers": {
+        "seoul": "송정훈 목사",
+        "gwangju": "노민하 목사"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "16:00",
+      "endTime": "17:30",
+      "title": "조별활동",
+      "durationMinutes": 90
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "17:30",
+      "endTime": "18:00",
+      "title": "채점 및 청소",
+      "durationMinutes": 30
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "18:00",
+      "endTime": "19:00",
+      "title": "저녁식사"
+    },
+    {
+      "date": "2026-08-19",
+      "dateLabel": "8/19(화)",
+      "dayLabel": "1일차",
+      "dayIndex": 1,
+      "weekday": "화",
+      "startTime": "19:00",
+      "endTime": "24:00",
+      "title": "자율학습"
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "07:00",
+      "endTime": "07:30",
+      "title": "기상 및 세면"
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "07:30",
+      "endTime": "08:00",
+      "title": "조별 QT"
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "title": "아침식사"
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "09:30",
+      "endTime": "10:00",
+      "title": "조장모임"
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "10:00",
+      "endTime": "11:00",
+      "title": "일일시험 / 찬양·특송",
+      "subItems": [
+        {
+          "title": "일일시험",
+          "durationMinutes": 50
+        },
+        {
+          "title": "찬양/특송",
+          "durationMinutes": 10
+        }
+      ]
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "11:00",
+      "endTime": "12:30",
+      "title": "2일차 맥잡기",
+      "durationMinutes": 90,
+      "campusSpeakers": {
+        "seoul": "심방식 목사",
+        "gwangju": "박종욱 목사"
+      }
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "12:30",
+      "endTime": "13:00",
+      "title": "우수 발갈이 및 전도사례 발표",
+      "durationMinutes": 30
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "13:00",
+      "endTime": "14:30",
+      "title": "조별식사"
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "14:30",
+      "endTime": "16:00",
+      "title": "조별활동",
+      "durationMinutes": 90
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "16:00",
+      "endTime": "16:30",
+      "title": "채점 및 청소",
+      "durationMinutes": 30
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "16:30",
+      "endTime": "18:00",
+      "title": "자율학습",
+      "durationMinutes": 90
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "18:00",
+      "endTime": "19:00",
+      "title": "저녁식사"
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "title": "수요말씀"
+    },
+    {
+      "date": "2026-08-20",
+      "dateLabel": "8/20(수)",
+      "dayLabel": "2일차",
+      "dayIndex": 2,
+      "weekday": "수",
+      "startTime": "21:00",
+      "endTime": "24:00",
+      "title": "자율학습"
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "07:00",
+      "endTime": "07:30",
+      "title": "기상 및 세면"
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "07:30",
+      "endTime": "08:00",
+      "title": "조별 QT"
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "title": "아침식사"
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "09:30",
+      "endTime": "10:00",
+      "title": "조장모임"
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "10:00",
+      "endTime": "11:00",
+      "title": "일일시험 / 찬양·특송",
+      "subItems": [
+        {
+          "title": "일일시험",
+          "durationMinutes": 50
+        },
+        {
+          "title": "찬양/특송",
+          "durationMinutes": 10
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "11:00",
+      "endTime": "12:30",
+      "title": "3일차 맥잡기",
+      "durationMinutes": 90,
+      "campusSpeakers": {
+        "seoul": "김병교 목사",
+        "gwangju": "이태훈 목사"
+      }
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "12:30",
+      "endTime": "13:00",
+      "title": "우수 발갈이 및 전도사례 발표",
+      "durationMinutes": 30
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "13:00",
+      "endTime": "14:30",
+      "title": "조별식사"
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "14:30",
+      "endTime": "16:00",
+      "title": "조별활동",
+      "durationMinutes": 90
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "16:00",
+      "endTime": "16:30",
+      "title": "채점 및 청소",
+      "durationMinutes": 30
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "16:30",
+      "endTime": "18:00",
+      "title": "자율학습",
+      "durationMinutes": 90
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "18:00",
+      "endTime": "19:00",
+      "title": "저녁식사"
+    },
+    {
+      "date": "2026-08-21",
+      "dateLabel": "8/21(목)",
+      "dayLabel": "3일차",
+      "dayIndex": 3,
+      "weekday": "목",
+      "startTime": "19:00",
+      "endTime": "24:00",
+      "title": "자율학습"
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "07:00",
+      "endTime": "07:30",
+      "title": "기상 및 세면"
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "07:30",
+      "endTime": "08:00",
+      "title": "조별 QT"
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "title": "아침식사"
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "09:30",
+      "endTime": "10:00",
+      "title": "조장모임"
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "10:00",
+      "endTime": "11:00",
+      "title": "일일시험 / 찬양·특송",
+      "subItems": [
+        {
+          "title": "일일시험",
+          "durationMinutes": 50
+        },
+        {
+          "title": "찬양/특송",
+          "durationMinutes": 10
+        }
+      ]
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "11:00",
+      "endTime": "12:30",
+      "title": "4일차 맥잡기",
+      "durationMinutes": 90,
+      "campusSpeakers": {
+        "seoul": "손정락 목사",
+        "gwangju": "신용민 목사"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "12:30",
+      "endTime": "13:00",
+      "title": "우수 발갈이 및 전도사례 발표",
+      "durationMinutes": 30
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "13:00",
+      "endTime": "14:30",
+      "title": "조별식사"
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "14:30",
+      "endTime": "16:00",
+      "title": "테마특강",
+      "durationMinutes": 90
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "16:00",
+      "endTime": "17:30",
+      "title": "조별활동",
+      "durationMinutes": 90
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "17:30",
+      "endTime": "18:00",
+      "title": "채점 및 청소",
+      "durationMinutes": 30
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "18:00",
+      "endTime": "19:00",
+      "title": "저녁식사"
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "19:00",
+      "endTime": "21:00",
+      "title": "유학생 교제",
+      "durationMinutes": 120
+    },
+    {
+      "date": "2026-08-22",
+      "dateLabel": "8/22(금)",
+      "dayLabel": "4일차",
+      "dayIndex": 4,
+      "weekday": "금",
+      "startTime": "21:00",
+      "endTime": "24:00",
+      "title": "자유교제"
+    },
+    {
+      "date": "2026-08-23",
+      "dateLabel": "8/23(토)",
+      "dayLabel": "5일차",
+      "dayIndex": 5,
+      "weekday": "토",
+      "startTime": "07:00",
+      "endTime": "07:30",
+      "title": "기상 및 세면"
+    },
+    {
+      "date": "2026-08-23",
+      "dateLabel": "8/23(토)",
+      "dayLabel": "5일차",
+      "dayIndex": 5,
+      "weekday": "토",
+      "startTime": "07:30",
+      "endTime": "08:00",
+      "title": "조별 QT"
+    },
+    {
+      "date": "2026-08-23",
+      "dateLabel": "8/23(토)",
+      "dayLabel": "5일차",
+      "dayIndex": 5,
+      "weekday": "토",
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "title": "아침식사"
+    },
+    {
+      "date": "2026-08-23",
+      "dateLabel": "8/23(토)",
+      "dayLabel": "5일차",
+      "dayIndex": 5,
+      "weekday": "토",
+      "startTime": "09:30",
+      "endTime": "11:00",
+      "title": "말씀2",
+      "durationMinutes": 90,
+      "campusSpeakers": {
+        "seoul": "이규철 목사",
+        "gwangju": "정진관 목사"
+      }
+    },
+    {
+      "date": "2026-08-23",
+      "dateLabel": "8/23(토)",
+      "dayLabel": "5일차",
+      "dayIndex": 5,
+      "weekday": "토",
+      "startTime": "11:00",
+      "endTime": "12:00",
+      "title": "수료식",
+      "durationMinutes": 60
+    },
+    {
+      "date": "2026-08-23",
+      "dateLabel": "8/23(토)",
+      "dayLabel": "5일차",
+      "dayIndex": 5,
+      "weekday": "토",
+      "startTime": "12:00",
+      "endTime": "14:30",
+      "title": "점심식사"
+    },
+    {
+      "date": "2026-08-23",
+      "dateLabel": "8/23(토)",
+      "dayLabel": "5일차",
+      "dayIndex": 5,
+      "weekday": "토",
+      "startTime": "14:30",
+      "endTime": "18:00",
+      "title": "후발대 활동"
+    }
+  ],
+  "themeLectures": {
+    "seoulCampus": [
+      {
+        "number": 1,
+        "topic": "마지막 정세(AI 등)와 전도",
+        "speaker": "이상욱 목사"
+      },
+      {
+        "number": 2,
+        "topic": "이스라엘과 중동",
+        "speaker": "김재선 목사"
+      },
+      {
+        "number": 3,
+        "topic": "성경에 나오는 전도방법을 통한 전도의 지혜",
+        "speaker": "이광열 목사"
+      },
+      {
+        "number": 4,
+        "topic": "대학생의 시간 관리",
+        "speaker": "우호철 목사"
+      }
+    ],
+    "gwangjuCampus": [
+      {
+        "number": 1,
+        "topic": "이스라엘 외 나라나 도시들에 관한 예언과 성취",
+        "speaker": "김도형 목사"
+      },
+      {
+        "number": 2,
+        "topic": "전도를 위한 대학생의 시간 관리",
+        "speaker": "박민철 목사"
+      },
+      {
+        "number": 3,
+        "topic": "계시록 내용을 시사하는 현대의 여러 징조들",
+        "speaker": "김현영 목사"
+      }
+    ]
+  }
+}

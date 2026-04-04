@@ -193,8 +193,7 @@ namespace ScriptureTyping.Services
 
             string outputPath = Path.Combine(
                 baseDirectory,
-                "RecitingData",
-                "RecitingMusic",
+                "Data",
                 "reciting_music.json");
 
             if (File.Exists(outputPath))
@@ -205,8 +204,7 @@ namespace ScriptureTyping.Services
             string projectRootPath = Path.GetFullPath(Path.Combine(
                 baseDirectory,
                 @"..\..\..\..",
-                "RecitingData",
-                "RecitingMusic",
+                "Data",
                 "reciting_music.json"));
 
             if (File.Exists(projectRootPath))

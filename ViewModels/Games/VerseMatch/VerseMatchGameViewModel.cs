@@ -67,21 +67,31 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         }
 
         public VerseMatchGameViewModel()
-            : this(host: null, selectionContext: App.SelectionContext)
+            : this(host: null, selectionContext: App.SelectionContext, title: null)
         {
         }
 
         public VerseMatchGameViewModel(MainWindowViewModel host)
-            : this(host, App.SelectionContext)
+            : this(host, App.SelectionContext, title: null)
+        {
+        }
+
+        public VerseMatchGameViewModel(MainWindowViewModel host, string? title)
+            : this(host, App.SelectionContext, title)
         {
         }
 
         public VerseMatchGameViewModel(SelectionContext selectionContext)
-            : this(host: null, selectionContext)
+            : this(host: null, selectionContext, title: null)
         {
         }
 
-        public VerseMatchGameViewModel(MainWindowViewModel? host, SelectionContext selectionContext)
+        public VerseMatchGameViewModel(SelectionContext selectionContext, string? title)
+            : this(host: null, selectionContext, title)
+        {
+        }
+
+        public VerseMatchGameViewModel(MainWindowViewModel? host, SelectionContext selectionContext, string? title)
         {
             _host = host;
             _selectionContext = selectionContext ?? throw new ArgumentNullException(nameof(selectionContext));
@@ -128,6 +138,8 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             NextQuestionCommand = new RelayCommand(_ => MoveNextQuestion(), _ => CanMoveNextQuestion());
             SelectCardCommand = new RelayCommand(OnSelectCard, _ => CanSelectCard);
             ApplySelectionCommand = new RelayCommand(_ => ApplySelection(), _ => true);
+
+            Title = string.IsNullOrWhiteSpace(title) ? DEFAULT_TITLE : title;
 
             LoadSourceVerses();
             StartGame();
@@ -425,19 +437,11 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
         public bool CanSelectCard => !IsBusy && !IsGameFinished && !IsCurrentQuestionTimeExpired;
         public bool CanGoNext => CanMoveNextQuestion();
 
-        /// <summary>
-        /// 목적:
-        /// 현재 문제가 시간 초과 상태인지 판단한다.
-        /// </summary>
         private bool IsCurrentQuestionTimeExpired =>
             _currentQuestion is not null &&
             _currentQuestion.UseTimer &&
             RemainingSeconds == 0;
 
-        /// <summary>
-        /// 목적:
-        /// SelectionContext 기준으로 초기 선택값을 세팅한다.
-        /// </summary>
         private void InitializeSelections()
         {
             string courseText = string.IsNullOrWhiteSpace(_selectionContext.SelectedCourseId)
@@ -463,10 +467,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             ClearSelectionError();
         }
 
-        /// <summary>
-        /// 목적:
-        /// 헤더에서 선택한 과정/일차/난이도를 검증한다.
-        /// </summary>
         private bool ValidateSelection()
         {
             if (string.IsNullOrWhiteSpace(SelectedCourse) || !Courses.Contains(SelectedCourse))
@@ -491,10 +491,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             return true;
         }
 
-        /// <summary>
-        /// 목적:
-        /// 헤더에서 선택한 과정/일차/난이도를 적용하고 게임을 새로 시작한다.
-        /// </summary>
         private void ApplySelection()
         {
             if (!ValidateSelection())
@@ -506,10 +502,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             StartGame();
         }
 
-        /// <summary>
-        /// 목적:
-        /// 게임 시작에 사용할 Verse 목록을 읽어온다.
-        /// </summary>
         private void LoadSourceVerses()
         {
             _sourceVerses.Clear();
@@ -521,10 +513,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             _sourceVerses.AddRange(verses);
         }
 
-        /// <summary>
-        /// 목적:
-        /// 현재 선택 난이도로 문제 목록을 만들고 첫 문제를 시작한다.
-        /// </summary>
         public void StartGame()
         {
             StopTimer();
@@ -566,19 +554,11 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             LoadQuestion(0);
         }
 
-        /// <summary>
-        /// 목적:
-        /// 게임을 다시 시작한다.
-        /// </summary>
         private void RestartGame()
         {
             StartGame();
         }
 
-        /// <summary>
-        /// 목적:
-        /// 특정 인덱스 문제를 로드한다.
-        /// </summary>
         private void LoadQuestion(int index)
         {
             StopTimer();
@@ -618,10 +598,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             NotifyPropertyChanged(nameof(CanSelectCard));
         }
 
-        /// <summary>
-        /// 목적:
-        /// 카드 선택 처리
-        /// </summary>
         private async void OnSelectCard(object? parameter)
         {
             if (IsBusy || IsGameFinished || IsCurrentQuestionTimeExpired || _currentQuestion is null)
@@ -697,11 +673,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             IsBusy = false;
         }
 
-        /// <summary>
-        /// 목적:
-        /// 두 카드가 같은 짝인지 검사한다.
-        /// 가짜 카드가 포함되면 무조건 오답이다.
-        /// </summary>
         private static bool IsPairMatched(VerseMatchCardItem first, VerseMatchCardItem second)
         {
             if (first is null || second is null)
@@ -727,10 +698,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             return string.Equals(first.PairKey, second.PairKey, StringComparison.Ordinal);
         }
 
-        /// <summary>
-        /// 목적:
-        /// 다음 문제로 이동한다.
-        /// </summary>
         private void MoveNextQuestion()
         {
             if (!CanMoveNextQuestion())
@@ -747,10 +714,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             LoadQuestion(_currentQuestionIndex + 1);
         }
 
-        /// <summary>
-        /// 목적:
-        /// 게임 종료 처리
-        /// </summary>
         private void FinishGame()
         {
             StopTimer();
@@ -770,30 +733,17 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             NotifyPropertyChanged(nameof(CanSelectCard));
         }
 
-        /// <summary>
-        /// 목적:
-        /// 타이머가 1초 감소했을 때 남은 시간을 반영한다.
-        /// </summary>
-        /// <param name="remainingSeconds">현재 남은 시간</param>
         private void OnTimerSecondElapsed(int remainingSeconds)
         {
             RemainingSeconds = remainingSeconds;
             UpdateTimerText();
         }
 
-        /// <summary>
-        /// 목적:
-        /// 타이머 만료 시 시간 초과 처리를 수행한다.
-        /// </summary>
         private void OnTimerExpired()
         {
             HandleTimeExpired();
         }
 
-        /// <summary>
-        /// 목적:
-        /// 시간 초과 처리
-        /// </summary>
         private void HandleTimeExpired()
         {
             if (_currentQuestion is null)
@@ -815,10 +765,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             NotifyPropertyChanged(nameof(CanSelectCard));
         }
 
-        /// <summary>
-        /// 목적:
-        /// 상태 텍스트를 갱신한다.
-        /// </summary>
         private void UpdateStatusTexts()
         {
             if (_currentQuestion is null)
@@ -834,10 +780,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             UpdateTimerText();
         }
 
-        /// <summary>
-        /// 목적:
-        /// 타이머 텍스트를 갱신한다.
-        /// </summary>
         private void UpdateTimerText()
         {
             if (_currentQuestion is null || !_currentQuestion.UseTimer)
@@ -849,10 +791,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             TimerText = $"남은 시간: {RemainingSeconds}초";
         }
 
-        /// <summary>
-        /// 목적:
-        /// 다음 문제로 이동 가능한지 판단한다.
-        /// </summary>
         private bool CanMoveNextQuestion()
         {
             if (_currentQuestion is null)
@@ -864,19 +802,11 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
                 || (_currentQuestion.UseTimer && RemainingSeconds == 0);
         }
 
-        /// <summary>
-        /// 목적:
-        /// 타이머 중지
-        /// </summary>
         private void StopTimer()
         {
             _timerController.Stop();
         }
 
-        /// <summary>
-        /// 목적:
-        /// 뒤로가기 처리
-        /// </summary>
         private void Back()
         {
             StopTimer();
@@ -887,10 +817,6 @@ namespace ScriptureTyping.ViewModels.Games.VerseMatch
             }
         }
 
-        /// <summary>
-        /// 목적:
-        /// 선택 에러 메시지를 초기화한다.
-        /// </summary>
         private void ClearSelectionError()
         {
             SelectionError = string.Empty;

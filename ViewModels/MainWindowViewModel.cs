@@ -2,6 +2,9 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using ScriptureTyping.Services;
@@ -16,6 +19,7 @@ namespace ScriptureTyping.ViewModels
         private readonly string _planImagePath;
         private readonly ScheduleService _scheduleService;
         private readonly DispatcherTimer _scheduleTimer;
+        private readonly AppUpdateService _appUpdateService;
 
         private string _statusMessage = string.Empty;
         private string _footerRight = string.Empty;
@@ -27,6 +31,7 @@ namespace ScriptureTyping.ViewModels
         private string _currentMonthText = string.Empty;
         private string _currentDayText = string.Empty;
         private string _currentClockText = string.Empty;
+        private bool _isCheckingUpdate;
 
         public string Title { get; } = "42기 사무엘학교";
 
@@ -184,6 +189,8 @@ namespace ScriptureTyping.ViewModels
 
         public ICommand GoHomeCommand { get; }
 
+        public ICommand CheckUpdateCommand { get; }
+
         public bool IsHomeVisible => CurrentContentViewModel is null;
 
         public string PlanImagePath => _planImagePath;
@@ -217,13 +224,16 @@ namespace ScriptureTyping.ViewModels
             }
         }
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(AppUpdateService appUpdateService, ScheduleService scheduleService)
         {
+            _appUpdateService = appUpdateService;
+            _scheduleService = scheduleService;
+
             MenuViewModel = new MainMenuViewModel(this, ExitApp);
             GoHomeCommand = new ActionCommand(NavigateToHome);
+            CheckUpdateCommand = new ActionCommand(OnCheckUpdateButtonExecuted);
 
             _planImagePath = ResolvePlanImagePath();
-            _scheduleService = new ScheduleService();
 
             CurrentContentViewModel = null;
 
@@ -238,6 +248,11 @@ namespace ScriptureTyping.ViewModels
             };
             _scheduleTimer.Tick += OnScheduleTimerTick;
             _scheduleTimer.Start();
+        }
+
+        public Task CheckForUpdatesOnStartupAsync()
+        {
+            return CheckForUpdatesInternalAsync(isStartupCheck: true);
         }
 
         public void NavigateToHome()
@@ -270,6 +285,147 @@ namespace ScriptureTyping.ViewModels
         public void NavigateToCourseSelect()
         {
             NavigateToContent(new CourseSelectViewModel(o => NavigateToContent(o!)));
+        }
+
+        private void OnCheckUpdateButtonExecuted()
+        {
+            _ = CheckForUpdatesInternalAsync(isStartupCheck: false);
+        }
+
+        private async Task CheckForUpdatesInternalAsync(bool isStartupCheck)
+        {
+            if (_isCheckingUpdate)
+            {
+                return;
+            }
+
+            _isCheckingUpdate = true;
+
+            try
+            {
+                StatusMessage = "업데이트 확인 중...";
+
+                AppUpdateCheckResult result = await _appUpdateService.CheckForUpdatesAsync();
+
+                switch (result.State)
+                {
+                    case AppUpdateCheckState.NotConfigured:
+                        StatusMessage = "업데이트 저장소 설정 필요";
+
+                        if (!isStartupCheck)
+                        {
+                            MessageBox.Show(
+                                "Services/AppUpdateService.cs의 UpdateRepositoryUrl 값을 먼저 네 GitHub 저장소 주소로 바꿔야 합니다.",
+                                "Check Update",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                        }
+
+                        return;
+
+                    case AppUpdateCheckState.NotInstalled:
+                        StatusMessage = "설치본 아님";
+
+                        if (!isStartupCheck)
+                        {
+                            MessageBox.Show(
+                                "지금 실행 중인 프로그램은 설치된 Velopack 버전이 아닙니다.\n\nbin\\Debug 실행본 말고, Setup.exe로 설치한 프로그램에서만 자동업데이트가 동작합니다.",
+                                "Check Update",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                        }
+
+                        return;
+
+                    case AppUpdateCheckState.NoUpdate:
+                        StatusMessage = "최신 버전 사용 중";
+
+                        if (!isStartupCheck)
+                        {
+                            string currentVersionText = string.IsNullOrWhiteSpace(result.CurrentVersion)
+                                ? "알 수 없음"
+                                : result.CurrentVersion;
+
+                            MessageBox.Show(
+                                $"현재 최신 버전입니다.\n\n현재 버전: {currentVersionText}",
+                                "Check Update",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                        }
+
+                        return;
+
+                    case AppUpdateCheckState.UpdateAvailable:
+                        StatusMessage = "새 버전 발견";
+
+                        if (!result.HasUpdate)
+                        {
+                            return;
+                        }
+
+                        string currentVersion = string.IsNullOrWhiteSpace(result.CurrentVersion)
+                            ? "알 수 없음"
+                            : result.CurrentVersion;
+
+                        string targetVersion = string.IsNullOrWhiteSpace(result.TargetVersion)
+                            ? "알 수 없음"
+                            : result.TargetVersion;
+
+                        string releaseNotesPreview = BuildReleaseNotesPreview(result.ReleaseNotes);
+
+                        StringBuilder messageBuilder = new StringBuilder();
+                        messageBuilder.AppendLine("새 버전이 있습니다.");
+                        messageBuilder.AppendLine();
+                        messageBuilder.AppendLine($"현재 버전: {currentVersion}");
+                        messageBuilder.AppendLine($"최신 버전: {targetVersion}");
+
+                        if (!string.IsNullOrWhiteSpace(releaseNotesPreview))
+                        {
+                            messageBuilder.AppendLine();
+                            messageBuilder.AppendLine("변경사항:");
+                            messageBuilder.AppendLine(releaseNotesPreview);
+                        }
+
+                        messageBuilder.AppendLine();
+                        messageBuilder.Append("지금 업데이트하시겠습니까?");
+
+                        MessageBoxResult confirm = MessageBox.Show(
+                            messageBuilder.ToString(),
+                            "Check Update",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (confirm != MessageBoxResult.Yes)
+                        {
+                            StatusMessage = "업데이트 보류";
+                            return;
+                        }
+
+                        StatusMessage = "업데이트 다운로드 중...";
+                        await _appUpdateService.DownloadUpdatesAsync(result.UpdateInfo!);
+
+                        StatusMessage = "업데이트 적용 중...";
+                        _appUpdateService.ApplyUpdatesAndRestart(result.UpdateInfo!);
+                        return;
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "업데이트 확인 실패";
+
+                if (!isStartupCheck)
+                {
+                    MessageBox.Show(
+                        $"업데이트 처리 중 오류가 발생했습니다.\n\n{ex.Message}",
+                        "Check Update",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+            finally
+            {
+                _isCheckingUpdate = false;
+            }
         }
 
         private void OnScheduleTimerTick(object? sender, EventArgs e)
@@ -346,9 +502,26 @@ namespace ScriptureTyping.ViewModels
             return string.Empty;
         }
 
+        private static string BuildReleaseNotesPreview(string releaseNotes)
+        {
+            if (string.IsNullOrWhiteSpace(releaseNotes))
+            {
+                return string.Empty;
+            }
+
+            string normalized = releaseNotes.Replace("\r\n", "\n").Trim();
+
+            if (normalized.Length <= 300)
+            {
+                return normalized;
+            }
+
+            return normalized.Substring(0, 300) + "...";
+        }
+
         private void ExitApp()
         {
-            System.Windows.Application.Current.Shutdown();
+            Application.Current.Shutdown();
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

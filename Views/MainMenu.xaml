@@ -124,7 +124,7 @@
                                FontSize="18"
                                FontWeight="SemiBold"/>
 
-                    <UniformGrid Grid.Row="2" Rows="5" Columns="1">
+                    <UniformGrid Grid.Row="2" Rows="3" Columns="1">
                         <Button Content="학습 시작"
                                 MinHeight="44"
                                 Margin="0,0,0,10"
@@ -142,17 +142,6 @@
                                 Margin="0,0,0,10"
                                 Style="{StaticResource MenuButtonStyle}"
                                 Command="{Binding RecordsCommand}"/>
-
-                        <Button Content="설정"
-                                MinHeight="44"
-                                Margin="0,0,0,10"
-                                Style="{StaticResource MenuButtonStyle}"
-                                Command="{Binding SettingsCommand}"/>
-
-                        <Button Content="종료"
-                                MinHeight="44"
-                                Style="{StaticResource MenuButtonStyle}"
-                                Command="{Binding ExitCommand}"/>
                     </UniformGrid>
                 </Grid>
 

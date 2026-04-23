@@ -6,6 +6,7 @@ using ScriptureTyping.ViewModels.Games.Cloze.Contracts;
 using ScriptureTyping.ViewModels.Games.Cloze.Models;
 using System;
 using System.Windows;
+using Velopack;
 
 namespace ScriptureTyping
 {
@@ -22,6 +23,16 @@ namespace ScriptureTyping
         /// </summary>
         public static IServiceProvider Services { get; private set; } = null!;
 
+        [STAThread]
+        public static void Main(string[] args)
+        {
+            VelopackApp.Build().Run();
+
+            App app = new App();
+            app.InitializeComponent();
+            app.Run();
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -32,13 +43,38 @@ namespace ScriptureTyping
             Services = services.BuildServiceProvider();
 
             MainWindow window = Services.GetRequiredService<MainWindow>();
+            MainWindowViewModel viewModel = Services.GetRequiredService<MainWindowViewModel>();
+
+            window.DataContext = viewModel;
+
+            async void OnMainWindowContentRendered(object? sender, EventArgs args)
+            {
+                window.ContentRendered -= OnMainWindowContentRendered;
+                await viewModel.CheckForUpdatesOnStartupAsync();
+            }
+
+            window.ContentRendered += OnMainWindowContentRendered;
             window.Show();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            if (Services is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            base.OnExit(e);
         }
 
         private static void ConfigureServices(IServiceCollection services)
         {
             // 공용 상태
             services.AddSingleton(SelectionContext);
+
+            // 공용 서비스
+            services.AddSingleton<ScheduleService>();
+            services.AddSingleton<AppUpdateService>();
 
             // 분석 서비스
             services.AddSingleton<IClozeWordAnalyzer, ClozeWordAnalyzer>();

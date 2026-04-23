@@ -80,21 +80,31 @@ namespace ScriptureTyping.ViewModels.Games
         public event Action? BackRequested;
 
         public ClozeGameViewModel()
-            : this(host: null, selectionContext: App.SelectionContext)
+            : this(host: null, selectionContext: App.SelectionContext, title: null)
         {
         }
 
         public ClozeGameViewModel(MainWindowViewModel host)
-            : this(host, App.SelectionContext)
+            : this(host, App.SelectionContext, title: null)
+        {
+        }
+
+        public ClozeGameViewModel(MainWindowViewModel host, string? title)
+            : this(host, App.SelectionContext, title)
         {
         }
 
         public ClozeGameViewModel(SelectionContext selectionContext)
-            : this(host: null, selectionContext)
+            : this(host: null, selectionContext, title: null)
         {
         }
 
-        public ClozeGameViewModel(MainWindowViewModel? host, SelectionContext selectionContext)
+        public ClozeGameViewModel(SelectionContext selectionContext, string? title)
+            : this(host: null, selectionContext, title)
+        {
+        }
+
+        public ClozeGameViewModel(MainWindowViewModel? host, SelectionContext selectionContext, string? title)
         {
             _host = host;
             _ctx = selectionContext ?? throw new ArgumentNullException(nameof(selectionContext));
@@ -110,7 +120,7 @@ namespace ScriptureTyping.ViewModels.Games
             RestartCommand = new RelayCommand(_ => Restart(), _ => true);
             ApplySelectionCommand = new RelayCommand(_ => ApplySelection(), _ => CanApplySelection());
 
-            Title = DEFAULT_TITLE;
+            Title = string.IsNullOrWhiteSpace(title) ? DEFAULT_TITLE : title;
 
             InitSelectionUi();
             ApplySelectionFromContextOrDefault();

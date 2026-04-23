@@ -8,8 +8,8 @@
     <UseWPF>true</UseWPF>
     <StartupObject>ScriptureTyping.App</StartupObject>
 	  
-    <Version>0.0.1-beta</Version>
-    <InformationalVersion>0.0.1-beta</InformationalVersion>
+    <Version>0.0.2-beta</Version>
+    <InformationalVersion>0.0.2-beta</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 

@@ -44,7 +44,6 @@ packages/
 *.nupkg
 *.snupkg
 *.nuspec
-# 자동 복원되는 assets
 **/packages/**/lib/
 **/packages/**/tools/
 **/packages/**/build/
@@ -72,6 +71,7 @@ _ServiceFabric/
 [Bb]uild[Ll]og.*
 /**/PublishProfiles/
 **/publish/
+**/.publish/
 **/AppPackages/
 **/PackageTmp/
 
@@ -122,4 +122,14 @@ stylecop.json.cache
 *.old
 *.orig
 *.tmp
+
+## 프로젝트 루트 생성물
+/bin/
+/obj/
+/publish/
+/.publish/
+/Releases/
+/.tools/
+
+## 솔루션 파일 무시
 ScriptureTyping.sln

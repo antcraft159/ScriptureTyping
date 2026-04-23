@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using ScriptureTyping.Services;
 using ScriptureTyping.ViewModels.Games;
+using System.Reflection;
 using ScriptureTyping.ViewModels.RecitingMusic;
 
 namespace ScriptureTyping.ViewModels
@@ -238,7 +239,7 @@ namespace ScriptureTyping.ViewModels
             CurrentContentViewModel = null;
 
             StatusMessage = "가능";
-            FooterRight = "v0.1";
+            FooterRight = GetFooterVersionText();
 
             UpdateScheduleInfo();
 
@@ -502,6 +503,23 @@ namespace ScriptureTyping.ViewModels
             return string.Empty;
         }
 
+        private static string GetFooterVersionText()
+        {
+            Assembly assembly = typeof(App).Assembly;
+
+            string versionText =
+                assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+                ?? assembly.GetName().Version?.ToString(3)
+                ?? "0.0.0";
+
+            int plusIndex = versionText.IndexOf('+');
+            if (plusIndex >= 0)
+            {
+                versionText = versionText.Substring(0, plusIndex);
+            }
+
+            return $"v{versionText}";
+        }
         private static string BuildReleaseNotesPreview(string releaseNotes)
         {
             if (string.IsNullOrWhiteSpace(releaseNotes))

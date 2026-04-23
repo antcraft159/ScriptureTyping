@@ -1,115 +1,47 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <StartupObject>ScriptureTyping.App</StartupObject>
-	  
-    <Version>0.0.2-beta</Version>
-    <InformationalVersion>0.0.2-beta</InformationalVersion>
-    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<StartupObject>ScriptureTyping.App</StartupObject>
 
-  <ItemGroup>
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\1_Thessalonian5_23.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\1_Timothy6_16.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\2_Peter1_20-21.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\2_Timothy3_16-17.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Ecclesiastes3_11.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Hebrews3_4.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\I Thessalonian5_23.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\I Timothy6_16.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\II Peter1_20-21.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\II Timothy3_16-17.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\isaiah34_16.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Job19_26.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Job26_7.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Job38_31.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\John5_39.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Romans10_17.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Romans1_19.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Romans1_20.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Romans2_15.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\Romans2_25.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\데살로니가전서 5장 23절.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course01\Day01\제목_ 이사야 34장 16절.mp3" />
-    <None Remove="Assets\Audio\RecitingMusic\Course03\Day01\Exodus33_20.mp3" />
-  </ItemGroup>
+		<Version>0.0.3-beta</Version>
+		<InformationalVersion>0.0.3-beta</InformationalVersion>
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Ecclesiastes3_11.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Hebrews3_4.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Job19_26.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Job26_7.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Job38_31.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\John5_39.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Romans10_17.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Romans1_19.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Romans1_20.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\Romans2_15.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course03\Day01\Exodus33_20.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Data\major_schedule.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Data\reciting_music.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="Assets\Audio\RecitingMusic\**\*.*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+		</None>
 
-  <ItemGroup>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\1_Timothy6_16.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\2_Peter1_20-21.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Audio\RecitingMusic\Course01\Day01\2_Timothy3_16-17.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+		<None Update="Data\**\*.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Resources\Themes\" />
-    <Folder Include="Views\Games\Cloze\Styles\" />
-  </ItemGroup>
+	<ItemGroup>
+		<Folder Include="Resources\Themes\" />
+		<Folder Include="Views\Games\Cloze\Styles\" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
-    <PackageReference Include="Velopack" Version="0.0.1298" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+		<PackageReference Include="Velopack" Version="0.0.1298" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ApplicationDefinition Remove="App.xaml" />
-    <Page Include="App.xaml" />
-  </ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Remove="App.xaml" />
+		<Page Include="App.xaml" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\사무엘학교\ScriptureTyping.Shared\ScriptureTyping.Shared.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\사무엘학교\ScriptureTyping.Shared\ScriptureTyping.Shared.csproj" />
+	</ItemGroup>
 
 </Project>

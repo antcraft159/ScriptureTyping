@@ -67,21 +67,31 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
         private bool _isGameFinished;
 
         public WordOrderGameViewModel()
-            : this(host: null, selectionContext: App.SelectionContext)
+            : this(host: null, selectionContext: App.SelectionContext, title: null)
         {
         }
 
         public WordOrderGameViewModel(MainWindowViewModel host)
-            : this(host, App.SelectionContext)
+            : this(host, App.SelectionContext, title: null)
+        {
+        }
+
+        public WordOrderGameViewModel(MainWindowViewModel host, string? title)
+            : this(host, App.SelectionContext, title)
         {
         }
 
         public WordOrderGameViewModel(SelectionContext selectionContext)
-            : this(host: null, selectionContext)
+            : this(host: null, selectionContext, title: null)
         {
         }
 
-        public WordOrderGameViewModel(MainWindowViewModel? host, SelectionContext selectionContext)
+        public WordOrderGameViewModel(SelectionContext selectionContext, string? title)
+            : this(host: null, selectionContext, title)
+        {
+        }
+
+        public WordOrderGameViewModel(MainWindowViewModel? host, SelectionContext selectionContext, string? title)
         {
             _host = host;
             _ctx = selectionContext ?? throw new ArgumentNullException(nameof(selectionContext));
@@ -109,6 +119,8 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
             HintCommand = new RelayCommand(_ => UseHint(), _ => CanUseHint());
             NextQuestionCommand = new RelayCommand(_ => MoveNextQuestion(), _ => CanMoveNextQuestion());
             StartGameCommand = new RelayCommand(_ => StartGame(), _ => CanStartGame());
+
+            Title = string.IsNullOrWhiteSpace(title) ? DEFAULT_TITLE : title;
 
             InitSelectionUi();
             ApplySelectionFromContextOrDefault();
@@ -731,7 +743,6 @@ namespace ScriptureTyping.ViewModels.Games.WordOrder
 
             _timerController.Configure(RemainingSeconds);
 
-            Title = DEFAULT_TITLE;
             ReferenceText = _currentQuestion.ReferenceText;
             FeedbackText = GetInitialGuideText(_currentQuestion.Difficulty);
             ApplyFixedPiecesIfNeeded(_currentQuestion);
